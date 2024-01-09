@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package schemaVersion="1.7.27" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Open-CMSIS-Pack/Open-CMSIS-Pack-Spec/v1.7.27/schema/PACK.xsd">
+  <name>CMSIS-Driver_STM32</name>
+  <description>CMSIS Drivers for STMicroelectronics STM32 Series devices</description>
+  <vendor>ARM</vendor>
+  <url>https://www.keil.com/pack/</url>
+
+  <releases>
+    <release version="1.0.0-dev0">
+      Active development ...
+      Initial release.
+    </release>
+  </releases>
+
+  <keywords>                                                                  <!-- keywords for indexing -->
+    <keyword>ST</keyword>
+    <keyword>STM32</keyword>
+  </keywords>
+
+  <taxonomy>
+    <description Cclass="CMSIS Driver" doc="CMSIS/Documentation/Driver/html/index.html">Unified Device Drivers compliant to CMSIS-Driver Specifications</description>
+  </taxonomy>
+
+  <conditions>
+    <!-- Device Conditions -->
+    <condition id="Device requirement">
+      <description>STMicroelectronics STM32 Series devices</description>
+      <require Dvendor="STMicroelectronics:13" Dname="STM32*"/>
+    </condition>
+
+    <!-- CMSIS Driver Common Conditions -->
+    <condition id="Common requirements">
+      <description>Common requirements for all CMSIS Drivers</description>
+      <require condition="Device requirement"/>
+      <require Cclass="CMSIS" Cgroup="CORE"/>
+    </condition>
+
+    <!-- CMSIS Driver Conditions -->
+    <condition id="Conditions for CMSIS Driver ETH MAC">
+      <require condition="Common requirements"/>
+      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="ETH"/>
+    </condition>
+    <condition id="Conditions for CMSIS Driver SPI">
+      <require condition="Common requirements"/>
+      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="SPI"/>
+    </condition>
+    <condition id="Conditions for CMSIS Driver USART">
+      <require condition="Common requirements"/>
+      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="UART"/>
+    </condition>
+  </conditions>
+
+  <components>
+    <!-- CMSIS Drivers -->
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver ETH MAC">
+      <description>Ethernet MAC Driver for STM32 devices</description>
+      <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_Drivers_ETH_MAC0            /* Driver ETH_MAC0 */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/eth_mac_stm32.html"/>
+        <file category="header"  name="Drivers/ETH_MAC_STM32.h"/>
+        <file category="source"  name="Drivers/ETH_MAC_STM32.c"/>
+      </files>
+    </component>
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver SPI">
+      <description>SPI Driver for STM32 devices</description>
+      <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_Drivers_SPI1                /* Driver SPI1 */
+        #define RTE_Drivers_SPI2                /* Driver SPI2 */
+        #define RTE_Drivers_SPI3                /* Driver SPI3 */
+        #define RTE_Drivers_SPI4                /* Driver SPI4 */
+        #define RTE_Drivers_SPI5                /* Driver SPI5 */
+        #define RTE_Drivers_SPI6                /* Driver SPI6 */
+        #define RTE_Drivers_SPI7                /* Driver SPI7 */
+        #define RTE_Drivers_SPI8                /* Driver SPI8 */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/spi_stm32.html"/>
+        <file category="header"  name="Drivers/SPI_STM32.h"/>
+        <file category="source"  name="Drivers/SPI_STM32.c"/>
+      </files>
+    </component>
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver USART">
+      <description>USART Driver for STM32 devices</description>
+      <RTE_Components_h> <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_CMSIS_Driver_USART1         /* Driver USART1  */
+        #define RTE_CMSIS_Driver_USART2         /* Driver USART2  */
+        #define RTE_CMSIS_Driver_USART3         /* Driver USART3  */
+        #define RTE_CMSIS_Driver_USART4         /* Driver USART4  */
+        #define RTE_CMSIS_Driver_USART5         /* Driver USART5  */
+        #define RTE_CMSIS_Driver_USART6         /* Driver USART6  */
+        #define RTE_CMSIS_Driver_USART7         /* Driver USART7  */
+        #define RTE_CMSIS_Driver_USART8         /* Driver USART8  */
+        #define RTE_CMSIS_Driver_USART9         /* Driver USART9  */
+        #define RTE_CMSIS_Driver_USART9         /* Driver USART9  */
+        #define RTE_CMSIS_Driver_USART10        /* Driver USART10 */
+        #define RTE_CMSIS_Driver_USART11        /* Driver USART11 */
+        #define RTE_CMSIS_Driver_USART12        /* Driver USART12 */
+        #define RTE_CMSIS_Driver_USART13        /* Driver USART13 */
+        #define RTE_CMSIS_Driver_USART14        /* Driver USART14 */
+        #define RTE_CMSIS_Driver_USART15        /* Driver USART15 */
+        #define RTE_CMSIS_Driver_USART21        /* Driver USART21 (LPUART1) */
+        #define RTE_CMSIS_Driver_USART22        /* Driver USART22 (LPUART2) */
+        #define RTE_CMSIS_Driver_USART23        /* Driver USART23 (LPUART3) */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/usart_stm32.html"/>
+        <file category="header"  name="Drivers/USART_STM32.h"/>
+        <file category="source"  name="Drivers/USART_STM32.c"/>
+      </files>
+    </component>
+  </components>
+</package>
