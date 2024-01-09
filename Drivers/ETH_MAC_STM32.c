@@ -678,7 +678,7 @@ static int32_t ETH_MAC_GetTxFrameTime (ARM_ETH_MAC_TIME *time) {
   \return      \ref execution_status
 */
 static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
-  HAL_UART_StateTypeDef g_state;
+  HAL_StatusTypeDef g_state;
 
   if (eth_mac0_rw_info.drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
