@@ -118,12 +118,16 @@ This driver requires the following configuration in the STM32CubeMX tool:
     and **Parameter Setting** configured as desired
   - **pins**: **UART/USART TX** and **UART/USART RX pins**, and optional **Hardware flow Control pins**
   - **DMA**: optional **DMA** configuration for transfers
-  - **interrupts**: enabled **UART/USART interrupts** and **IRQ handlers** that **Call HAL handlers**
+  - **interrupts**: enabled **UART/USART interrupts** and **IRQ handlers** that **Call HAL handlers** and
+    enabled **DMA interrupts** and **IRQ handlers** that **Call HAL handlers** if **DMA** is used
 
 > **Note**
+> - **DMA** configuration can differ between devices series so configure DMA **as required by used device**
 > - for **DMA** usage on devices with cache, ensure that data buffers for Send and Receive functions
 >   are in **non-cacheable memory**, or ensure that memory for send is updated (**cache clean**) before Send function
 >   is called and that memory containing received data is updated after the reception finishes (**cache invalidate**)
+> - some DMA controllers can only access specific memories, so ensure that proper memory is used for buffers
+>   according to the DMA requirement
 
 ## Example
 
@@ -162,7 +166,8 @@ This is example of configuring **USART1** on the **STM32H735IGK3** device with t
            PB15     | USART1_RX     | n/a          | n/a          | Alternate Function Push Pull  | No pull-up and no..| Low          | n/a       | .
          \n
 
-  3. Under **Categories**: **System Core** select **DMA** (might be different on other device series):
+  3. Under **Categories**: **System Core** select **DMA**
+     (might be different on other device series, or for some peripherals might be BDMA):
 
      __Configuration__:
        - DMA1, DMA2:
@@ -180,8 +185,8 @@ This is example of configuring **USART1** on the **STM32H735IGK3** device with t
        - NVIC:
            NVIC Interrupt Table              | Enabled     | Preemption Priority | Sub Priority
            :---------------------------------|:-----------:|:-------------------:|:------------:
-           DMA1 stream0 global interrupt     | **checked** | 0                   | 0
-           DMA1 stream1 global interrupt     | **checked** | 0                   | 0
+           DMA1 stream0 global interrupt     |   checked   | 0                   | 0
+           DMA1 stream1 global interrupt     |   checked   | 0                   | 0
            USART1 global interrupt           | **checked** | 0                   | 0
          \n
 
@@ -195,7 +200,7 @@ This is example of configuring **USART1** on the **STM32H735IGK3** device with t
 
 ### Clock Configuration tab
 
-  1. Configure **To USART1 (MHz)**: **100**
+  1. Configure **To USART1,6,9,10 (MHz)**: **100**
 
 ### Project Manager tab
 

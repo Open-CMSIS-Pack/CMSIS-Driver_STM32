@@ -102,11 +102,13 @@ This driver requires the following configuration in the STM32CubeMX tool:
     and **Parameter Setting** configured as desired
   - **pins**: **SPI MISO**, **MOSI**, **SCK** and **NSS pins**
   - **DMA**: optional **DMA** configuration for transfers
-  - **interrupts**: enabled **SPI interrupts** and **IRQ handlers** that **Call HAL handlers**
+  - **interrupts**: enabled **SPI interrupts** and **IRQ handlers** that **Call HAL handlers** and
+    enabled **DMA interrupts** and **IRQ handlers** that **Call HAL handlers** if **DMA** is used
 
 > **Note**
 > - **Hardware** or **Software Slave Select** functionality is only available if **NSS pin** is configured
 >   in the STM32CubeMX tool with alternate function **Hardware NSS Signal**
+> - **DMA** configuration can differ between devices series so configure DMA **as required by used device**
 > - for **DMA** usage on devices with cache, ensure that data buffers for Send and Receive functions
 >   are in **non-cacheable memory**, or ensure that memory for send is updated (**cache clean**) before Send function
 >   is called and that memory containing received data is updated after the reception finishes (**cache invalidate**)
@@ -150,7 +152,8 @@ This is example of configuring **SPI5** on the **STM32H735IGK3** device with the
            PF9      | SPI5_MOSI     | n/a          | n/a          | Alternate Function Push Pull  | No pull-up and no..| **Medium**   | n/a       | .
          \n
 
-  3. Under **Categories**: **System Core** select **DMA** (might be different on other device series):
+  3. Under **Categories**: **System Core** select **DMA**
+     (might be different on other device series, or for some peripherals might be BDMA):
 
      __Configuration__:
        - DMA1, DMA2:
@@ -168,8 +171,8 @@ This is example of configuring **SPI5** on the **STM32H735IGK3** device with the
        - NVIC:
            NVIC Interrupt Table              | Enabled     | Preemption Priority | Sub Priority
            :---------------------------------|:-----------:|:-------------------:|:------------:
-           DMA1 stream0 global interrupt     | **checked** | 0                   | 0
-           DMA1 stream1 global interrupt     | **checked** | 0                   | 0
+           DMA1 stream0 global interrupt     |   checked   | 0                   | 0
+           DMA1 stream1 global interrupt     |   checked   | 0                   | 0
            SPI5 global interrupt             | **checked** | 0                   | 0
          \n
 
@@ -183,7 +186,7 @@ This is example of configuring **SPI5** on the **STM32H735IGK3** device with the
 
 ### Clock Configuration tab
 
-  1. Configure **To SPI5 (MHz)**: **100**
+  1. Configure **To SPI4,5 (MHz)**: **100**
 
 ### Project Manager tab
 

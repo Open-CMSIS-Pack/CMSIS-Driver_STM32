@@ -94,12 +94,10 @@ This driver requires the following configuration in the STM32CubeMX tool:
   - **interrupts**: enabled **Ethernet global interrupt** and **IRQ handlers** that **Call HAL handlers**
 
 > **Note**
-> - for **DMA** usage on devices with cache, ensure that ETH DMA descriptors (**DMARxDscrTab** and **DMATxDscrTab**)
+> - for devices with cache, ensure that ETH DMA descriptors (**DMARxDscrTab** and **DMATxDscrTab**)
 >   are located in **non-cacheable** and **non-shareable device memory**
-> - for **DMA** usage on devices with cache, ensure that ETH data buffers (**eth_mac0_rx_buf** and **eth_mac0_tx_buf**)
+> - for devices with cache, ensure that ETH data buffers (**eth_mac0_rx_buf** and **eth_mac0_tx_buf**)
 >   are located in **non-cacheable** and **non-shareable normal memory**
-> - some ETH DMA can only access specific memories, so ensure that proper memory is used for buffers
->   according to the DMA requirement
 
 ## Example
 
