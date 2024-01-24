@@ -1,4 +1,4 @@
-CMSIS-Driver_Validation v3.1.0 CMSIS-Driver USART Test Report   Jan  8 2024   14:39:08
+CMSIS-Driver_Validation v3.1.0 CMSIS-Driver USART Test Report   Jan 24 2024   10:03:53 
 
 Test Mode:          USART Server
 Default settings:

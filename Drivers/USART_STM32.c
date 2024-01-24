@@ -2,7 +2,7 @@
  * @file     USART_STM32.c
  * @brief    USART Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     8. January 2024
+ * @date     24. January 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -122,11 +122,11 @@ This driver requires the following configuration in the STM32CubeMX tool:
     enabled **DMA interrupts** and **IRQ handlers** that **Call HAL handlers** if **DMA** is used
 
 > **Note**
-> - **DMA** configuration can differ between devices series so configure DMA **as required by used device**
+> - **DMA** configuration can differ between devices series so configure DMA **as required by the used device**
 > - for **DMA** usage on devices with cache, ensure that data buffers for Send and Receive functions
 >   are in **non-cacheable memory**, or ensure that memory for send is updated (**cache clean**) before Send function
 >   is called and that memory containing received data is updated after the reception finishes (**cache invalidate**)
-> - some DMA controllers can only access specific memories, so ensure that proper memory is used for buffers
+> - some DMA controllers can only access specific memories, so ensure that proper memory is used for the buffers
 >   according to the DMA requirement
 
 ## Example
@@ -250,7 +250,7 @@ static  const RO_Info_t         usart##n##_ro_info = { &huart##n,               
 // Macro to create usart_ro_info and usart_rw_info (for LPUART instances)
 #define LP_INFO_DEFINE(n,lp_n)                                                                                 \
 extern  UART_HandleTypeDef      hlpuart##n;                                                                    \
-static        RW_Info_t         usart##n##_rw_info __attribute__((section(USART_SECTION_NAME(n,_rw))));         \
+static        RW_Info_t         usart##n##_rw_info __attribute__((section(USART_SECTION_NAME(n,_rw))));        \
 static  const RO_Info_t         usart##n##_ro_info = { &hlpuart##n,                                            \
                                                        &usart##n##_rw_info                                     \
                                                      };
@@ -835,16 +835,19 @@ static int32_t USARTn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_o
 */
 static uint32_t USARTn_GetTxCount (const RO_Info_t *ptr_ro_info) {
   uint32_t cnt;
+  uint32_t cnt_xferred;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return 0U;
   }
 
   if (ptr_ro_info->ptr_huart->hdmatx != NULL) { // If DMA is used for Tx
-    cnt = (uint32_t)ptr_ro_info->ptr_huart->TxXferSize - __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_huart->hdmatx);
+    cnt_xferred = __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_huart->hdmatx);
   } else {
-    cnt = (uint32_t)ptr_ro_info->ptr_huart->TxXferSize - ptr_ro_info->ptr_huart->TxXferCount;
+    cnt_xferred = ptr_ro_info->ptr_huart->TxXferCount;
   }
+
+  cnt = (uint32_t)ptr_ro_info->ptr_huart->TxXferSize - cnt_xferred;
 
   return cnt;
 }
@@ -857,16 +860,19 @@ static uint32_t USARTn_GetTxCount (const RO_Info_t *ptr_ro_info) {
 */
 static uint32_t USARTn_GetRxCount (const RO_Info_t *ptr_ro_info) {
   uint32_t cnt;
+  uint32_t cnt_xferred;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return 0U;
   }
 
   if (ptr_ro_info->ptr_huart->hdmarx != NULL) { // If DMA is used for Rx
-    cnt = (uint32_t)ptr_ro_info->ptr_huart->RxXferSize - __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_huart->hdmarx);
+    cnt_xferred = __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_huart->hdmarx);
   } else {
-    cnt = (uint32_t)ptr_ro_info->ptr_huart->RxXferSize - ptr_ro_info->ptr_huart->RxXferCount;
+    cnt_xferred = ptr_ro_info->ptr_huart->RxXferCount;
   }
+
+  cnt = (uint32_t)ptr_ro_info->ptr_huart->RxXferSize - cnt_xferred;
 
   return cnt;
 }
@@ -1164,27 +1170,32 @@ static ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t *ptr_ro_info) {
   status.rx_parity_error  = 0U;
   status.reserved         = 0U;
 
+  // Process HAL state
   switch (HAL_UART_GetState(ptr_ro_info->ptr_huart)) {
-    case HAL_UART_STATE_BUSY:
-    case HAL_UART_STATE_BUSY_TX_RX:
+    case HAL_UART_STATE_BUSY:           // An internal process is ongoing
+    case HAL_UART_STATE_BUSY_TX_RX:     // Data Transmission and Reception process is ongoing
       status.tx_busy = 1U;
       status.rx_busy = 1U;
       break;
 
-    case HAL_UART_STATE_BUSY_TX:
+    case HAL_UART_STATE_BUSY_TX:        // Data Transmission process is ongoing
       status.tx_busy = 1U;
       break;
 
-    case HAL_UART_STATE_BUSY_RX:
+    case HAL_UART_STATE_BUSY_RX:        // Data Reception process is ongoing
       status.rx_busy = 1U;
       break;
 
+    case HAL_UART_STATE_RESET:          // Peripheral is not initialized
+    case HAL_UART_STATE_READY:          // Peripheral Initialized and ready for use
+    case HAL_UART_STATE_TIMEOUT:        // Timeout state
+    case HAL_UART_STATE_ERROR:          // Error
     default:
       // Not busy related
       break;
   }
 
-  // Process locally handled communication error flags
+  // Process additionally handled communication information
   if (ptr_ro_info->ptr_rw_info->rx_overflow != 0U) {
     status.rx_overflow = 1U;
   }
@@ -1237,9 +1248,17 @@ void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart) {
 
   ptr_ro_info = USARTn_GetInfo(huart);
 
-  if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
-    ptr_ro_info->ptr_rw_info->cb_event(ARM_USART_EVENT_TX_COMPLETE | ARM_USART_EVENT_SEND_COMPLETE);
+  if (ptr_ro_info == NULL) {
+    return;
   }
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info->cb_event == NULL) {
+    return;
+  }
+
+  ptr_ro_info->ptr_rw_info->cb_event(ARM_USART_EVENT_TX_COMPLETE | ARM_USART_EVENT_SEND_COMPLETE);
 }
 
 /**
@@ -1252,9 +1271,17 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart) {
 
   ptr_ro_info = USARTn_GetInfo(huart);
 
-  if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
-    ptr_ro_info->ptr_rw_info->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
+  if (ptr_ro_info == NULL) {
+    return;
   }
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info->cb_event == NULL) {
+    return;
+  }
+
+  ptr_ro_info->ptr_rw_info->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
 }
 
 /**
@@ -1268,6 +1295,13 @@ void HAL_UART_ErrorCallback (UART_HandleTypeDef *huart) {
         uint32_t   event;
 
   ptr_ro_info = USARTn_GetInfo(huart);
+
+  if (ptr_ro_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
+  }
 
   error = HAL_UART_GetError(huart);
   event = 0U;
