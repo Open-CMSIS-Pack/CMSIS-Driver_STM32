@@ -2,7 +2,7 @@
  * @file     SPI_STM32.c
  * @brief    SPI Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     8. January 2024
+ * @date     24. January 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -108,11 +108,11 @@ This driver requires the following configuration in the STM32CubeMX tool:
 > **Note**
 > - **Hardware** or **Software Slave Select** functionality is only available if **NSS pin** is configured
 >   in the STM32CubeMX tool with alternate function **Hardware NSS Signal**
-> - **DMA** configuration can differ between devices series so configure DMA **as required by used device**
+> - **DMA** configuration can differ between devices series so configure DMA **as required by the used device**
 > - for **DMA** usage on devices with cache, ensure that data buffers for Send and Receive functions
 >   are in **non-cacheable memory**, or ensure that memory for send is updated (**cache clean**) before Send function
 >   is called and that memory containing received data is updated after the reception finishes (**cache invalidate**)
-> - some DMA controllers can only access specific memories, so ensure that proper memory is used for buffers
+> - some DMA controllers can only access specific memories, so ensure that proper memory is used for the buffers
 >   according to the DMA requirement
 
 ## Example
@@ -216,6 +216,11 @@ Results of the **CMSIS-Driver Validation** for this driver can be found in the [
 
 #include <string.h>
 
+// Check if MX_Device.h version is as required (old version did not have all the necessary information)
+#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
+#error SPI driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#endif
+
 // Driver Version *************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // ****************************************************************************
@@ -244,23 +249,21 @@ static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx, 
                                                          MX_SPI##n##_NSS_GPIO_PuPd,                            \
                                                          MX_SPI##n##_NSS_GPIO_Speed                            \
                                                       };                                                       \
-static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));         \
+static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
+                                                         MX_SPI##n##_PERIPH_CLOCK,                             \
                                                         &spi##n##_nss_config,                                  \
-                                                         RCC_PERIPHCLK_SPI##n,                                 \
-                                                        &spi##n##_rw_info,                                     \
-                                                         0U                                                    \
+                                                        &spi##n##_rw_info                                      \
                                                       };
 
 // Macro to create spi_ro_info and spi_rw_info (for instances), without NSS pin configured in the STM32CubeMX
 #define INFO_WO_NSS_DEFINE(n)                                                                                  \
 extern  SPI_HandleTypeDef       hspi##n;                                                                       \
-static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));         \
-static  const RO_Info_t         spi##n##_ro_info    = {  &hspi##n,                                             \
+static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
+static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
+                                                         MX_SPI##n##_PERIPH_CLOCK,                             \
                                                          NULL,                                                 \
-                                                         RCC_PERIPHCLK_SPI##n,                                 \
-                                                        &spi##n##_rw_info,                                     \
-                                                         0U                                                    \
+                                                        &spi##n##_rw_info                                      \
                                                       };
 
 // Macro for declaring functions (for instances)
@@ -331,10 +334,9 @@ typedef struct {
 // also contains pointer to run-time information
 typedef struct {
         SPI_HandleTypeDef      *ptr_hspi;               // Pointer to SPI handle
+        uint32_t                periph_clock;           // Peripheral clock (in Hz)
   const PinConfig_t            *ptr_nss_pin_config;     // Pointer to NSS pin configuration structure (NULL - if pin was not configured in STM32CubeMX)
-        uint64_t                peri_clock_id;          // Peripheral clock identifier
         RW_Info_t              *ptr_rw_info;            // Pointer to run-time information (RW)
-        uint32_t                reserved;               // Reserved (for padding)
 } RO_Info_t;
 
 // Information definitions (for instances)
@@ -426,7 +428,6 @@ static const RO_Info_t * const spi_ro_info_list[] = {
 
 // Local functions prototypes
 static const RO_Info_t       *SPIn_GetInfo        (const SPI_HandleTypeDef *hspi);
-static uint32_t               SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
 static ARM_DRIVER_VERSION     SPI_GetVersion      (void);
 static ARM_SPI_CAPABILITIES   SPI_GetCapabilities (void);
 static int32_t                SPIn_Initialize     (const RO_Info_t *ptr_ro_info, ARM_SPI_SignalEvent_t cb_event);
@@ -491,16 +492,6 @@ static const RO_Info_t *SPIn_GetInfo (const SPI_HandleTypeDef *hspi) {
   }
 
   return ptr_ro_info;
-}
-
-/**
-  \fn          uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info)
-  \brief       Get peripheral clock frequency.
-  \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
-  \return      frequency in KHz
-*/
-static uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
-  return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
 // Driver functions ***********************************************************
@@ -808,6 +799,7 @@ static int32_t SPIn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_out
 */
 static uint32_t SPIn_GetDataCount (const RO_Info_t *ptr_ro_info) {
   uint32_t cnt;
+  uint32_t cnt_xferred;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return 0U;
@@ -817,18 +809,22 @@ static uint32_t SPIn_GetDataCount (const RO_Info_t *ptr_ro_info) {
 
   if ((ptr_ro_info->ptr_hspi->pRxBuffPtr != NULL) && (ptr_ro_info->ptr_hspi->RxXferSize != 0U)) {
     // If reception was activated
-    if (ptr_ro_info->ptr_hspi->hdmarx != NULL) {    // If DMA is used for Rx
-      cnt = (uint32_t)ptr_ro_info->ptr_hspi->RxXferSize - __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_hspi->hdmarx);
+    if (ptr_ro_info->ptr_hspi->hdmarx != NULL) {        // If DMA is used for Rx
+      cnt_xferred = __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_hspi->hdmarx);
     } else {
-      cnt = (uint32_t)ptr_ro_info->ptr_hspi->RxXferSize - ptr_ro_info->ptr_hspi->RxXferCount;
+      cnt_xferred = ptr_ro_info->ptr_hspi->RxXferCount;
     }
+
+    cnt = (uint32_t)ptr_ro_info->ptr_hspi->RxXferSize - cnt_xferred;
   } else if ((ptr_ro_info->ptr_hspi->pTxBuffPtr != NULL) && (ptr_ro_info->ptr_hspi->TxXferSize != 0U)) {
     // If transmission was activated
-    if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {    // If DMA is used for Tx
-      cnt = (uint32_t)ptr_ro_info->ptr_hspi->TxXferSize - __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_hspi->hdmatx);
+    if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {        // If DMA is used for Tx
+      cnt_xferred = __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_hspi->hdmatx);
     } else {
-      cnt = (uint32_t)ptr_ro_info->ptr_hspi->TxXferSize - ptr_ro_info->ptr_hspi->TxXferCount;
+      cnt_xferred = ptr_ro_info->ptr_hspi->TxXferCount;
     }
+
+    cnt = (uint32_t)ptr_ro_info->ptr_hspi->TxXferSize - cnt_xferred;
   }
 
   return cnt;
@@ -892,7 +888,7 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 
                                                 // --- Control Miscellaneous
     case ARM_SPI_SET_BUS_SPEED:                 // Set Bus Speed in bps; arg = value
-      periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
+      periph_clk = ptr_ro_info->periph_clock;
       if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
       else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
       else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
@@ -900,11 +896,11 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
       else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
       else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
-      else                               { return ARM_DRIVER_ERROR;                                               }
+      else                               { return ARM_DRIVER_ERROR;                                                   }
       return ARM_DRIVER_OK;
 
     case ARM_SPI_GET_BUS_SPEED:                 // Get Bus Speed in bps
-      periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
+      periph_clk = ptr_ro_info->periph_clock;
       switch (ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler) {
         case SPI_BAUDRATEPRESCALER_2:   spi_clk = periph_clk >> 1; break;
         case SPI_BAUDRATEPRESCALER_4:   spi_clk = periph_clk >> 2; break;
@@ -1131,7 +1127,10 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 
   // Configure Bus Speed, only for Master mode
   if (ptr_ro_info->ptr_hspi->Init.Mode == SPI_MODE_MASTER) {
-    periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
+    periph_clk = ptr_ro_info->periph_clock;
+    if (periph_clk == 0U) {
+      return ARM_DRIVER_ERROR;
+    }
     if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
     else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
     else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
@@ -1247,23 +1246,25 @@ static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t *ptr_ro_info) {
 
   error = HAL_SPI_GetError(ptr_ro_info->ptr_hspi);
 
+  // Process HAL state
   switch (HAL_SPI_GetState(ptr_ro_info->ptr_hspi)) {
-    case HAL_SPI_STATE_ABORT:
-    case HAL_SPI_STATE_BUSY:
-    case HAL_SPI_STATE_BUSY_TX:
-    case HAL_SPI_STATE_BUSY_RX:
-    case HAL_SPI_STATE_BUSY_TX_RX:
+    case HAL_SPI_STATE_BUSY:            // An internal process is ongoing
+    case HAL_SPI_STATE_BUSY_TX:         // Data Transmission process is ongoing
+    case HAL_SPI_STATE_BUSY_RX:         // Data Reception process is ongoing
+    case HAL_SPI_STATE_BUSY_TX_RX:      // Data Transmission and Reception process is ongoing
+    case HAL_SPI_STATE_ABORT:           // SPI abort is ongoing
       status.busy = 1U;
       break;
 
-    case HAL_SPI_STATE_RESET:
-    case HAL_SPI_STATE_ERROR:
-    case HAL_SPI_STATE_READY:
+    case HAL_SPI_STATE_RESET:           // Peripheral not Initialized
+    case HAL_SPI_STATE_READY:           // Peripheral Initialized and ready for use
+    case HAL_SPI_STATE_ERROR:           // SPI error state
     default:
       // Not busy related
       break;
   }
 
+  // Process HAL errors status
   if ((error & HAL_SPI_ERROR_OVR)  != 0U) {
     status.data_lost = 1U;
   }
@@ -1286,14 +1287,26 @@ void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi) {
 
   ptr_ro_info = SPIn_GetInfo(hspi);
 
+  if (ptr_ro_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_hspi == NULL) {
+    return;
+  }
+
   if ((ptr_ro_info->ptr_hspi->pRxBuffPtr != NULL) && (ptr_ro_info->ptr_hspi->RxXferSize != 0U) && (ptr_ro_info->ptr_hspi->hdmarx == NULL)) {
     // If DMA is not used for Rx during Tx, flush Rx after transmission
     (void)HAL_SPIEx_FlushRxFifo(ptr_ro_info->ptr_hspi);
   }
 
-  if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
-    ptr_ro_info->ptr_rw_info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
   }
+  if (ptr_ro_info->ptr_rw_info->cb_event == NULL) {
+    return;
+  }
+
+  ptr_ro_info->ptr_rw_info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
 }
 
 /**
@@ -1306,9 +1319,17 @@ void HAL_SPI_RxCpltCallback (SPI_HandleTypeDef *hspi) {
 
   ptr_ro_info = SPIn_GetInfo(hspi);
 
-  if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
-    ptr_ro_info->ptr_rw_info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
+  if (ptr_ro_info == NULL) {
+    return;
   }
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info->cb_event == NULL) {
+    return;
+  }
+
+  ptr_ro_info->ptr_rw_info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
 }
 
 /**
@@ -1321,9 +1342,17 @@ void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef *hspi) {
 
   ptr_ro_info = SPIn_GetInfo(hspi);
 
-  if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
-    ptr_ro_info->ptr_rw_info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
+  if (ptr_ro_info == NULL) {
+    return;
   }
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info->cb_event == NULL) {
+    return;
+  }
+
+  ptr_ro_info->ptr_rw_info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
 }
 
 /**
@@ -1338,6 +1367,16 @@ void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi) {
 
   ptr_ro_info = SPIn_GetInfo(hspi);
 
+  if (ptr_ro_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info == NULL) {
+    return;
+  }
+  if (ptr_ro_info->ptr_rw_info->cb_event == NULL) {
+    return;
+  }
+
   error = HAL_SPI_GetError(hspi);
   event = 0U;
 
@@ -1349,7 +1388,7 @@ void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi) {
     event |= ARM_SPI_EVENT_DATA_LOST;
   }
 
-  if ((ptr_ro_info->ptr_rw_info->cb_event != NULL) && (event != 0U)) {
+  if (event != 0U) {
     ptr_ro_info->ptr_rw_info->cb_event(event);
   }
 }

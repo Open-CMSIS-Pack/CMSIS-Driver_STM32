@@ -49,7 +49,6 @@
     <condition id="Conditions for CMSIS Driver SPI">
       <require condition="Common requirements"/>
       <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="RCC"/>
       <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="SPI"/>
     </condition>
     <condition id="Conditions for CMSIS Driver USART">
