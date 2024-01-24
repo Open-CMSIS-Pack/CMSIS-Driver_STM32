@@ -1238,7 +1238,7 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
             break;
           }
           HAL_Delay(1U);
-        }      
+        }
         if (i == I2C_XFER_ABORT_TIMEOUT) {
           // If abort did not finish before timeout => failed
           return ARM_DRIVER_ERROR;
