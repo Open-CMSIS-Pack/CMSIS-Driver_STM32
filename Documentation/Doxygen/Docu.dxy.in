@@ -919,6 +919,7 @@ WARN_LOGFILE           =
 INPUT                  = ./src/mainpage.md \
                          ./src/Drivers.md \
                          ../../Drivers/ETH_MAC_STM32.c \
+                         ../../Drivers/I2C_STM32.c \
                          ../../Drivers/SPI_STM32.c \
                          ../../Drivers/USART_STM32.c
 

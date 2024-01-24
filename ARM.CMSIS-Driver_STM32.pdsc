@@ -41,6 +41,11 @@
       <require condition="Common requirements"/>
       <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="ETH"/>
     </condition>
+    <condition id="Conditions for CMSIS Driver I2C">
+      <require condition="Common requirements"/>
+      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
+      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="I2C"/>
+    </condition>
     <condition id="Conditions for CMSIS Driver SPI">
       <require condition="Common requirements"/>
       <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
@@ -65,6 +70,24 @@
         <file category="doc"     name="Documentation/html/eth_mac_stm32.html"/>
         <file category="header"  name="Drivers/ETH_MAC_STM32.h"/>
         <file category="source"  name="Drivers/ETH_MAC_STM32.c"/>
+      </files>
+    </component>
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver I2C">
+      <description>I2C Driver for STM32 devices</description>
+      <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_Drivers_I2C1                /* Driver I2C1 */
+        #define RTE_Drivers_I2C2                /* Driver I2C2 */
+        #define RTE_Drivers_I2C3                /* Driver I2C3 */
+        #define RTE_Drivers_I2C4                /* Driver I2C4 */
+        #define RTE_Drivers_I2C5                /* Driver I2C5 */
+        #define RTE_Drivers_I2C6                /* Driver I2C6 */
+        #define RTE_Drivers_I2C7                /* Driver I2C7 */
+        #define RTE_Drivers_I2C8                /* Driver I2C8 */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/i2c_stm32.html"/>
+        <file category="header"  name="Drivers/I2C_STM32.h"/>
+        <file category="source"  name="Drivers/I2C_STM32.c"/>
       </files>
     </component>
     <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver SPI">
