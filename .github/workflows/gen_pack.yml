@@ -34,5 +34,5 @@ jobs:
           gen-doc-script: ./Documentation/Doxygen/gen_doc.sh
           doc-path: ./Documentation/html
           gen-pack-script: ./gen_pack.sh --no-preprocess
-          gen-pack-output: ./output
-          gh-pages-branch: gh-pages
+          #gen-pack-output: ./output
+          gh-pages-branch: #gh-pages
