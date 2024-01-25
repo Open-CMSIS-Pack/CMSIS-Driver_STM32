@@ -81,6 +81,16 @@ __Functional__ deviations:
   - Transfer:
     - maximum number of data items supported by HAL with a single transfer request is 65535
   - Control:
+    - functionality for control code ARM_SPI_MODE_MASTER depends on the peripheral clock information retrieved
+      via the HAL_RCCEx_GetPeriphCLKFreq function.
+      If the HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency
+      then the bus speed will not be reconfigured but it will be left unchanged (as configured in the STM32CubeMX tool)
+      and the Control function will return ARM_DRIVER_OK status code.
+    - functionality for control codes ARM_SPI_SET_BUS_SPEED and ARM_SPI_GET_BUS_SPEED depends on the peripheral clock
+      information retrieved via the HAL_RCCEx_GetPeriphCLKFreq function.
+      If the HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency
+      then the bus speed will not be reconfigured but it will be left unchanged (as configured in the STM32CubeMX tool)
+      and the Control function will return ARM_DRIVER_ERROR_UNSUPPORTED error code.
     - changes are not effective after this function but when data transfer operation is started
       (for example: changing Phase or Polarity will change clock line state when data operation is started
        and not after this function finishes)
@@ -216,11 +226,6 @@ Results of the **CMSIS-Driver Validation** for this driver can be found in the [
 
 #include <string.h>
 
-// Check if MX_Device.h version is as required (old version did not have all the necessary information)
-#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
-#error SPI driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
-#endif
-
 // Driver Version *************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // ****************************************************************************
@@ -251,9 +256,10 @@ static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx, 
                                                       };                                                       \
 static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
-                                                         MX_SPI##n##_PERIPH_CLOCK,                             \
                                                         &spi##n##_nss_config,                                  \
-                                                        &spi##n##_rw_info                                      \
+                                                         RCC_PERIPHCLK_SPI##n,                                 \
+                                                        &spi##n##_rw_info,                                     \
+                                                         0U                                                    \
                                                       };
 
 // Macro to create spi_ro_info and spi_rw_info (for instances), without NSS pin configured in the STM32CubeMX
@@ -261,9 +267,10 @@ static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,               
 extern  SPI_HandleTypeDef       hspi##n;                                                                       \
 static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
-                                                         MX_SPI##n##_PERIPH_CLOCK,                             \
                                                          NULL,                                                 \
-                                                        &spi##n##_rw_info                                      \
+                                                         RCC_PERIPHCLK_SPI##n,                                 \
+                                                        &spi##n##_rw_info,                                     \
+                                                         0U                                                    \
                                                       };
 
 // Macro for declaring functions (for instances)
@@ -334,9 +341,10 @@ typedef struct {
 // also contains pointer to run-time information
 typedef struct {
         SPI_HandleTypeDef      *ptr_hspi;               // Pointer to SPI handle
-        uint32_t                periph_clock;           // Peripheral clock (in Hz)
   const PinConfig_t            *ptr_nss_pin_config;     // Pointer to NSS pin configuration structure (NULL - if pin was not configured in STM32CubeMX)
+        uint64_t                peri_clock_id;          // Peripheral clock identifier
         RW_Info_t              *ptr_rw_info;            // Pointer to run-time information (RW)
+        uint32_t                reserved;               // Reserved (for padding)
 } RO_Info_t;
 
 // Information definitions (for instances)
@@ -428,6 +436,7 @@ static const RO_Info_t * const spi_ro_info_list[] = {
 
 // Local functions prototypes
 static const RO_Info_t       *SPIn_GetInfo        (const SPI_HandleTypeDef *hspi);
+static uint32_t               SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
 static ARM_DRIVER_VERSION     SPI_GetVersion      (void);
 static ARM_SPI_CAPABILITIES   SPI_GetCapabilities (void);
 static int32_t                SPIn_Initialize     (const RO_Info_t *ptr_ro_info, ARM_SPI_SignalEvent_t cb_event);
@@ -492,6 +501,16 @@ static const RO_Info_t *SPIn_GetInfo (const SPI_HandleTypeDef *hspi) {
   }
 
   return ptr_ro_info;
+}
+
+/**
+  \fn          uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info)
+  \brief       Get peripheral clock frequency.
+  \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
+  \return      frequency in Hz
+*/
+static uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
+  return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
 // Driver functions ***********************************************************
@@ -888,7 +907,11 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 
                                                 // --- Control Miscellaneous
     case ARM_SPI_SET_BUS_SPEED:                 // Set Bus Speed in bps; arg = value
-      periph_clk = ptr_ro_info->periph_clock;
+      periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
+      if (periph_clk == 0U) {
+        // If peripheral clock is not enabled or not available from HAL_RCCEx_GetPeriphCLKFreq function
+        return ARM_DRIVER_ERROR_UNSUPPORTED;
+      }
       if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
       else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
       else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
@@ -900,7 +923,11 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       return ARM_DRIVER_OK;
 
     case ARM_SPI_GET_BUS_SPEED:                 // Get Bus Speed in bps
-      periph_clk = ptr_ro_info->periph_clock;
+      periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
+      if (periph_clk == 0U) {
+        // If peripheral clock is not enabled or not available from HAL_RCCEx_GetPeriphCLKFreq function
+        return ARM_DRIVER_ERROR_UNSUPPORTED;
+      }
       switch (ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler) {
         case SPI_BAUDRATEPRESCALER_2:   spi_clk = periph_clk >> 1; break;
         case SPI_BAUDRATEPRESCALER_4:   spi_clk = periph_clk >> 2; break;
@@ -1127,18 +1154,18 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 
   // Configure Bus Speed, only for Master mode
   if (ptr_ro_info->ptr_hspi->Init.Mode == SPI_MODE_MASTER) {
-    periph_clk = ptr_ro_info->periph_clock;
-    if (periph_clk == 0U) {
-      return ARM_DRIVER_ERROR;
+    periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
+    if (periph_clk != 0U) {
+      // If peripheral clock is valid, if peripheral clock is not valid or unknown then clock reconfiguration will be skipped
+      if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
+      else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
+      else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
+      else if ((periph_clk >> 4) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;  }
+      else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
+      else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
+      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
+      else                               { return ARM_DRIVER_ERROR;                                                   }
     }
-    if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
-    else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
-    else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
-    else if ((periph_clk >> 4) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;  }
-    else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
-    else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
-    else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
-    else                               { return ARM_DRIVER_ERROR;                                               }
   }
 
   // Reconfigure DMA
