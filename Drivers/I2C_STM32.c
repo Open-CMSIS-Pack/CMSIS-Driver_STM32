@@ -78,6 +78,12 @@ __Functional__ deviations:
     - maximum number of data bytes supported by HAL with a single transmit request is 65535
   - MasterReceive and SlaveReceive:
     - maximum number of data bytes supported by HAL with a single receive request is 65535
+  - Control:
+    - functionality for control code ARM_I2C_BUS_SPEED depends on the peripheral clock information retrieved
+      via the HAL_RCCEx_GetPeriphCLKFreq function.
+      If the HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency
+      then the bus speed will not be reconfigured but it will be left unchanged (as configured in the STM32CubeMX tool)
+      and the Control function will return ARM_DRIVER_ERROR_UNSUPPORTED error code.
 
 # Configuration
 
@@ -221,7 +227,6 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
 static        RW_Info_t         i2c##n##_rw_info __attribute__((section(I2C_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
-                                                         MX_I2C##n##_PERIPH_CLOCK,                             \
                                                          MX_I2C##n##_ANF_ENABLE,                               \
                                                          MX_I2C##n##_DNF,                                      \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
@@ -236,7 +241,9 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                            MX_I2C##n##_SDA_GPIO_Pu,                            \
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          },                                                    \
+                                                         RCC_PERIPHCLK_I2C##n,                                 \
                                                         &i2c##n##_rw_info,                                     \
+                                                         NULL                                                  \
                                                       };
 
 // Macro for declaring functions (for instances)
@@ -351,8 +358,7 @@ typedef struct {
 typedef struct {
   uint32_t                      initialized  : 1;       // Initialized status: 0 - not initialized, 1 - initialized
   uint32_t                      powered      : 1;       // Power status:       0 - not powered,     1 - powered
-  uint32_t                      configured   : 1;       // Configured status:  0 - not configured,  1 - configured
-  uint32_t                      reserved     : 29;      // Reserved (for padding)
+  uint32_t                      reserved     : 30;      // Reserved (for padding)
 } DriverStatus_t;
 
 // Instance run-time information (RW)
@@ -374,12 +380,13 @@ typedef struct {
 // also contains pointer to run-time information
 typedef struct {
   I2C_HandleTypeDef            *ptr_hi2c;               // Pointer to I2C handle
-  uint32_t                      periph_clock;           // Peripheral clock (in Hz)
   uint16_t                      anf_en;                 // Analog noise filter enable
   uint16_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
   PinConfig_t                   scl_pin_config;         // SCL pin configuration structure
   PinConfig_t                   sda_pin_config;         // SDA pin configuration structure
+  uint64_t                      peri_clock_id;          // Peripheral clock identifier
   RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
+  uint32_t                      reserved;               // Reserved (for padding)
 } RO_Info_t;
 
 // Information definitions (for instances)
@@ -473,6 +480,7 @@ static const RO_Info_t * const i2c_ro_info_list[] = {
 
 // Local functions prototypes
 static const RO_Info_t       *I2Cn_GetInfo        (const I2C_HandleTypeDef *hi2c);
+static uint32_t               I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
 static int32_t                I2Cn_GetSCLRatio    (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
 static uint32_t               I2Cn_GetTimingValue (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
 static ARM_DRIVER_VERSION     I2C_GetVersion      (void);
@@ -540,6 +548,16 @@ static const RO_Info_t *I2Cn_GetInfo (const I2C_HandleTypeDef *hi2c) {
   }
 
   return ptr_ro_info;
+}
+
+/**
+  \fn          uint32_t I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info)
+  \brief       Get peripheral clock frequency.
+  \param[in]   ptr_ro_info     Pointer to I2C RO info structure (RO_Info_t)
+  \return      frequency in Hz
+*/
+static uint32_t I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
+  return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
 /**
@@ -861,7 +879,7 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t *ptr_ro_info, uint32_t addr,
     return ARM_DRIVER_ERROR_PARAMETER;
   }
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
+  if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
   }
 
@@ -951,7 +969,7 @@ static int32_t I2Cn_MasterReceive (const RO_Info_t *ptr_ro_info, uint32_t addr, 
     return ARM_DRIVER_ERROR_PARAMETER;
   }
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
+  if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
   }
 
@@ -1317,11 +1335,10 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       break;
 
     case ARM_I2C_BUS_SPEED:                     // Set Bus Speed; arg = speed
-      ptr_ro_info->ptr_rw_info->drv_status.configured = 0U;
-
-      periph_clk = ptr_ro_info->periph_clock;
+      periph_clk = I2Cn_GetPeriphClock(ptr_ro_info);
       if (periph_clk == 0U) {
-        return ARM_DRIVER_ERROR;
+        // If peripheral clock is not enabled or available with HAL_RCCEx_GetPeriphCLKFreq function
+        return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
       switch (arg) {
         case ARM_I2C_BUS_SPEED_STANDARD:        // Standard Speed (100kHz)
@@ -1385,8 +1402,6 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
-
-      ptr_ro_info->ptr_rw_info->drv_status.configured = 1U;
       break;
 
     case ARM_I2C_BUS_CLEAR:
