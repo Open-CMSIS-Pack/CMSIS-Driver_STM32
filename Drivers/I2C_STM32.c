@@ -356,16 +356,15 @@ typedef struct {
 
 // Driver status
 typedef struct {
-  uint32_t                      initialized  : 1;       // Initialized status: 0 - not initialized, 1 - initialized
-  uint32_t                      powered      : 1;       // Power status:       0 - not powered,     1 - powered
-  uint32_t                      reserved     : 30;      // Reserved (for padding)
+  uint8_t                       initialized  : 1;       // Initialized status: 0 - not initialized, 1 - initialized
+  uint8_t                       powered      : 1;       // Power status:       0 - not powered,     1 - powered
+  uint8_t                       reserved     : 6;       // Reserved (for padding)
 } DriverStatus_t;
 
 // Instance run-time information (RW)
 typedef struct {
   ARM_I2C_SignalEvent_t         cb_event;               // Event callback
   DriverStatus_t                drv_status;             // Driver status
-  TimingReg_t                   timing_reg;             // Timing register value
   volatile uint8_t              i2c_direction;          // I2C Direction: 0=Transmitter, 1=Receiver
   volatile uint8_t              i2c_general_call;       // I2C General Call indication (cleared on start of next Slave operation)
   volatile uint8_t              i2c_arbitration_lost;   // I2C Master lost arbitration (cleared on start of next Master operation)
@@ -481,8 +480,8 @@ static const RO_Info_t * const i2c_ro_info_list[] = {
 // Local functions prototypes
 static const RO_Info_t       *I2Cn_GetInfo        (const I2C_HandleTypeDef *hi2c);
 static uint32_t               I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
-static int32_t                I2Cn_GetSCLRatio    (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
-static uint32_t               I2Cn_GetTimingValue (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
+static int32_t                I2Cn_GetSCLRatio    (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg);
+static uint32_t               I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
 static ARM_DRIVER_VERSION     I2C_GetVersion      (void);
 static ARM_I2C_CAPABILITIES   I2C_GetCapabilities (void);
 static int32_t                I2Cn_Initialize     (const RO_Info_t *ptr_ro_info, ARM_I2C_SignalEvent_t cb_event);
@@ -561,14 +560,14 @@ static uint32_t I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t I2Cn_GetSCLRatio (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, StandardTiming_t *ptr_timing_spec)
+  \fn          int32_t I2Cn_GetSCLRatio (ClockSetup_t *ptr_clock_setup, StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg)
   \brief       Evaluate SCL low/high ratio.
-  \param[in]   ptr_ro_info        Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   ptr_clock_setup    Pointer to clock setup structure
   \param[in]   ptr_timing_spec    Pointer to standard timing specification structure
+  \param[in]   ptr_timing_reg     Pointer to Timing register values
   \return      SCL period error
 */
-static int32_t I2Cn_GetSCLRatio (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec) {
+static int32_t I2Cn_GetSCLRatio (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg) {
   uint32_t clk_max, clk_min;
   uint32_t tpresc, tsync;
   uint32_t tscl, tscll, tsclh;
@@ -582,7 +581,7 @@ static int32_t I2Cn_GetSCLRatio (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr
   clk_max = 1000000000U / clk_min;
   clk_min = 1000000000U / ptr_timing_spec->clk_max;
   tsync   = ptr_clock_setup->afd_min + ptr_clock_setup->dfd + (2 * ptr_clock_setup->i2cclk);
-  tpresc  = (ptr_ro_info->ptr_rw_info->timing_reg.presc + 1U) * ptr_clock_setup->i2cclk;
+  tpresc  = (ptr_timing_reg->presc + 1U) * ptr_clock_setup->i2cclk;
 
   err = 0;
 
@@ -605,8 +604,8 @@ static int32_t I2Cn_GetSCLRatio (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr
             err = (int32_t)(tscl - ptr_clock_setup->busclk);
 
             if (err >= 0) {
-              ptr_ro_info->ptr_rw_info->timing_reg.sclh = (uint8_t)sclh;
-              ptr_ro_info->ptr_rw_info->timing_reg.scll = (uint8_t)scll;
+              ptr_timing_reg->sclh = (uint8_t)sclh;
+              ptr_timing_reg->scll = (uint8_t)scll;
               return (err);
             }
           }
@@ -620,21 +619,21 @@ static int32_t I2Cn_GetSCLRatio (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr
 }
 
 /**
-  \fn          uint32_t I2Cn_GetTimingValue (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec)
+  \fn          uint32_t I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec)
   \brief       Determine TIMINGR register settings based on input structures.
-  \param[in]   ptr_ro_info        Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   ptr_clock_setup    Pointer to clock setup structure
   \param[in]   ptr_timing_spec    Pointer to standard timing specification structure
   \return      TIMINGR register value
 */
-static uint32_t I2Cn_GetTimingValue (const RO_Info_t *ptr_ro_info, ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec) {
-  uint32_t dnf_en;
-  uint32_t presc;
-  uint32_t sdadel, sdadel_min, sdadel_max;
-  uint32_t scldel, scldel_min;
-  uint32_t p, l, a;
-  uint32_t timing;
-  int32_t  val, err;
+static uint32_t I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec) {
+  TimingReg_t timing_reg;
+  uint32_t    dnf_en;
+  uint32_t    presc;
+  uint32_t    sdadel, sdadel_min, sdadel_max;
+  uint32_t    scldel, scldel_min;
+  uint32_t    p, l, a;
+  uint32_t    timing;
+  int32_t     val, err;
 
   // Set digital noise filter enabled flag
   if (ptr_clock_setup->dfd > 0U) {
@@ -683,12 +682,12 @@ static uint32_t I2Cn_GetTimingValue (const RO_Info_t *ptr_ro_info, ClockSetup_t 
 
           if ((sdadel >= sdadel_min) && (sdadel <= sdadel_max)) {
             // Valid presc (p), scldel (l) and sdadel (a)
-            ptr_ro_info->ptr_rw_info->timing_reg.presc  = (uint8_t)p;
-            ptr_ro_info->ptr_rw_info->timing_reg.scldel = (uint8_t)l;
-            ptr_ro_info->ptr_rw_info->timing_reg.sdadel = (uint8_t)a;
+            timing_reg.presc  = (uint8_t)p;
+            timing_reg.scldel = (uint8_t)l;
+            timing_reg.sdadel = (uint8_t)a;
 
             // Determine SCLL and SCLH values
-            err = I2Cn_GetSCLRatio(ptr_ro_info, ptr_clock_setup, ptr_timing_spec);
+            err = I2Cn_GetSCLRatio(ptr_clock_setup, ptr_timing_spec, &timing_reg);
 
             if (err >= 0) {
               if (err < ptr_clock_setup->error) {
@@ -696,11 +695,11 @@ static uint32_t I2Cn_GetTimingValue (const RO_Info_t *ptr_ro_info, ClockSetup_t 
                 ptr_clock_setup->error = (uint16_t)err;
 
                 // Save timing settings
-                timing  = (ptr_ro_info->ptr_rw_info->timing_reg.scll   & 0xFFU);
-                timing |= (ptr_ro_info->ptr_rw_info->timing_reg.sclh   & 0xFFU) <<  8;
-                timing |= (ptr_ro_info->ptr_rw_info->timing_reg.sdadel & 0x0FU) << 16;
-                timing |= (ptr_ro_info->ptr_rw_info->timing_reg.scldel & 0x0FU) << 20;
-                timing |= (ptr_ro_info->ptr_rw_info->timing_reg.presc  & 0x0FU) << 28;
+                timing  = (timing_reg.scll   & 0xFFU);
+                timing |= (timing_reg.sclh   & 0xFFU) <<  8;
+                timing |= (timing_reg.sdadel & 0x0FU) << 16;
+                timing |= (timing_reg.scldel & 0x0FU) << 20;
+                timing |= (timing_reg.presc  & 0x0FU) << 28;
               }
             }
           }
@@ -1380,7 +1379,7 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       clock_setup.error = 0xFFFF;
 
       // Get TIMINGR register values
-      ptr_ro_info->ptr_hi2c->Init.Timing = I2Cn_GetTimingValue(ptr_ro_info, &clock_setup, ptr_std_timing);
+      ptr_ro_info->ptr_hi2c->Init.Timing = I2Cn_GetTimingValue(&clock_setup, ptr_std_timing);
 
       // Update the Timing configuration
       if (HAL_I2C_Init(ptr_ro_info->ptr_hi2c) != HAL_OK) {
