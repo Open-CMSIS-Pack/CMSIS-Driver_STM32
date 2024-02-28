@@ -286,16 +286,16 @@ static  int32_t                 SPI##n##_Control         (uint32_t control, uint
 static  ARM_SPI_STATUS          SPI##n##_GetStatus       (void);
 
 // Macro for defining functions (for instances)
-#define FUNCS_DEFINE(n)                                                                                                                                                              \
-static  int32_t                 SPI##n##_Initialize      (ARM_SPI_SignalEvent_t cb_event)                       { return SPIn_Initialize  (&spi##n##_ro_info, cb_event); }               \
-static  int32_t                 SPI##n##_Uninitialize    (void)                                                 { return SPIn_Uninitialize(&spi##n##_ro_info); }                         \
-static  int32_t                 SPI##n##_PowerControl    (ARM_POWER_STATE state)                                { return SPIn_PowerControl(&spi##n##_ro_info, state); }                  \
-static  int32_t                 SPI##n##_Send            (const void *data, uint32_t num)                       { return SPIn_Send        (&spi##n##_ro_info, data, num); }              \
-static  int32_t                 SPI##n##_Receive         (void *data, uint32_t num)                             { return SPIn_Receive     (&spi##n##_ro_info, data, num); }              \
-static  int32_t                 SPI##n##_Transfer        (const void *data_out, void *data_in, uint32_t num)    { return SPIn_Transfer    (&spi##n##_ro_info, data_out, data_in, num); } \
-static  uint32_t                SPI##n##_GetDataCount    (void)                                                 { return SPIn_GetDataCount(&spi##n##_ro_info); }                         \
-static  int32_t                 SPI##n##_Control         (uint32_t control, uint32_t arg)                       { return SPIn_Control     (&spi##n##_ro_info, control, arg); }           \
-static  ARM_SPI_STATUS          SPI##n##_GetStatus       (void)                                                 { return SPIn_GetStatus   (&spi##n##_ro_info); }
+#define FUNCS_DEFINE(n)                                                                                                                                                                 \
+static  int32_t                 SPI##n##_Initialize      (ARM_SPI_SignalEvent_t cb_event)                      { return SPIn_Initialize  (&spi##n##_ro_info, cb_event); }               \
+static  int32_t                 SPI##n##_Uninitialize    (void)                                                { return SPIn_Uninitialize(&spi##n##_ro_info); }                         \
+static  int32_t                 SPI##n##_PowerControl    (ARM_POWER_STATE state)                               { return SPIn_PowerControl(&spi##n##_ro_info, state); }                  \
+static  int32_t                 SPI##n##_Send            (const void *data, uint32_t num)                      { return SPIn_Send        (&spi##n##_ro_info, data, num); }              \
+static  int32_t                 SPI##n##_Receive         (void *data, uint32_t num)                            { return SPIn_Receive     (&spi##n##_ro_info, data, num); }              \
+static  int32_t                 SPI##n##_Transfer        (const void *data_out, void *data_in, uint32_t num)   { return SPIn_Transfer    (&spi##n##_ro_info, data_out, data_in, num); } \
+static  uint32_t                SPI##n##_GetDataCount    (void)                                                { return SPIn_GetDataCount(&spi##n##_ro_info); }                         \
+static  int32_t                 SPI##n##_Control         (uint32_t control, uint32_t arg)                      { return SPIn_Control     (&spi##n##_ro_info, control, arg); }           \
+static  ARM_SPI_STATUS          SPI##n##_GetStatus       (void)                                                { return SPIn_GetStatus   (&spi##n##_ro_info); }
 
 // Macro for defining driver structures (for instances)
 #define SPI_DRIVER(n)                   \
