@@ -1244,6 +1244,13 @@ void HAL_PCD_SetupStageCallback (PCD_HandleTypeDef *hpcd) {
     return;
   }
 
+  // Special handling to cover drivers which do not call HAL_PCD_DataOutStageCallback when
+  // Endpoint 0 OUT receives ZLP (for example STM32H5 series) 
+  if (ptr_ro_info->ptr_rw_info->ep_info[0U][EP_OUT_INDEX].active != 0U) {
+    // If transfer was active on Endpoint 0 OUT, consider it finished
+    ptr_ro_info->ptr_rw_info->ep_info[0U][EP_OUT_INDEX].active = 0U;
+  }
+
   memcpy((void *)(uint32_t)ptr_ro_info->ptr_rw_info->setup_packet, hpcd->Setup, 8);
   ptr_ro_info->ptr_rw_info->setup_received = 1U;
 
