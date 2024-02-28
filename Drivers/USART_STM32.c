@@ -242,7 +242,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 // Macro to create usart_ro_info and usart_rw_info (for U(S)ART instances)
 #define INFO_DEFINE(n)                                                                                         \
 extern  UART_HandleTypeDef      huart##n;                                                                      \
-static        RW_Info_t         usart##n##_rw_info __attribute__((section(USART_SECTION_NAME(n,_rw))));         \
+static        RW_Info_t         usart##n##_rw_info __attribute__((section(USART_SECTION_NAME(n,_rw))));        \
 static  const RO_Info_t         usart##n##_ro_info = { &huart##n,                                              \
                                                        &usart##n##_rw_info                                     \
                                                      };
