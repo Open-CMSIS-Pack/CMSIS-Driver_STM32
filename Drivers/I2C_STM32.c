@@ -260,7 +260,7 @@ static  int32_t                 I2C##n##_Control         (uint32_t control, uint
 static  ARM_I2C_STATUS          I2C##n##_GetStatus       (void);
 
 // Macro for defining functions (for instances)
-#define FUNCS_DEFINE(n)                                                                                                                                                                                                   \
+#define FUNCS_DEFINE(n)                                                                                                                                                                                             \
 static  int32_t                 I2C##n##_Initialize      (ARM_I2C_SignalEvent_t cb_event)                                       { return I2Cn_Initialize      (&i2c##n##_ro_info, cb_event); }                      \
 static  int32_t                 I2C##n##_Uninitialize    (void)                                                                 { return I2Cn_Uninitialize    (&i2c##n##_ro_info); }                                \
 static  int32_t                 I2C##n##_PowerControl    (ARM_POWER_STATE state)                                                { return I2Cn_PowerControl    (&i2c##n##_ro_info, state); }                         \
