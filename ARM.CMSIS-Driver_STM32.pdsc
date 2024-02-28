@@ -58,6 +58,10 @@
       <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
       <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="UART"/>
     </condition>
+    <condition id="Conditions for CMSIS Driver USBD">
+      <require condition="Common requirements"/>
+      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="PCD"/>
+    </condition>
   </conditions>
 
   <components>
@@ -136,6 +140,18 @@
         <file category="doc"     name="Documentation/html/usart_stm32.html"/>
         <file category="header"  name="Drivers/USART_STM32.h"/>
         <file category="source"  name="Drivers/USART_STM32.c"/>
+      </files>
+    </component>
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device" Capiversion="2.3.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver USBD">
+      <description>USB Device Driver for STM32 devices</description>
+      <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_Drivers_USBD0               /* Driver USBD0 */
+        #define RTE_Drivers_USBD1               /* Driver USBD1 */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/usbd_stm32.html"/>
+        <file category="header"  name="Drivers/USBD_STM32.h"/>
+        <file category="source"  name="Drivers/USBD_STM32.c"/>
       </files>
     </component>
   </components>

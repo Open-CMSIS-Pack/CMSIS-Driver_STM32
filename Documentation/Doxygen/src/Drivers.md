@@ -5,3 +5,4 @@ This pack provides the following CMSIS Drivers:
   - \subpage i2c_stm32     "I2C"          - Inter-Integrated Circuit driver
   - \subpage spi_stm32     "SPI"          - Serial Peripheral Interface driver
   - \subpage usart_stm32   "USART"        - Universal Synchronous/Asynchronous Receiver/Transmitter driver
+  - \subpage usbd_stm32    "USB Device"   - Universal Serial Bus Device driver
