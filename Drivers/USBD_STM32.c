@@ -85,11 +85,12 @@ This driver requires the following configuration in the STM32CubeMX tool:
 
   - **clock**: **USB** peripheral clock at **48 MHz**
   - **peripheral**:
-    - for **USB** or **USB_OTG_FS** configured as **Device (FS)** or **Mode = Device_Only** and **Parameter Setting** configured as desired
+    - for **USB** or **USB_OTG_FS** configured as **Device (FS)** or **Mode = Device_Only** and **Parameter Setting** configured
+      as desired, except **Battery charging**, if it exists, should be set to **Disabled**
     - for **USB_OTG_HS** in **high-speed** mode: configured as **External Phy = Device_Only** if ULPI Phy is populated
-      , and **Parameter Setting** configured as desired
+      , and **Parameter Setting** configured as desired, except **Battery charging**, if it exists, should be set to **Disabled**
     - for **USB_OTG_HS** in **full-speed** mode: configured as **Internal FS Phy = Device_Only** if ULPI Phy is not populated
-      , and **Parameter Setting** configured as desired
+      , and **Parameter Setting** configured as desired, except **Battery charging**, if it exists, should be set to **Disabled**
   - **pins**:
     - for **USB** or **USB_OTG_FS** in **full-speed** mode: **USB_OTG_FS_VBUS**, **USB_OTG_FS_DM** and **USB_OTG_FS_DP pins**
     - for **USB_OTG_HS** in **high-speed** mode: **USB_OTG_HS_ULPI_CK**, **USB_OTG_HS_ULPI_D0**, **USB_OTG_HS_ULPI_D1**
@@ -140,7 +141,7 @@ This is example of configuring **USB_OTG_FS** and **USB_OTG_HS** on the **STM32H
        - Activate_SOF: unchecked
 
      __Configuration__:
-       - Parameter Settings: as desired, except **Battery charging** which should be **Disabled**
+       - Parameter Settings: as desired, except **Battery charging** which should be set to **Disabled**
        - GPIO Settings:
            Pin Name | Signal on Pin       | Pin Context..| GPIO output..| GPIO mode                     | GPIO Pull-up/Pull..| Maximum out..| Fast Mode | User Label
            :--------|:-------------------:|:------------:|:------------:|:-----------------------------:|:------------------:|:------------:|:---------:|:----------:
