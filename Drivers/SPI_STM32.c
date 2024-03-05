@@ -2,7 +2,7 @@
  * @file     SPI_STM32.c
  * @brief    SPI Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     24. January 2024
+ * @date     5. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -256,9 +256,9 @@ static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx, 
                                                       };                                                       \
 static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
-                                                        &spi##n##_nss_config,                                  \
-                                                         RCC_PERIPHCLK_SPI##n,                                 \
                                                         &spi##n##_rw_info,                                     \
+                                                         RCC_PERIPHCLK_SPI##n,                                 \
+                                                        &spi##n##_nss_config,                                  \
                                                          0U                                                    \
                                                       };
 
@@ -267,9 +267,9 @@ static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,               
 extern  SPI_HandleTypeDef       hspi##n;                                                                       \
 static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
-                                                         NULL,                                                 \
-                                                         RCC_PERIPHCLK_SPI##n,                                 \
                                                         &spi##n##_rw_info,                                     \
+                                                         RCC_PERIPHCLK_SPI##n,                                 \
+                                                         NULL,                                                 \
                                                          0U                                                    \
                                                       };
 
@@ -341,9 +341,9 @@ typedef struct {
 // also contains pointer to run-time information
 typedef struct {
         SPI_HandleTypeDef      *ptr_hspi;               // Pointer to SPI handle
-  const PinConfig_t            *ptr_nss_pin_config;     // Pointer to NSS pin configuration structure (NULL - if pin was not configured in STM32CubeMX)
-        uint64_t                peri_clock_id;          // Peripheral clock identifier
         RW_Info_t              *ptr_rw_info;            // Pointer to run-time information (RW)
+        uint64_t                peri_clock_id;          // Peripheral clock identifier
+  const PinConfig_t            *ptr_nss_pin_config;     // Pointer to NSS pin configuration structure (NULL - if pin was not configured in STM32CubeMX)
         uint32_t                reserved;               // Reserved (for padding)
 } RO_Info_t;
 
@@ -1262,14 +1262,11 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
   \return      SPI status \ref ARM_SPI_STATUS
 */
 static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t *ptr_ro_info) {
-  volatile ARM_SPI_STATUS status;
-           uint32_t       error;
+  ARM_SPI_STATUS status;
+  uint32_t       error;
 
   // Clear status structure
-  status.busy       = 0U;
-  status.data_lost  = 0U;
-  status.mode_fault = 0U;
-  status.reserved   = 0U;
+  memset(&status, 0, sizeof(ARM_SPI_STATUS));
 
   error = HAL_SPI_GetError(ptr_ro_info->ptr_hspi);
 

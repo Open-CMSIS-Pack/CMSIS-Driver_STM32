@@ -1,4 +1,4 @@
-CMSIS-Driver_Validation v3.1.0 CMSIS-Driver SPI Test Report   Jan 25 2024   10:57:52 
+CMSIS-Driver_Validation v3.1.0 CMSIS-Driver SPI Test Report   Mar  5 2024   14:29:39 
 
 Test Mode:          SPI Server
 Default settings:
@@ -9,12 +9,12 @@ Default settings:
  - Bus speed:       1000000 bps
  - Number of Items: 512
 
-TEST 01: SPI_GetVersion
+TEST 01: SPI_GetVersion                   
   DV_SPI.c (1344): [INFO] Driver API version 2.3, Driver version 3.0
                                           PASSED
 TEST 02: SPI_GetCapabilities              PASSED
 TEST 03: SPI_Initialize_Uninitialize      PASSED
-TEST 04: SPI_PowerControl
+TEST 04: SPI_PowerControl                 
   DV_SPI.c (1635): [WARNING] PowerControl (ARM_POWER_LOW) is not supported
                                           PASSED
 TEST 05: SPI_Mode_Master_SS_Unused        PASSED
