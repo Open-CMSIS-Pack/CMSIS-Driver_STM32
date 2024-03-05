@@ -2,7 +2,7 @@
  * @file     USBD_STM32.c
  * @brief    USB Device Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     28. February 2024
+ * @date     5. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -222,14 +222,30 @@ Generate source code by clicking on the **GENERATE CODE** button on the toolbar.
 
 #include <string.h>
 
+// Driver Version *************************************************************
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+// ****************************************************************************
+
+// Compile-time configuration *************************************************
+
+// Configuration depending on the MX_Device.h
+
 // Check if MX_Device.h version is as required (old version did not have all the necessary information)
 #if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
 #error I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
 #endif
 
-// Driver Version *************************************************************
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// ****************************************************************************
+// Define the HAL_PCDEx_PMAConfig macro based on peripheral name
+// If MX_USBD_EP_PMAConfig == 1 then the function HAL_PCDEx_PMAConfig is used for Endpoint FIFO
+// if MX_USBD_EP_PMAConfig == 0 then functions HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo
+// HAL_PCDEx_PMAConfig is used on older devices that have older USB controller (not OTG)
+#ifdef  MX_USB
+#define MX_USBD_EP_PMAConfig            1
+#else
+#define MX_USBD_EP_PMAConfig            0
+#endif
+
+// Configuration depending on the local macros
 
 // Compile-time configuration (that can be externally overridden if necessary)
 // Maximum number of endpoints
@@ -241,6 +257,8 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #ifndef USBD_EP0_MAX_PACKET_SIZE
 #define USBD_EP0_MAX_PACKET_SIZE        (64U)
 #endif
+
+// ****************************************************************************
 
 // Macros
 // Macro to create section name for RW info
@@ -645,8 +663,11 @@ static int32_t USBDn_Uninitialize (const RO_Info_t *ptr_ro_info) {
   \return      \ref execution_status
 */
 static int32_t USBDn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE  state) {
-  uint8_t ep_num;
-  uint8_t ep_dir;
+  ARM_USBD_SignalDeviceEvent_t   cb_device_event;
+  ARM_USBD_SignalEndpointEvent_t cb_endpoint_event;
+  DriverStatus_t                 drv_status;
+  uint8_t                        ep_num;
+  uint8_t                        ep_dir;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
     return ARM_DRIVER_ERROR;
@@ -655,8 +676,18 @@ static int32_t USBDn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE
   switch (state) {
     case ARM_POWER_FULL:
 
-      // Clear USB Device state
-      memset((void *)(uint32_t)&ptr_ro_info->ptr_rw_info->usbd_state, 0, sizeof(USBD_State_t));
+      // Store variables we need to preserve
+      cb_device_event   = ptr_ro_info->ptr_rw_info->cb_device_event;
+      cb_endpoint_event = ptr_ro_info->ptr_rw_info->cb_endpoint_event;
+      drv_status        = ptr_ro_info->ptr_rw_info->drv_status;
+
+      // Clear run-time info
+      memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
+
+      // Restore variables we wanted to preserve
+      ptr_ro_info->ptr_rw_info->cb_device_event   = cb_device_event;
+      ptr_ro_info->ptr_rw_info->cb_endpoint_event = cb_endpoint_event;
+      ptr_ro_info->ptr_rw_info->drv_status        = drv_status;
 
       // Initialize pins, clocks, interrupts and peripheral
       if (HAL_PCD_Init(ptr_ro_info->ptr_hpcd) != HAL_OK) {
@@ -681,11 +712,21 @@ static int32_t USBDn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE
       // De-initialize pins, clocks, interrupts and peripheral
       (void)HAL_PCD_DeInit(ptr_ro_info->ptr_hpcd);
 
-      // Clear USB Device state
-      memset((void *)(uint32_t)&ptr_ro_info->ptr_rw_info->usbd_state, 0, sizeof(USBD_State_t));
-
       // Set driver status to not powered
       ptr_ro_info->ptr_rw_info->drv_status.powered = 0U;
+
+      // Store variables we need to preserve
+      cb_device_event   = ptr_ro_info->ptr_rw_info->cb_device_event;
+      cb_endpoint_event = ptr_ro_info->ptr_rw_info->cb_endpoint_event;
+      drv_status        = ptr_ro_info->ptr_rw_info->drv_status;
+
+      // Clear run-time info
+      memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
+
+      // Restore variables we wanted to preserve
+      ptr_ro_info->ptr_rw_info->cb_device_event   = cb_device_event;
+      ptr_ro_info->ptr_rw_info->cb_endpoint_event = cb_endpoint_event;
+      ptr_ro_info->ptr_rw_info->drv_status        = drv_status;
       break;
 
     case ARM_POWER_LOW:
@@ -746,10 +787,7 @@ static ARM_USBD_STATE USBDn_DeviceGetState (const RO_Info_t *ptr_ro_info) {
   ARM_USBD_STATE state;
 
   // Clear state structure
-  state.vbus     = 0U;
-  state.speed    = 0U;
-  state.active   = 0U;
-  state.reserved = 0U;
+  memset(&state, 0, sizeof(ARM_USBD_STATE));
 
   // Process additionally handled communication information
   if (ptr_ro_info->ptr_rw_info->usbd_state.vbus != 0U) {

@@ -2,7 +2,7 @@
  * @file     USBD_STM32.h
  * @brief    USB Device Driver header for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     28. February 2024
+ * @date     5. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -38,7 +38,6 @@ extern "C"
 
 #if     defined(MX_USB)
 #define MX_USBD0                        1
-#define MX_USBD_EP_PMAConfig            1
 #endif
 
 #if   ((defined(MX_USB_OTG_FS) && defined(MX_USB_OTG_FS_DEVICE))         || \
@@ -50,16 +49,6 @@ extern "C"
        (defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_Device_Only_FS)) || \
        (defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_Device_HS)))
 #define MX_USBD1                        1
-#endif
-
-// If MX_USBD_EP_PMAConfig == 1 then for Endpoint FIFO
-// the function HAL_PCDEx_PMAConfig is used,
-// if MX_USBD_EP_PMAConfig == 0 then for Endpoint FIFO
-// the functions HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo are used
-// HAL_PCDEx_PMAConfig are available on older devices that have older
-// USB controller (not OTG)
-#ifndef MX_USBD_EP_PMAConfig
-#define MX_USBD_EP_PMAConfig            0
 #endif
 
 // Global driver structures ***************************************************
