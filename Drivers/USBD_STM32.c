@@ -232,7 +232,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 // Check if MX_Device.h version is as required (old version did not have all the necessary information)
 #if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
-#error I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#error USB Device driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
 #endif
 
 // Define the HAL_PCDEx_PMAConfig macro based on peripheral name
