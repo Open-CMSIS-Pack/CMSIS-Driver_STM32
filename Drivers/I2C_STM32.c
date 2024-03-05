@@ -2,7 +2,7 @@
  * @file     I2C_STM32.c
  * @brief    I2C Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     24. January 2024
+ * @date     5. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -201,11 +201,6 @@ Generate source code by clicking on the **GENERATE CODE** button on the toolbar.
 
 #include <string.h>
 
-// Check if MX_Device.h version is as required (old version did not have all the necessary information)
-#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
-#error I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
-#endif
-
 // Driver Version *************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // ****************************************************************************
@@ -217,18 +212,75 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 };
 // ****************************************************************************
 
+// Compile-time configuration *************************************************
+
+// Configuration depending on the MX_Device.h
+
+// Check if MX_Device.h version is as required (old version did not have all the necessary information)
+#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
+#error I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#endif
+
+// If MX_I2Cn_ANF_ENABLE or MX_I2Cn_DNF is defined then I2C has additional filter capabilities
+// configured by functions: HAL_I2CEx_ConfigAnalogFilter and HAL_I2CEx_ConfigDigitalFilter
+
+#if    (defined(MX_I2C1_ANF_ENABLE) || defined(MX_I2C1_DNF) || \
+        defined(MX_I2C2_ANF_ENABLE) || defined(MX_I2C2_DNF) || \
+        defined(MX_I2C3_ANF_ENABLE) || defined(MX_I2C3_DNF) || \
+        defined(MX_I2C4_ANF_ENABLE) || defined(MX_I2C4_DNF) || \
+        defined(MX_I2C5_ANF_ENABLE) || defined(MX_I2C5_DNF) || \
+        defined(MX_I2C6_ANF_ENABLE) || defined(MX_I2C6_DNF) || \
+        defined(MX_I2C7_ANF_ENABLE) || defined(MX_I2C7_DNF) || \
+        defined(MX_I2C8_ANF_ENABLE) || defined(MX_I2C8_DNF))
+#define MX_I2C_FILTER_EXISTS            1
+#endif
+
+// Configuration depending on the local macros
+
+// Compile-time configuration (that can be externally overridden if necessary)
+// By default, we define non-existing RCC_PERIPHCLK_I2Cn as invalid (0xFFFFFFFFFFFFFFFF)
+// so driver will work in mode that does not allow bus speed reconfiguration
+
+#if     defined(MX_I2C1) && !defined(RCC_PERIPHCLK_I2C1)
+#define RCC_PERIPHCLK_I2C1              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C2) && !defined(RCC_PERIPHCLK_I2C2)
+#define RCC_PERIPHCLK_I2C2              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C3) && !defined(RCC_PERIPHCLK_I2C3)
+#define RCC_PERIPHCLK_I2C3              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C4) && !defined(RCC_PERIPHCLK_I2C4)
+#define RCC_PERIPHCLK_I2C4              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C5) && !defined(RCC_PERIPHCLK_I2C5)
+#define RCC_PERIPHCLK_I2C5              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C6) && !defined(RCC_PERIPHCLK_I2C6)
+#define RCC_PERIPHCLK_I2C6              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C7) && !defined(RCC_PERIPHCLK_I2C7)
+#define RCC_PERIPHCLK_I2C7              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_I2C8) && !defined(RCC_PERIPHCLK_I2C8)
+#define RCC_PERIPHCLK_I2C8              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+
+// ****************************************************************************
+
 // Macros
 // Macro to create section name for RW info
 #define I2C_SECTION_NAME_STRING(str)    #str
 #define I2C_SECTION_NAME(n,post)        I2C_SECTION_NAME_STRING(.driver.i2c##n##post)
 
-// Macro to create i2c_ro_info and i2c_rw_info (for instances)
+#ifdef MX_I2C_FILTER_EXISTS             // If I2C peripheral has filters
+// Macro to create i2c_ro_info and i2c_rw_info (for instances), with filter settings
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
 static        RW_Info_t         i2c##n##_rw_info __attribute__((section(I2C_SECTION_NAME(n,_rw))));            \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
-                                                         MX_I2C##n##_ANF_ENABLE,                               \
-                                                         MX_I2C##n##_DNF,                                      \
+                                                        &i2c##n##_rw_info,                                     \
+                                                         RCC_PERIPHCLK_I2C##n,                                 \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
@@ -241,10 +293,31 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                            MX_I2C##n##_SDA_GPIO_Pu,                            \
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          },                                                    \
-                                                         RCC_PERIPHCLK_I2C##n,                                 \
-                                                        &i2c##n##_rw_info,                                     \
-                                                         NULL                                                  \
+                                                         MX_I2C##n##_ANF_ENABLE,                               \
+                                                         MX_I2C##n##_DNF                                       \
                                                       };
+#else
+// Macro to create i2c_ro_info and i2c_rw_info (for instances), without filter settings
+#define INFO_DEFINE(n)                                                                                         \
+extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
+static        RW_Info_t         i2c##n##_rw_info __attribute__((section(I2C_SECTION_NAME(n,_rw))));            \
+static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
+                                                        &i2c##n##_rw_info,                                     \
+                                                         RCC_PERIPHCLK_I2C##n,                                 \
+                                                         { MX_I2C##n##_SCL_GPIOx,                              \
+                                                           MX_I2C##n##_SCL_GPIO_Pin,                           \
+                                                           MX_I2C##n##_SCL_GPIO_AF,                            \
+                                                           MX_I2C##n##_SCL_GPIO_Pu,                            \
+                                                           MX_I2C##n##_SCL_GPIO_Speed                          \
+                                                         },                                                    \
+                                                         { MX_I2C##n##_SDA_GPIOx,                              \
+                                                           MX_I2C##n##_SDA_GPIO_Pin,                           \
+                                                           MX_I2C##n##_SDA_GPIO_AF,                            \
+                                                           MX_I2C##n##_SDA_GPIO_Pu,                            \
+                                                           MX_I2C##n##_SDA_GPIO_Speed                          \
+                                                         }                                                     \
+                                                      };
+#endif // MX_I2C_FILTER_EXISTS
 
 // Macro for declaring functions (for instances)
 #define FUNCS_DECLARE(n)                                                                                       \
@@ -299,6 +372,8 @@ ARM_DRIVER_I2C Driver_I2C##n = {        \
 #define I2C_BUS_CLEAR_CLOCK_PERIOD     (2U)             // I2C bus clock period (in ms)
 #endif
 
+#ifdef  MX_I2C_FILTER_EXISTS                            // If I2C peripheral has filters
+
 // TIMING register limit values
 #define I2C_TIMINGR_PRESC_MAX          (1UL << 4)
 #define I2C_TIMINGR_SCLDEL_MAX         (1UL << 4)
@@ -345,6 +420,8 @@ typedef struct {
   uint8_t                       scll;                   // Timing register value SCLL[7:0]
 } TimingReg_t;
 
+#endif // MX_I2C_FILTER_EXISTS
+
 // Pin configuration
 typedef struct {
   GPIO_TypeDef                 *ptr_port;               // Pointer to pin's port
@@ -372,6 +449,7 @@ typedef struct {
   volatile uint8_t              xfer_buf_registered;    // Transfer buffer registered: 0 - not registered, not 0 - registered
            uint8_t              xfer_no_stop;           // Transfer not generating STOP: 0 - not generating STOP, not 0 - generating STOP
   volatile uint8_t              xfer_abort;             // Transfer abort done: 0 - abort not done might be in progress, not 0 - abort done
+           uint8_t             *xfer_data;              // Requested transfer data (for Slave only)
            uint32_t             xfer_size;              // Requested transfer size (in bytes)
 } RW_Info_t;
 
@@ -379,13 +457,14 @@ typedef struct {
 // also contains pointer to run-time information
 typedef struct {
   I2C_HandleTypeDef            *ptr_hi2c;               // Pointer to I2C handle
-  uint16_t                      anf_en;                 // Analog noise filter enable
-  uint16_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
+  RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
+  uint64_t                      peri_clock_id;          // Peripheral clock identifier
   PinConfig_t                   scl_pin_config;         // SCL pin configuration structure
   PinConfig_t                   sda_pin_config;         // SDA pin configuration structure
-  uint64_t                      peri_clock_id;          // Peripheral clock identifier
-  RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
-  uint32_t                      reserved;               // Reserved (for padding)
+#ifdef MX_I2C_FILTER_EXISTS
+  uint32_t                      anf_en;                 // Analog noise filter enable
+  uint32_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
+#endif
 } RO_Info_t;
 
 // Information definitions (for instances)
@@ -413,6 +492,8 @@ INFO_DEFINE(7)
 #ifdef MX_I2C8
 INFO_DEFINE(8)
 #endif
+
+#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
 
 // Common I2C standard timing specification
 static const StandardTiming_t i2c_spec_standard = {
@@ -448,6 +529,8 @@ static const StandardTiming_t i2c_spec_fast_plus = {
   260U,         // sclh_min
 };
 
+#endif // MX_I2C_FILTER_EXISTS
+
 // List of available I2C instance infos
 static const RO_Info_t * const i2c_ro_info_list[] = {
 #ifdef MX_I2C1
@@ -480,8 +563,10 @@ static const RO_Info_t * const i2c_ro_info_list[] = {
 // Local functions prototypes
 static const RO_Info_t       *I2Cn_GetInfo        (const I2C_HandleTypeDef *hi2c);
 static uint32_t               I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
+#ifdef  MX_I2C_FILTER_EXISTS  // If I2C peripheral has filters
 static int32_t                I2Cn_GetSCLRatio    (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg);
 static uint32_t               I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
+#endif
 static ARM_DRIVER_VERSION     I2C_GetVersion      (void);
 static ARM_I2C_CAPABILITIES   I2C_GetCapabilities (void);
 static int32_t                I2Cn_Initialize     (const RO_Info_t *ptr_ro_info, ARM_I2C_SignalEvent_t cb_event);
@@ -559,6 +644,7 @@ static uint32_t I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
   return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
+#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
 /**
   \fn          int32_t I2Cn_GetSCLRatio (ClockSetup_t *ptr_clock_setup, StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg)
   \brief       Evaluate SCL low/high ratio.
@@ -710,6 +796,7 @@ static uint32_t I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const Standa
 
   return timing;
 }
+#endif
 
 // Driver functions ***********************************************************
 
@@ -779,6 +866,8 @@ static int32_t I2Cn_Uninitialize (const RO_Info_t *ptr_ro_info) {
   \return      \ref execution_status
 */
 static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state) {
+  ARM_I2C_SignalEvent_t cb_event;
+  DriverStatus_t        drv_status;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
     return ARM_DRIVER_ERROR;
@@ -787,21 +876,23 @@ static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE 
   switch (state) {
     case ARM_POWER_FULL:
 
-      // Clear additionally handled information
-      ptr_ro_info->ptr_rw_info->i2c_direction        = 0U;
-      ptr_ro_info->ptr_rw_info->i2c_general_call     = 0U;
-      ptr_ro_info->ptr_rw_info->i2c_arbitration_lost = 0U;
-      ptr_ro_info->ptr_rw_info->i2c_bus_error        = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_buf_registered  = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_no_stop         = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_abort           = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_size            = 0U;
+      // Store variables we need to preserve
+      cb_event   = ptr_ro_info->ptr_rw_info->cb_event;
+      drv_status = ptr_ro_info->ptr_rw_info->drv_status;
+
+      // Clear run-time info
+      memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
+
+      // Restore variables we wanted to preserve
+      ptr_ro_info->ptr_rw_info->cb_event   = cb_event;
+      ptr_ro_info->ptr_rw_info->drv_status = drv_status;
 
       // Initialize pins, clocks, interrupts and peripheral
       if (HAL_I2C_Init(ptr_ro_info->ptr_hi2c) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
 
+#ifdef MX_I2C_FILTER_EXISTS             // If I2C peripheral has filters
       // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
       if (ptr_ro_info->anf_en != 0U) {
         if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
@@ -817,6 +908,7 @@ static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE 
       if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
+#endif
 
       // Set driver status to powered
       ptr_ro_info->ptr_rw_info->drv_status.powered = 1U;
@@ -832,18 +924,19 @@ static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE 
       // De-initialize pins, clocks, interrupts and peripheral
       (void)HAL_I2C_DeInit(ptr_ro_info->ptr_hi2c);
 
-      // Clear additionally handled information
-      ptr_ro_info->ptr_rw_info->i2c_direction        = 0U;
-      ptr_ro_info->ptr_rw_info->i2c_general_call     = 0U;
-      ptr_ro_info->ptr_rw_info->i2c_arbitration_lost = 0U;
-      ptr_ro_info->ptr_rw_info->i2c_bus_error        = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_buf_registered  = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_no_stop         = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_abort           = 0U;
-      ptr_ro_info->ptr_rw_info->xfer_size            = 0U;
-
       // Set driver status to not powered
       ptr_ro_info->ptr_rw_info->drv_status.powered = 0U;
+
+      // Store variables we need to preserve
+      cb_event   = ptr_ro_info->ptr_rw_info->cb_event;
+      drv_status = ptr_ro_info->ptr_rw_info->drv_status;
+
+      // Clear run-time info
+      memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
+
+      // Restore variables we wanted to preserve
+      ptr_ro_info->ptr_rw_info->cb_event   = cb_event;
+      ptr_ro_info->ptr_rw_info->drv_status = drv_status;
       break;
 
     case ARM_POWER_LOW:
@@ -1045,8 +1138,6 @@ static int32_t I2Cn_MasterReceive (const RO_Info_t *ptr_ro_info, uint32_t addr, 
   \return      \ref execution_status
 */
 static int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *data, uint32_t num) {
-  HAL_StatusTypeDef tx_status;
-  int32_t           ret;
 
   if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
     // If any parameter is invalid
@@ -1068,37 +1159,12 @@ static int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *
   ptr_ro_info->ptr_rw_info->i2c_bus_error       = 0U;
   ptr_ro_info->ptr_rw_info->i2c_general_call    = 0U;
 
+  // Just register transmit parameters, actual operation will be started from HAL_I2C_AddrCallback
   ptr_ro_info->ptr_rw_info->xfer_buf_registered = 1U;
+  ptr_ro_info->ptr_rw_info->xfer_data           = (uint8_t *)(uint32_t)data;
   ptr_ro_info->ptr_rw_info->xfer_size           = num;
 
-  // Start the transmit
-  if (ptr_ro_info->ptr_hi2c->hdmatx != NULL) {  // If DMA is used for Tx
-    tx_status = HAL_I2C_Slave_Seq_Transmit_DMA(ptr_ro_info->ptr_hi2c, (uint8_t *)(uint32_t)data, (uint16_t)num, I2C_NEXT_FRAME);
-  } else {                                      // If DMA is not configured (IRQ mode)
-    tx_status = HAL_I2C_Slave_Seq_Transmit_IT (ptr_ro_info->ptr_hi2c, (uint8_t *)(uint32_t)data, (uint16_t)num, I2C_NEXT_FRAME);
-  }
-
-  // Convert HAL status code to CMSIS-Driver status code
-  switch (tx_status) {
-    case HAL_ERROR:
-      ret = ARM_DRIVER_ERROR;
-      break;
-
-    case HAL_BUSY:
-      ret = ARM_DRIVER_ERROR_BUSY;
-      break;
-
-    case HAL_OK:
-      ret = ARM_DRIVER_OK;
-      break;
-
-    case HAL_TIMEOUT:
-    default:
-      ret = ARM_DRIVER_ERROR;
-      break;
-  }
-
-  return ret;
+  return ARM_DRIVER_OK;
 }
 
 /**
@@ -1110,8 +1176,6 @@ static int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *
   \return      \ref execution_status
 */
 static int32_t I2Cn_SlaveReceive (const RO_Info_t *ptr_ro_info, uint8_t *data, uint32_t num) {
-  HAL_StatusTypeDef rx_status;
-  int32_t           ret;
 
   if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
     // If any parameter is invalid
@@ -1129,37 +1193,12 @@ static int32_t I2Cn_SlaveReceive (const RO_Info_t *ptr_ro_info, uint8_t *data, u
   ptr_ro_info->ptr_rw_info->i2c_bus_error       = 0U;
   ptr_ro_info->ptr_rw_info->i2c_general_call    = 0U;
 
+  // Just register receive parameters, actual operation will be started from HAL_I2C_AddrCallback
   ptr_ro_info->ptr_rw_info->xfer_buf_registered = 1U;
+  ptr_ro_info->ptr_rw_info->xfer_data           = data;
   ptr_ro_info->ptr_rw_info->xfer_size           = num;
 
-  // Start the reception
-  if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {  // If DMA is used for Rx
-    rx_status = HAL_I2C_Slave_Seq_Receive_DMA(ptr_ro_info->ptr_hi2c, (uint8_t *)data, (uint16_t)num, I2C_NEXT_FRAME);
-  } else {                                      // If DMA is not configured (IRQ mode)
-    rx_status = HAL_I2C_Slave_Seq_Receive_IT (ptr_ro_info->ptr_hi2c, (uint8_t *)data, (uint16_t)num, I2C_NEXT_FRAME);
-  }
-
-  // Convert HAL status code to CMSIS-Driver status code
-  switch (rx_status) {
-    case HAL_ERROR:
-      ret = ARM_DRIVER_ERROR;
-      break;
-
-    case HAL_BUSY:
-      ret = ARM_DRIVER_ERROR_BUSY;
-      break;
-
-    case HAL_OK:
-      ret = ARM_DRIVER_OK;
-      break;
-
-    case HAL_TIMEOUT:
-    default:
-      ret = ARM_DRIVER_ERROR;
-      break;
-  }
-
-  return ret;
+  return ARM_DRIVER_OK;
 }
 
 /**
@@ -1220,12 +1259,13 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
         HAL_I2C_ModeTypeDef mode;
         GPIO_InitTypeDef    GPIO_InitStruct;
         GPIO_PinState       state;
-  const StandardTiming_t   *ptr_std_timing;
-        ClockSetup_t        clock_setup;
         uint32_t            i;
         uint32_t            periph_clk;
+#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
+  const StandardTiming_t   *ptr_std_timing;
+        ClockSetup_t        clock_setup;
         uint32_t            scl_freq;
-        uint16_t            dev_addres;
+#endif
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -1241,10 +1281,7 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       case HAL_I2C_MODE_MASTER:         // I2C communication is in Master Mode
         ptr_ro_info->ptr_rw_info->xfer_abort = 0U;
 
-        // Get Slave address
-        dev_addres = (uint16_t)(ptr_ro_info->ptr_hi2c->Instance->CR2 & I2C_CR2_SADD);
-
-        if (HAL_I2C_Master_Abort_IT(ptr_ro_info->ptr_hi2c, dev_addres) != HAL_OK) {
+        if (HAL_I2C_Master_Abort_IT(ptr_ro_info->ptr_hi2c, (uint16_t)ptr_ro_info->ptr_hi2c->Init.OwnAddress1) != HAL_OK) {
           return ARM_DRIVER_ERROR;
         }
 
@@ -1264,7 +1301,11 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 
       case HAL_I2C_MODE_SLAVE:          // I2C communication is in Slave Mode
         // Generate NACK when in Slave mode
+#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
         __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
+#else                                   // If this is I2C peripheral without filter capabilities
+        ptr_ro_info->ptr_hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
+#endif
         break;
 
       case HAL_I2C_MODE_MEM:            // I2C communication is in Memory Mode
@@ -1310,6 +1351,7 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
           return ARM_DRIVER_ERROR;
         }
 
+#ifdef  MX_I2C_FILTER_EXISTS                    // If I2C peripheral has filters
         // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
         if (ptr_ro_info->anf_en != 0U) {
           if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
@@ -1325,6 +1367,7 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
         if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
           return ARM_DRIVER_ERROR;
         }
+#endif
 
         // Enable the Address listen mode
         if (HAL_I2C_EnableListen_IT(ptr_ro_info->ptr_hi2c) != HAL_OK) {
@@ -1339,6 +1382,8 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
         // If peripheral clock is not enabled or available with HAL_RCCEx_GetPeriphCLKFreq function
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
+
+#ifdef  MX_I2C_FILTER_EXISTS                    // If I2C peripheral has filters
       switch (arg) {
         case ARM_I2C_BUS_SPEED_STANDARD:        // Standard Speed (100kHz)
           ptr_std_timing = &i2c_spec_standard;
@@ -1380,12 +1425,16 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 
       // Get TIMINGR register values
       ptr_ro_info->ptr_hi2c->Init.Timing = I2Cn_GetTimingValue(&clock_setup, ptr_std_timing);
+#else                                   // If this is I2C peripheral without filter capabilities
+      ptr_ro_info->ptr_hi2c->Init.ClockSpeed = arg;
+#endif
 
-      // Update the Timing configuration
+      // Update the bus speed configuration
       if (HAL_I2C_Init(ptr_ro_info->ptr_hi2c) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
 
+#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
       // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
       if (ptr_ro_info->anf_en != 0U) {
         if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
@@ -1401,6 +1450,7 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
       if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
+#endif
       break;
 
     case ARM_I2C_BUS_CLEAR:
@@ -1484,16 +1534,10 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
   \return      I2C status \ref ARM_I2C_STATUS
 */
 static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t *ptr_ro_info) {
-  volatile ARM_I2C_STATUS status;
+  ARM_I2C_STATUS status;
 
   // Clear status structure
-  status.busy             = 0U;
-  status.mode             = 0U;
-  status.direction        = 0U;
-  status.general_call     = 0U;
-  status.arbitration_lost = 0U;
-  status.bus_error        = 0U;
-  status.reserved         = 0U;
+  memset(&status, 0, sizeof(ARM_I2C_STATUS));
 
   // Process HAL state
   switch (HAL_I2C_GetState(ptr_ro_info->ptr_hi2c)) {
@@ -1611,34 +1655,53 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
     return;
   }
 
-  if (ptr_ro_info->ptr_rw_info->xfer_buf_registered == 0U) {
+  event = 0U;
 
-    if (TransferDirection == I2C_DIRECTION_TRANSMIT) {
-      // Master is transmitter, Slave enters receiver mode
+  if (TransferDirection == I2C_DIRECTION_TRANSMIT) {    // If Master requests to send data to Slave
+    if (ptr_ro_info->ptr_rw_info->xfer_data != NULL) {  // If Slave operation was registered by SlaveReceive
+      // Start the Slave reception
+      if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {      // If DMA is used for Rx
+        (void)HAL_I2C_Slave_Seq_Receive_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+      } else {                                          // If DMA is not configured (IRQ mode)
+        (void)HAL_I2C_Slave_Seq_Receive_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+      }
+    } else {                                            // If Slave operation was not registered by SlaveReceive
       event = ARM_I2C_EVENT_SLAVE_RECEIVE;
       ptr_ro_info->ptr_rw_info->i2c_direction = 1U;
-    } else {
-      // Master is receiver, Slave enters transmitter mode
+    }
+  } else {                                              // If Master requests to receive data from Slave
+    if (ptr_ro_info->ptr_rw_info->xfer_data != NULL) {  // If Slave operation was registered by SlaveTransmit
+      // Start the Slave transmission
+      if (ptr_ro_info->ptr_hi2c->hdmatx != NULL) {      // If DMA is used for Tx
+        (void)HAL_I2C_Slave_Seq_Transmit_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+      } else {                                          // If DMA is not configured (IRQ mode)
+        (void)HAL_I2C_Slave_Seq_Transmit_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+      }
+    } else {                                            // If Slave operation was not registered by SlaveTransmit
       event = ARM_I2C_EVENT_SLAVE_TRANSMIT;
       ptr_ro_info->ptr_rw_info->i2c_direction = 0U;
     }
+  }
 
-    if (AddrMatchCode == 0U) {
-      // General call address
-      event |= ARM_I2C_EVENT_GENERAL_CALL;
-      ptr_ro_info->ptr_rw_info->i2c_general_call = 1U;
-    }
+  if ((ptr_ro_info->ptr_rw_info->xfer_data == NULL) && (AddrMatchCode == 0U)) {
+    // General call address
+    event |= ARM_I2C_EVENT_GENERAL_CALL;
+    ptr_ro_info->ptr_rw_info->i2c_general_call = 1U;
+  }
 
-    if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
-      ptr_ro_info->ptr_rw_info->cb_event(event);
-    }
+  if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
+    ptr_ro_info->ptr_rw_info->cb_event(event);
   }
 
   if (ptr_ro_info->ptr_rw_info->xfer_buf_registered == 0U) {
+#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
     __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
     __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
+#else                                   // If this is I2C peripheral without filter capabilities
+    ptr_ro_info->ptr_hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
+    __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
+#endif
   }
-  __HAL_I2C_CLEAR_FLAG(ptr_ro_info->ptr_hi2c, I2C_FLAG_ADDR);
 }
 
 /**
@@ -1665,8 +1728,12 @@ void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
     ptr_ro_info->ptr_rw_info->cb_event(ARM_I2C_EVENT_TRANSFER_DONE);
   }
 
-  // Re-enable listen mode
+  // Re-enable interrupts
+#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
+#else                                   // If this is I2C peripheral without filter capabilities
+  __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
+#endif
 }
 
 /**
@@ -1693,8 +1760,12 @@ void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
     ptr_ro_info->ptr_rw_info->cb_event(ARM_I2C_EVENT_TRANSFER_DONE);
   }
 
-  // Re-enable listen mode
+  // Re-enable interrupts
+#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
+#else                                   // If this is I2C peripheral without filter capabilities
+  __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
+#endif
 }
 
 /**
