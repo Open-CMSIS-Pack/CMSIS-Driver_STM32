@@ -2,7 +2,7 @@
  * @file     USART_STM32.h
  * @brief    USART Driver header for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     8. January 2024
+ * @date     6. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -27,10 +27,6 @@
 #define  USART_STM32_H__
 
 #include "Driver_USART.h"
-
-#ifndef  VM_ASYNC
-#define  VM_ASYNC                       (1UL)
-#endif
 #include "MX_Device.h"
 
 #ifdef  __cplusplus
@@ -40,49 +36,49 @@ extern "C"
 
 // Configuration **************************************************************
 
-#if    !defined(MX_UART1)  && (defined(MX_USART1)  && (MX_USART1_VM  == VM_ASYNC))
+#if    !defined(MX_UART1)  && (defined(MX_USART1)  && defined(MX_USART1_VM_ASYNC))
 #define MX_UART1                        1
 #endif
-#if    !defined(MX_UART2)  && (defined(MX_USART2)  && (MX_USART2_VM  == VM_ASYNC))
+#if    !defined(MX_UART2)  && (defined(MX_USART2)  && defined(MX_USART2_VM_ASYNC))
 #define MX_UART2                        1
 #endif
-#if    !defined(MX_UART3)  && (defined(MX_USART3)  && (MX_USART3_VM  == VM_ASYNC))
+#if    !defined(MX_UART3)  && (defined(MX_USART3)  && defined(MX_USART3_VM_ASYNC))
 #define MX_UART3                        1
 #endif
-#if    !defined(MX_UART4)  && (defined(MX_USART4)  && (MX_USART4_VM  == VM_ASYNC))
+#if    !defined(MX_UART4)  && (defined(MX_USART4)  && defined(MX_USART4_VM_ASYNC))
 #define MX_UART4                        1
 #endif
-#if    !defined(MX_UART5)  && (defined(MX_USART5)  && (MX_USART5_VM  == VM_ASYNC))
+#if    !defined(MX_UART5)  && (defined(MX_USART5)  && defined(MX_USART5_VM_ASYNC))
 #define MX_UART5                        1
 #endif
-#if    !defined(MX_UART6)  && (defined(MX_USART6)  && (MX_USART6_VM  == VM_ASYNC))
+#if    !defined(MX_UART6)  && (defined(MX_USART6)  && defined(MX_USART6_VM_ASYNC))
 #define MX_UART6                        1
 #endif
-#if    !defined(MX_UART7)  && (defined(MX_USART7)  && (MX_USART7_VM  == VM_ASYNC))
+#if    !defined(MX_UART7)  && (defined(MX_USART7)  && defined(MX_USART7_VM_ASYNC))
 #define MX_UART7                        1
 #endif
-#if    !defined(MX_UART8)  && (defined(MX_USART8)  && (MX_USART8_VM  == VM_ASYNC))
+#if    !defined(MX_UART8)  && (defined(MX_USART8)  && defined(MX_USART8_VM_ASYNC))
 #define MX_UART8                        1
 #endif
-#if    !defined(MX_UART9)  && (defined(MX_USART9)  && (MX_USART9_VM  == VM_ASYNC))
+#if    !defined(MX_UART9)  && (defined(MX_USART9)  && defined(MX_USART9_VM_ASYNC))
 #define MX_UART9                        1
 #endif
-#if    !defined(MX_UART10) && (defined(MX_USART10) && (MX_USART10_VM == VM_ASYNC))
+#if    !defined(MX_UART10) && (defined(MX_USART10) && defined(MX_USART10_VM_ASYNC))
 #define MX_UART10                       1
 #endif
-#if    !defined(MX_UART11) && (defined(MX_USART11) && (MX_USART11_VM == VM_ASYNC))
+#if    !defined(MX_UART11) && (defined(MX_USART11) && defined(MX_USART11_VM_ASYNC))
 #define MX_UART11                       1
 #endif
-#if    !defined(MX_UART12) && (defined(MX_USART12) && (MX_USART12_VM == VM_ASYNC))
+#if    !defined(MX_UART12) && (defined(MX_USART12) && defined(MX_USART12_VM_ASYNC))
 #define MX_UART12                       1
 #endif
-#if    !defined(MX_UART13) && (defined(MX_USART13) && (MX_USART13_VM == VM_ASYNC))
+#if    !defined(MX_UART13) && (defined(MX_USART13) && defined(MX_USART13_VM_ASYNC))
 #define MX_UART13                       1
 #endif
-#if    !defined(MX_UART14) && (defined(MX_USART14) && (MX_USART14_VM == VM_ASYNC))
+#if    !defined(MX_UART14) && (defined(MX_USART14) && defined(MX_USART14_VM_ASYNC))
 #define MX_UART14                       1
 #endif
-#if    !defined(MX_UART15) && (defined(MX_USART15) && (MX_USART15_VM == VM_ASYNC))
+#if    !defined(MX_UART15) && (defined(MX_USART15) && defined(MX_USART15_VM_ASYNC))
 #define MX_UART15                       1
 #endif
 #if     defined(MX_LPUART1)

@@ -1,8 +1,8 @@
-/******************************************************************************
+﻿/******************************************************************************
  * @file     USART_STM32.c
  * @brief    USART Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     24. January 2024
+ * @date     6. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -233,6 +233,17 @@ Results of the **CMSIS-Driver Validation** for this driver can be found in the [
 
 // Driver Version *************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+// ****************************************************************************
+
+// Compile-time configuration *************************************************
+
+// Configuration depending on the MX_Device.h
+
+// Check if MX_Device.h version is as required (old version did not have all the necessary information)
+#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
+#error USART driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#endif
+
 // ****************************************************************************
 
 // Macros
@@ -679,13 +690,13 @@ static int32_t USARTn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STAT
       // De-initialize pins, clocks, interrupts and peripheral
       (void)HAL_UART_DeInit(ptr_ro_info->ptr_huart);
 
+      // Set driver status to not powered
+      ptr_ro_info->ptr_rw_info->drv_status.powered = 0U;
+
       // Clear communication error status
       ptr_ro_info->ptr_rw_info->rx_overflow      = 0U;
       ptr_ro_info->ptr_rw_info->rx_framing_error = 0U;
       ptr_ro_info->ptr_rw_info->rx_parity_error  = 0U;
-
-      // Set driver status to not powered
-      ptr_ro_info->ptr_rw_info->drv_status.powered = 0U;
       break;
 
     case ARM_POWER_LOW:
@@ -1159,17 +1170,10 @@ static int32_t USARTn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, u
   \return      USART status \ref ARM_USART_STATUS
 */
 static ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t *ptr_ro_info) {
-  volatile ARM_USART_STATUS status;
+  ARM_USART_STATUS status;
 
   // Clear status structure
-  status.tx_busy          = 0U;
-  status.rx_busy          = 0U;
-  status.tx_underflow     = 0U;
-  status.rx_overflow      = 0U;
-  status.rx_break         = 0U;
-  status.rx_framing_error = 0U;
-  status.rx_parity_error  = 0U;
-  status.reserved         = 0U;
+  memset(&status, 0, sizeof(ARM_USART_STATUS));
 
   // Process HAL state
   switch (HAL_UART_GetState(ptr_ro_info->ptr_huart)) {
