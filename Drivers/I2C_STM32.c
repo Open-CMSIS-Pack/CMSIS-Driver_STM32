@@ -2,7 +2,7 @@
  * @file     I2C_STM32.c
  * @brief    I2C Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     5. March 2024
+ * @date     7. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -446,11 +446,14 @@ typedef struct {
   volatile uint8_t              i2c_general_call;       // I2C General Call indication (cleared on start of next Slave operation)
   volatile uint8_t              i2c_arbitration_lost;   // I2C Master lost arbitration (cleared on start of next Master operation)
   volatile uint8_t              i2c_bus_error;          // I2C Bus error detected (cleared on start of next Master/Slave operation)
-  volatile uint8_t              xfer_buf_registered;    // Transfer buffer registered: 0 - not registered, not 0 - registered
            uint8_t              xfer_no_stop;           // Transfer not generating STOP: 0 - not generating STOP, not 0 - generating STOP
   volatile uint8_t              xfer_abort;             // Transfer abort done: 0 - abort not done might be in progress, not 0 - abort done
-           uint8_t             *xfer_data;              // Requested transfer data (for Slave only)
+           uint8_t              reserved;               // Reserved (for padding)
            uint32_t             xfer_size;              // Requested transfer size (in bytes)
+  const    uint8_t * volatile   slave_xfer_tx_data;     // Pointer to transmit data (for Slave only)
+           uint8_t * volatile   slave_xfer_rx_data;     // Pointer to receive  data (for Slave only)
+           uint16_t             slave_xfer_tx_num;      // Requested number of bytes to transmit
+           uint16_t             slave_xfer_rx_num;      // Requested number of bytes to receive
 } RW_Info_t;
 
 // Instance compile-time information (RO)
@@ -1159,10 +1162,11 @@ static int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *
   ptr_ro_info->ptr_rw_info->i2c_bus_error       = 0U;
   ptr_ro_info->ptr_rw_info->i2c_general_call    = 0U;
 
+  ptr_ro_info->ptr_rw_info->xfer_size           = 0U;
+
   // Just register transmit parameters, actual operation will be started from HAL_I2C_AddrCallback
-  ptr_ro_info->ptr_rw_info->xfer_buf_registered = 1U;
-  ptr_ro_info->ptr_rw_info->xfer_data           = (uint8_t *)(uint32_t)data;
-  ptr_ro_info->ptr_rw_info->xfer_size           = num;
+  ptr_ro_info->ptr_rw_info->slave_xfer_tx_data  = data;
+  ptr_ro_info->ptr_rw_info->slave_xfer_tx_num   = (uint16_t)num;
 
   return ARM_DRIVER_OK;
 }
@@ -1193,10 +1197,11 @@ static int32_t I2Cn_SlaveReceive (const RO_Info_t *ptr_ro_info, uint8_t *data, u
   ptr_ro_info->ptr_rw_info->i2c_bus_error       = 0U;
   ptr_ro_info->ptr_rw_info->i2c_general_call    = 0U;
 
+  ptr_ro_info->ptr_rw_info->xfer_size           = 0U;
+
   // Just register receive parameters, actual operation will be started from HAL_I2C_AddrCallback
-  ptr_ro_info->ptr_rw_info->xfer_buf_registered = 1U;
-  ptr_ro_info->ptr_rw_info->xfer_data           = data;
-  ptr_ro_info->ptr_rw_info->xfer_size           = num;
+  ptr_ro_info->ptr_rw_info->slave_xfer_rx_data  = data;
+  ptr_ro_info->ptr_rw_info->slave_xfer_rx_num   = (uint16_t)num;
 
   return ARM_DRIVER_OK;
 }
@@ -1657,25 +1662,27 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
 
   event = 0U;
 
-  if (TransferDirection == I2C_DIRECTION_TRANSMIT) {    // If Master requests to send data to Slave
-    if (ptr_ro_info->ptr_rw_info->xfer_data != NULL) {  // If Slave operation was registered by SlaveReceive
+  if (TransferDirection == I2C_DIRECTION_TRANSMIT) {            // If Master requests to send data to Slave
+    if (ptr_ro_info->ptr_rw_info->slave_xfer_rx_data != NULL) { // If Slave operation was registered by SlaveReceive
       // Start the Slave reception
-      if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {      // If DMA is used for Rx
-        (void)HAL_I2C_Slave_Seq_Receive_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
-      } else {                                          // If DMA is not configured (IRQ mode)
-        (void)HAL_I2C_Slave_Seq_Receive_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+      ptr_ro_info->ptr_rw_info->xfer_size = ptr_ro_info->ptr_rw_info->slave_xfer_rx_num;
+      if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {              // If DMA is used for Rx
+        (void)HAL_I2C_Slave_Seq_Receive_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->slave_xfer_rx_data, ptr_ro_info->ptr_rw_info->slave_xfer_rx_num, I2C_NEXT_FRAME);
+      } else {                                                  // If DMA is not configured (IRQ mode)
+        (void)HAL_I2C_Slave_Seq_Receive_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->slave_xfer_rx_data, ptr_ro_info->ptr_rw_info->slave_xfer_rx_num, I2C_NEXT_FRAME);
       }
-    } else {                                            // If Slave operation was not registered by SlaveReceive
+    } else {                                                    // If Slave operation was not registered by SlaveReceive
       event = ARM_I2C_EVENT_SLAVE_RECEIVE;
       ptr_ro_info->ptr_rw_info->i2c_direction = 1U;
     }
-  } else {                                              // If Master requests to receive data from Slave
-    if (ptr_ro_info->ptr_rw_info->xfer_data != NULL) {  // If Slave operation was registered by SlaveTransmit
+  } else {                                                      // If Master requests to receive data from Slave
+    if (ptr_ro_info->ptr_rw_info->slave_xfer_tx_data != NULL) { // If Slave operation was registered by SlaveTransmit
       // Start the Slave transmission
-      if (ptr_ro_info->ptr_hi2c->hdmatx != NULL) {      // If DMA is used for Tx
-        (void)HAL_I2C_Slave_Seq_Transmit_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+      ptr_ro_info->ptr_rw_info->xfer_size = ptr_ro_info->ptr_rw_info->slave_xfer_tx_num;
+      if (ptr_ro_info->ptr_hi2c->hdmatx != NULL) {              // If DMA is used for Tx
+        (void)HAL_I2C_Slave_Seq_Transmit_DMA(ptr_ro_info->ptr_hi2c, (uint8_t *)(uint32_t)ptr_ro_info->ptr_rw_info->slave_xfer_tx_data, ptr_ro_info->ptr_rw_info->slave_xfer_tx_num, I2C_NEXT_FRAME);
       } else {                                          // If DMA is not configured (IRQ mode)
-        (void)HAL_I2C_Slave_Seq_Transmit_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->xfer_data, (uint16_t)ptr_ro_info->ptr_rw_info->xfer_size, I2C_NEXT_FRAME);
+        (void)HAL_I2C_Slave_Seq_Transmit_IT (ptr_ro_info->ptr_hi2c, (uint8_t *)(uint32_t)ptr_ro_info->ptr_rw_info->slave_xfer_tx_data, ptr_ro_info->ptr_rw_info->slave_xfer_tx_num, I2C_NEXT_FRAME);
       }
     } else {                                            // If Slave operation was not registered by SlaveTransmit
       event = ARM_I2C_EVENT_SLAVE_TRANSMIT;
@@ -1683,7 +1690,7 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
     }
   }
 
-  if ((ptr_ro_info->ptr_rw_info->xfer_data == NULL) && (AddrMatchCode == 0U)) {
+  if ((event != 0U) && (AddrMatchCode == 0U)) {
     // General call address
     event |= ARM_I2C_EVENT_GENERAL_CALL;
     ptr_ro_info->ptr_rw_info->i2c_general_call = 1U;
@@ -1693,7 +1700,7 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
     ptr_ro_info->ptr_rw_info->cb_event(event);
   }
 
-  if (ptr_ro_info->ptr_rw_info->xfer_buf_registered == 0U) {
+  if (event != 0U) {
 #ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
     __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
     __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
@@ -1722,7 +1729,7 @@ void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
     return;
   }
 
-  ptr_ro_info->ptr_rw_info->xfer_buf_registered = 0U;
+  ptr_ro_info->ptr_rw_info->slave_xfer_tx_data = NULL;
 
   if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
     ptr_ro_info->ptr_rw_info->cb_event(ARM_I2C_EVENT_TRANSFER_DONE);
@@ -1754,7 +1761,7 @@ void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
     return;
   }
 
-  ptr_ro_info->ptr_rw_info->xfer_buf_registered = 0U;
+  ptr_ro_info->ptr_rw_info->slave_xfer_rx_data = NULL;
 
   if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
     ptr_ro_info->ptr_rw_info->cb_event(ARM_I2C_EVENT_TRANSFER_DONE);
