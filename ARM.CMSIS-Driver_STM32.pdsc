@@ -29,44 +29,17 @@
       <require Dvendor="STMicroelectronics:13" Dname="STM32*"/>
     </condition>
 
-    <!-- CMSIS Driver Common Conditions -->
-    <condition id="Common requirements">
-      <description>Common requirements for all CMSIS Drivers</description>
+    <!-- CMSIS Driver Conditions -->
+    <condition id="CMSIS Driver requirements">
+      <description>CMSIS Driver requirements for all CMSIS Drivers</description>
       <require condition="Device requirement"/>
       <require Cclass="CMSIS" Cgroup="CORE"/>
-    </condition>
-
-    <!-- CMSIS Driver Conditions -->
-    <condition id="Conditions for CMSIS Driver ETH MAC">
-      <require condition="Common requirements"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="ETH"/>
-    </condition>
-    <condition id="Conditions for CMSIS Driver I2C">
-      <require condition="Common requirements"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="RCC"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="I2C"/>
-    </condition>
-    <condition id="Conditions for CMSIS Driver SPI">
-      <require condition="Common requirements"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="RCC"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="SPI"/>
-    </condition>
-    <condition id="Conditions for CMSIS Driver USART">
-      <require condition="Common requirements"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="DMA"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="UART"/>
-    </condition>
-    <condition id="Conditions for CMSIS Driver USBD">
-      <require condition="Common requirements"/>
-      <require Cclass="Device" Cgroup="STM32Cube HAL" Csub="PCD"/>
     </condition>
   </conditions>
 
   <components>
     <!-- CMSIS Drivers -->
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver ETH MAC">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>Ethernet MAC Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_ETH_MAC0            /* Driver ETH_MAC0 */
@@ -77,7 +50,7 @@
         <file category="source"  name="Drivers/ETH_MAC_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver I2C">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>I2C Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_I2C1                /* Driver I2C1 */
@@ -95,7 +68,7 @@
         <file category="source"  name="Drivers/I2C_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver SPI">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>SPI Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_SPI1                /* Driver SPI1 */
@@ -113,7 +86,7 @@
         <file category="source"  name="Drivers/SPI_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver USART">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>USART Driver for STM32 devices</description>
       <RTE_Components_h> <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_CMSIS_Driver_USART1         /* Driver USART1  */
@@ -142,7 +115,7 @@
         <file category="source"  name="Drivers/USART_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device" Capiversion="2.3.0" Cversion="3.0.0" condition="Conditions for CMSIS Driver USBD">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"  Capiversion="2.3.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>USB Device Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBD0               /* Driver USBD0 */
