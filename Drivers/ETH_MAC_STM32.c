@@ -2,7 +2,7 @@
  * @file     ETH_MAC_STM32.c
  * @brief    Ethernet MAC Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     8. January 2024
+ * @date     15. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -281,6 +281,21 @@ Results of the **CMSIS-Driver Validation** for this driver can be found in the [
 // Driver Version *************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // ****************************************************************************
+
+// Compile-time configuration *************************************************
+
+// Configuration depending on the MX_Device.h
+
+// Check if Ethernet MAC peripheral instance is configured in the STM32CubeMX
+#ifndef MX_ETH
+#error  Ethernet MAC driver requires ETH peripheral configured in the STM32CubeMX!
+#else
+#define DRIVER_CONFIG_VALID             1
+#endif
+
+// ****************************************************************************
+
+#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
 
 // Driver status
 typedef struct {
@@ -963,5 +978,7 @@ ARM_DRIVER_ETH_MAC Driver_ETH_MAC0 = {
   ETH_MAC_PHY_Read,
   ETH_MAC_PHY_Write
 };
+
+#endif // DRIVER_CONFIG_VALID
 
 /*! \endcond */
