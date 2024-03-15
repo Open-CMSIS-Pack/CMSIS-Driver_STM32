@@ -2,7 +2,7 @@
  * @file     I2C_STM32.c
  * @brief    I2C Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     7. March 2024
+ * @date     15. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -216,9 +216,23 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 
 // Configuration depending on the MX_Device.h
 
+// Check if at least one peripheral instance is configured in the STM32CubeMX
+#if    (!defined(MX_I2C1) && \
+        !defined(MX_I2C2) && \
+        !defined(MX_I2C3) && \
+        !defined(MX_I2C4) && \
+        !defined(MX_I2C5) && \
+        !defined(MX_I2C6) && \
+        !defined(MX_I2C7) && \
+        !defined(MX_I2C8))
+#error  I2C driver requires at least one I2C peripheral configured in the STM32CubeMX!
+
 // Check if MX_Device.h version is as required (old version did not have all the necessary information)
-#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
-#error I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#elif  (!defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U))
+#error  I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+
+#else
+#define DRIVER_CONFIG_VALID             1
 #endif
 
 // If MX_I2Cn_ANF_ENABLE or MX_I2Cn_DNF is defined then I2C has additional filter capabilities
@@ -267,6 +281,8 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #endif
 
 // ****************************************************************************
+
+#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -1915,5 +1931,7 @@ I2C_DRIVER(7)
 #ifdef MX_I2C8
 I2C_DRIVER(8)
 #endif
+
+#endif // DRIVER_CONFIG_VALID
 
 /*! \endcond */
