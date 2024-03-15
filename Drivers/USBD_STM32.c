@@ -2,7 +2,7 @@
  * @file     USBD_STM32.c
  * @brief    USB Device Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     5. March 2024
+ * @date     15. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -230,9 +230,17 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 // Configuration depending on the MX_Device.h
 
+// Check if at least one peripheral instance is configured in the STM32CubeMX
+#if    (!defined(MX_USBD0) && \
+        !defined(MX_USBD1))
+#error  USB Device driver requires at least one USB (Device) peripheral configured in the STM32CubeMX!
+
 // Check if MX_Device.h version is as required (old version did not have all the necessary information)
-#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
-#error USB Device driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#elif  (!defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U))
+#error  USB Device driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+
+#else
+#define DRIVER_CONFIG_VALID             1
 #endif
 
 // Define the HAL_PCDEx_PMAConfig macro based on peripheral name
@@ -259,6 +267,8 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #endif
 
 // ****************************************************************************
+
+#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -1496,5 +1506,7 @@ USBD_DRIVER(0)
 #ifdef MX_USBD1
 USBD_DRIVER(1)
 #endif
+
+#endif // DRIVER_CONFIG_VALID
 
 /*! \endcond */
