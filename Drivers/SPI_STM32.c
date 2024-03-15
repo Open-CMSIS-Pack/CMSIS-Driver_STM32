@@ -2,7 +2,7 @@
  * @file     SPI_STM32.c
  * @brief    SPI Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     5. March 2024
+ * @date     15. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -239,6 +239,29 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
   0U                            // Reserved (must be zero)
 };
 // ****************************************************************************
+
+// Compile-time configuration *************************************************
+
+// Configuration depending on the MX_Device.h
+
+// Check if at least one peripheral instance is configured in the STM32CubeMX
+#if    (!defined(MX_SPI1) && \
+        !defined(MX_SPI2) && \
+        !defined(MX_SPI3) && \
+        !defined(MX_SPI4) && \
+        !defined(MX_SPI5) && \
+        !defined(MX_SPI6) && \
+        !defined(MX_SPI7) && \
+        !defined(MX_SPI8))
+#error  SPI driver requires at least one SPI peripheral configured in the STM32CubeMX!
+
+#else
+#define DRIVER_CONFIG_VALID             1
+#endif
+
+// ****************************************************************************
+
+#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -1469,5 +1492,7 @@ SPI_DRIVER(7)
 #ifdef MX_SPI8
 SPI_DRIVER(8)
 #endif
+
+#endif // DRIVER_CONFIG_VALID
 
 /*! \endcond */
