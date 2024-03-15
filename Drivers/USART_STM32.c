@@ -2,7 +2,7 @@
  * @file     USART_STM32.c
  * @brief    USART Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     6. March 2024
+ * @date     15. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -239,12 +239,38 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 // Configuration depending on the MX_Device.h
 
+// Check if at least one peripheral instance is configured in the STM32CubeMX
+#if    (!defined(MX_UART1)  && \
+        !defined(MX_UART2)  && \
+        !defined(MX_UART3)  && \
+        !defined(MX_UART4)  && \
+        !defined(MX_UART5)  && \
+        !defined(MX_UART6)  && \
+        !defined(MX_UART7)  && \
+        !defined(MX_UART8)  && \
+        !defined(MX_UART9)  && \
+        !defined(MX_UART10) && \
+        !defined(MX_UART11) && \
+        !defined(MX_UART12) && \
+        !defined(MX_UART13) && \
+        !defined(MX_UART14) && \
+        !defined(MX_UART15) && \
+        !defined(MX_UART21) && \
+        !defined(MX_UART22) && \
+        !defined(MX_UART23))
+#error  USART driver requires at least one UART/USART peripheral configured in the STM32CubeMX!
+
 // Check if MX_Device.h version is as required (old version did not have all the necessary information)
-#if !defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U)
-#error USART driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+#elif  (!defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U))
+#error  USART driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
+
+#else
+#define DRIVER_CONFIG_VALID             1
 #endif
 
 // ****************************************************************************
+
+#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -1443,5 +1469,7 @@ USART_DRIVER(22)
 #ifdef MX_UART23
 USART_DRIVER(23)
 #endif
+
+#endif // DRIVER_CONFIG_VALID
 
 /*! \endcond */
