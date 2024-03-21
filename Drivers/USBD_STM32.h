@@ -2,7 +2,7 @@
  * @file     USBD_STM32.h
  * @brief    USB Device Driver header for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     5. March 2024
+ * @date     21. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -38,17 +38,20 @@ extern "C"
 
 #if     defined(MX_USB)
 #define MX_USBD0                        1
+#define MX_USBD0_HANDLE                 MX_USB_HANDLE
 #endif
 
 #if   ((defined(MX_USB_OTG_FS) && defined(MX_USB_OTG_FS_DEVICE))         || \
        (defined(MX_USB_OTG_FS) && defined(MX_USB_OTG_FS_Device_Only)))
 #define MX_USBD0                        1
+#define MX_USBD0_HANDLE                 MX_USB_OTG_FS_HANDLE
 #endif
 
 #if   ((defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_DEVICE))         || \
        (defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_Device_Only_FS)) || \
        (defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_Device_HS)))
 #define MX_USBD1                        1
+#define MX_USBD1_HANDLE                 MX_USB_OTG_HS_HANDLE
 #endif
 
 // Global driver structures ***************************************************

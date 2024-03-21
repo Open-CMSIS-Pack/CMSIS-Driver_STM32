@@ -2,7 +2,7 @@
  * @file     USBD_STM32.c
  * @brief    USB Device Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     15. March 2024
+ * @date     21. March 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -277,9 +277,9 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 // Macro to create usbd_ro_info and usbd_rw_info (for instances)
 #define INFO_DEFINE(n)                                                                                                 \
-extern  PCD_HandleTypeDef       MX_USB##n##_HANDLE;                                                                    \
+extern  PCD_HandleTypeDef       MX_USBD##n##_HANDLE;                                                                   \
 static        RW_Info_t         usbd##n##_rw_info __attribute__((section(USBD_SECTION_NAME(n,_rw))));                  \
-static  const RO_Info_t         usbd##n##_ro_info = { &MX_USB##n##_HANDLE,                                             \
+static  const RO_Info_t         usbd##n##_ro_info = { &MX_USBD##n##_HANDLE,                                            \
                                                       &usbd##n##_rw_info                                               \
                                                     };
 
