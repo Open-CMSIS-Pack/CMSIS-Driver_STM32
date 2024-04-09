@@ -22,8 +22,8 @@
    - for example such functions for USART are: **HAL_UARTEx_SetTxFifoThreshold**, **HAL_UARTEx_SetRxFifoThreshold**,
      **HAL_UARTEx_EnableFifoMode** and  **HAL_UARTEx_DisableFifoMode**
    - for example such functions for USB Device are: **HAL_PCDEx_SetTxFiFo**, **HAL_PCDEx_SetRxFiFo** or **HAL_PCDEx_PMAConfig**
-8. retrieval of **peripheral clock** is inconsistently implemented across device series
-   - for example **HAL_RCCEx_GetPeriphCLKFreq** function for STM32H7 does not return clocks for I2C peripherals
+8. retrieval of **peripheral clock** is inconsistently implemented across device series (`defect`)
+   - [example for missing clock information for RCC_PERIPHCLK_I2C1 on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/fec141ce999da655a48e1a15db83a72d564a1312/Src/stm32h7xx_hal_rcc_ex.c#L1881)
 
 # Peripheral specific comments
 
@@ -45,7 +45,8 @@
 4.  no way to **set bus speed**
 5.  no way to execute **bus clear** operation
 6.  no way to **get number of transferred bytes**
-7.  Transmit operation **clears error information relating to reception**
+7.  Transmit operation **clears error information relating to reception** (`defect`)
+    - [example on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_hal_i2c.c#L1127)
 8.  Slave transfer has to be started from HAL_I2C_AddrCallback
 9.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
 
@@ -55,7 +56,8 @@
 2.  no way to **set bus speed**
 3.  no support for **default transmit value during reception**
 4.  no way to **get number of transferred bytes**
-5.  Transmit operation **clears error information relating to reception**
+5.  Transmit operation **clears error information relating to reception** (`defect`)
+    - [example on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_hal_spi.c#L853)
 6.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
 7.  no way to control internal Slave Select input level (SSI) value
 8.  Slave Select line operation is defined at compile-time and is not expected to change at run-time
@@ -65,7 +67,8 @@
 
 1.  no way to **generate continuous Tx break** signal
 2.  no way to **get number of transmitted or received bytes**
-3.  Transmit operation **clears error information relating to reception**
+3.  Transmit operation **clears error information relating to reception**  (`defect`)
+    - [example on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_hal_uart.c#L1309)
 4.  maximum number of data items supported by Transmit and Receive functions is limited to 65535 items
 5.  no support for manual modem lines handling (driving or status retrieval)
 
@@ -74,5 +77,7 @@
 1.  **Endpoint FIFOs not configurable with HAL_PCD_Init** but through HAL Ex HAL_PCDEx_SetTxFiFo, HAL_PCDEx_SetRxFiFo or HAL_PCDEx_PMAConfig functions
 2.  no callback for **Set Address request**
 3.  **Endpoint 0 does not handle transfers larger than maximum packet**
-4.  **aborting transfer on Interrupt OUT Endpoint** is not working (at least on some device series)
+4.  **aborting transfer on Interrupt OUT Endpoint** is not working (at least on some device series) (`defect`)
+    - [example of Interrupt OUT endpoint abort timing-out on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_ll_usb.c#L958)
 5.  some drivers do not call **HAL_PCD_DataOutStageCallback** when **zero-length packet is received**
+    - [example on STM32H5](https://github.com/STMicroelectronics/stm32h5xx_hal_driver/blob/afcafe6d4f21a18d898400705addd9c94fba8660/Src/stm32h5xx_hal_pcd.c#L1793)
