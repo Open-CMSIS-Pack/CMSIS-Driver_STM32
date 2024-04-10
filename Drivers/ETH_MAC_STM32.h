@@ -2,7 +2,7 @@
  * @file     ETH_MAC_STM32.h
  * @brief    Ethernet MAC Driver header for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     8. January 2024
+ * @date     10. April 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -26,13 +26,13 @@
 #ifndef  ETH_MAC_STM32_H__
 #define  ETH_MAC_STM32_H__
 
-#include "Driver_ETH_MAC.h"
-#include "MX_Device.h"
-
 #ifdef  __cplusplus
 extern "C"
 {
 #endif
+
+#include "Driver_ETH_MAC.h"
+#include "MX_Device.h"
 
 // Global driver structures ***************************************************
 

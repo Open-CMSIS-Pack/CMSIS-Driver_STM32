@@ -2,7 +2,7 @@
  * @file     USART_STM32.h
  * @brief    USART Driver header for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     6. March 2024
+ * @date     10. April 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -26,13 +26,13 @@
 #ifndef  USART_STM32_H__
 #define  USART_STM32_H__
 
-#include "Driver_USART.h"
-#include "MX_Device.h"
-
 #ifdef  __cplusplus
 extern "C"
 {
 #endif
+
+#include "Driver_USART.h"
+#include "MX_Device.h"
 
 // Configuration **************************************************************
 

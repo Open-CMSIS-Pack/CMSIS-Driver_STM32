@@ -2,7 +2,7 @@
  * @file     I2C_STM32.h
  * @brief    I2C Driver header for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     5. March 2024
+ * @date     10. April 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -26,13 +26,13 @@
 #ifndef  I2C_STM32_H__
 #define  I2C_STM32_H__
 
-#include "Driver_I2C.h"
-#include "MX_Device.h"
-
 #ifdef  __cplusplus
 extern "C"
 {
 #endif
+
+#include "Driver_I2C.h"
+#include "MX_Device.h"
 
 // Global driver structures ***************************************************
 
