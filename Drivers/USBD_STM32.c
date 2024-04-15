@@ -2,7 +2,7 @@
  * @file     USBD_STM32.c
  * @brief    USB Device Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     21. March 2024
+ * @date     15. April 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -108,8 +108,7 @@ This is example of configuring **USB_OTG_FS** and **USB_OTG_HS** on the **STM32H
 
 > **Note**
 > - To start the **STM32CubeMX** tool from the uVision in the **RTE window** under **Software Component**,
->   expand **Device**, **STM32Cube Framework (API)** and enable **STM32CubeMX** component and
->   click on the ▶️ button.
+>   expand **Device**, enable **CubeMX** component and click on the ▶️ button.
 
 ### Pinout & Configuration tab
 

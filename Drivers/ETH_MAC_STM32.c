@@ -2,7 +2,7 @@
  * @file     ETH_MAC_STM32.c
  * @brief    Ethernet MAC Driver for STMicroelectronics STM32 devices
  * @version  V3.0
- * @date     15. March 2024
+ * @date     15. April 2024
  ******************************************************************************/
 /*
  * Copyright (c) 2024 Arm Limited (or its affiliates).
@@ -105,8 +105,7 @@ This is example of configuring **ETH** on the **STM32H735IGK3** device with the 
 
 > **Note**
 > - To start the **STM32CubeMX** tool from the uVision in the **RTE window** under **Software Component**,
->   expand **Device**, **STM32Cube Framework (API)** and enable **STM32CubeMX** component and
->   click on the ▶️ button.
+>   expand **Device**, enable **CubeMX** component and click on the ▶️ button.
 
 ### Pinout & Configuration tab
 
@@ -266,7 +265,6 @@ RW_ETH_TX_BUF  0x30041900 0x00001800 {
 # Validation
 
 Results of the **CMSIS-Driver Validation** for this driver can be found in the [ETH_MAC_TestReport.txt](../../Drivers/Validation/ETH_MAC_TestReport.txt) file.
-
 */
 
 /*! \cond */
