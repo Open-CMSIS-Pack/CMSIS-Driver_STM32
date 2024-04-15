@@ -161,14 +161,9 @@ extern void HAL_GPIO_EXTI_Falling_Callback (uint16_t GPIO_Pin);
 #define GPIO_MAX_PORTS_NUM              (12U)
 #endif
 
-// Maximum number of pins per port
-#ifndef GPIO_MAX_PINS_PER_PORT_NUM
-#define GPIO_MAX_PINS_PER_PORT_NUM      (16U)
-#endif
-
 // Maximum number of pins
 #ifndef GPIO_MAX_PINS_NUM
-#define GPIO_MAX_PINS_NUM               ((GPIO_MAX_PORTS_NUM)*(GPIO_MAX_PINS_PER_PORT_NUM))
+#define GPIO_MAX_PINS_NUM               ((GPIO_MAX_PORTS_NUM)*16U)
 #endif
 
 // ****************************************************************************
@@ -185,9 +180,9 @@ typedef struct {
 
 // Run-time information (RW)
 typedef struct {
-  ARM_GPIO_SignalEvent_t        cb_event[GPIO_MAX_PINS_PER_PORT_NUM];       // Event callback
-  uint8_t                       cb_event_pin[GPIO_MAX_PINS_PER_PORT_NUM];   // Pin identifier for registered event
-  PinConfig_t                   pin_config[GPIO_MAX_PINS_NUM];              // Pin configuration
+  ARM_GPIO_SignalEvent_t        cb_event[16U];          // Event callback
+  uint8_t                       cb_event_pin[16U];      // Pin identifier for registered event
+  PinConfig_t                   pin_config[GPIO_MAX_PINS_NUM];      // Pin configuration
 } RW_Info_t;
 
 // Information definitions
