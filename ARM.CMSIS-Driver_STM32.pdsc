@@ -50,6 +50,17 @@
         <file category="source"  name="Drivers/ETH_MAC_STM32.c"/>
       </files>
     </component>
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="GPIO"         Capiversion="1.0.0" Cversion="1.0.0" condition="CMSIS Driver requirements">
+      <description>GPIO Driver for STM32 devices</description>
+      <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_Drivers_GPIO0               /* Driver GPIO0 */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/gpio_stm32.html"/>
+        <file category="header"  name="Drivers/GPIO_STM32.h"/>
+        <file category="source"  name="Drivers/GPIO_STM32.c"/>
+      </files>
+    </component>
     <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>I2C Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
