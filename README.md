@@ -1,3 +1,5 @@
+[![Version](https://img.shields.io/github/v/release/Open-CMSIS-Pack/CMSIS-Driver_STM32)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/releases/latest)
+
 # CMSIS-Driver Interface to STM32 HAL
 
 This is the development repository of the **CMSIS-Driver interface to STM32Cube HAL** (called Driver API Shim Interface below).
