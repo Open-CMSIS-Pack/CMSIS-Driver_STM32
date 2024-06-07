@@ -359,8 +359,7 @@ typedef struct {
 
 // Endpoint information
 typedef struct {
-  volatile uint16_t             active;                 // Endpoint activity status
-           uint16_t             max_packet_size;        // Maximum packet size (in bytes)
+           uint32_t             max_packet_size;        // Maximum packet size (in bytes)
   volatile uint32_t             num_transferred_total;  // Number of totally transferred bytes
   volatile uint32_t             num_transferring;       // Number of transferred bytes in last transfer
 } EP_Info_t;
@@ -692,12 +691,10 @@ static int32_t USBDn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWE
 
     case ARM_POWER_OFF:
 
-      // If endpoint transfer is active, abort it
+      // Abort all endpoint transfers
       for (ep_num = 0U; ep_num < ptr_ro_info->ptr_hpcd->Init.dev_endpoints; ep_num++) {
         for (ep_dir = 0U; ep_dir < 2U; ep_dir++) {
-          if (ptr_ro_info->ptr_rw_info->ep_info[ep_num][ep_dir].active != 0U) {
-            (void)USBDn_EndpointTransferAbort(ptr_ro_info, (uint8_t)(ep_dir << 7) | ep_num);
-          }
+          (void)USBDn_EndpointTransferAbort(ptr_ro_info, (uint8_t)(ep_dir << 7) | ep_num);
         }
       }
 
@@ -902,10 +899,6 @@ static int32_t USBDn_EndpointConfigure (const RO_Info_t * const ptr_ro_info,
   ep_dir = EP_DIR(ep_addr);
   ptr_ep = &ptr_ro_info->ptr_rw_info->ep_info[ep_num][ep_dir];
 
-  if (ptr_ep->active != 0U) {
-    return ARM_DRIVER_ERROR_BUSY;
-  }
-
   // Close endpoint
   if (HAL_PCD_EP_Close(ptr_ro_info->ptr_hpcd, ep_addr) != HAL_OK) {
     return ARM_DRIVER_ERROR;
@@ -962,10 +955,6 @@ static int32_t USBDn_EndpointUnconfigure (const RO_Info_t * const ptr_ro_info, u
 
   ep_dir = EP_DIR(ep_addr);
   ptr_ep = &ptr_ro_info->ptr_rw_info->ep_info[ep_num][ep_dir];
-
-  if (ptr_ep->active != 0U) {
-    return ARM_DRIVER_ERROR_BUSY;
-  }
 
   // Close endpoint
   if (HAL_PCD_EP_Close(ptr_ro_info->ptr_hpcd, ep_addr) != HAL_OK) {
@@ -1041,13 +1030,6 @@ static int32_t USBDn_EndpointTransfer (const RO_Info_t * const ptr_ro_info, uint
 
   ep_dir = EP_DIR(ep_addr);
   ptr_ep = &ptr_ro_info->ptr_rw_info->ep_info[ep_num][ep_dir];
-
-  if (ptr_ep->active != 0U) {
-    return ARM_DRIVER_ERROR_BUSY;
-  }
-
-  // Set endpoint active flag
-  ptr_ep->active = 1U;
 
   // Clear number of transferred bytes
   ptr_ep->num_transferred_total = 0U;
@@ -1127,8 +1109,6 @@ static int32_t USBDn_EndpointTransferAbort (const RO_Info_t * const ptr_ro_info,
   // HAL_PCD_EP_Abort returns HAL_ERROR if aborting interrupt OUT endpoint, so we ignore return value
   (void)HAL_PCD_EP_Abort(ptr_ro_info->ptr_hpcd, ep_addr);
 
-  ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_DIR(ep_addr)].active = 0U;
-
   return ARM_DRIVER_OK;
 }
 
@@ -1177,7 +1157,6 @@ void HAL_PCD_DataOutStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum) {
   event  = 0U;
 
   if (epnum != 0U) {                    // Endpoint other than 0
-    ptr_ep->active = 0U;
     ptr_ep->num_transferred_total = HAL_PCD_EP_GetRxCount(hpcd, epnum);
     event = ARM_USBD_EVENT_OUT;
   } else {                              // Endpoint 0
@@ -1185,7 +1164,6 @@ void HAL_PCD_DataOutStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum) {
     ptr_ep->num_transferred_total += num_transferred;
     if ((num_transferred < ptr_ep->max_packet_size) || (ptr_ep->num_transferred_total == ptr_ro_info->ptr_rw_info->ep0_num[EP_OUT_INDEX])) {
       // If all data was transferred
-      ptr_ep->active = 0U;
       event = ARM_USBD_EVENT_OUT;
     } else {
       // If there is more data to transfer
@@ -1232,12 +1210,10 @@ void HAL_PCD_DataInStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum) {
 
   ptr_ep->num_transferred_total += ptr_ep->num_transferring;
   if (epnum != 0U) {                    // Endpoint other than 0
-    ptr_ep->active = 0U;
     event = ARM_USBD_EVENT_IN;
   } else {                              // Endpoint 0
     if(ptr_ep->num_transferred_total == ptr_ro_info->ptr_rw_info->ep0_num[EP_IN_INDEX]) {
       // If all data was transferred
-      ptr_ep->active = 0U;
       event = ARM_USBD_EVENT_IN;
     } else {
       // If there is more data to transfer
@@ -1271,13 +1247,6 @@ void HAL_PCD_SetupStageCallback (PCD_HandleTypeDef *hpcd) {
   }
   if (ptr_ro_info->ptr_rw_info == NULL) {
     return;
-  }
-
-  // Special handling to cover drivers which do not call HAL_PCD_DataOutStageCallback when
-  // Endpoint 0 OUT receives ZLP (for example STM32H5 series) 
-  if (ptr_ro_info->ptr_rw_info->ep_info[0U][EP_OUT_INDEX].active != 0U) {
-    // If transfer was active on Endpoint 0 OUT, consider it finished
-    ptr_ro_info->ptr_rw_info->ep_info[0U][EP_OUT_INDEX].active = 0U;
   }
 
   memcpy((void *)(uint32_t)ptr_ro_info->ptr_rw_info->setup_packet, hpcd->Setup, 8);
