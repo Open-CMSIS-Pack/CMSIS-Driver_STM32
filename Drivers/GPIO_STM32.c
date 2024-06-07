@@ -131,29 +131,29 @@ This driver requires the following configuration in CubeMX:
 #include "GPIO_STM32.h"
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+#include  CMSIS_device_header
 
 // HAL Callback prototypes
 extern void HAL_GPIO_EXTI_Callback         (uint16_t GPIO_Pin);
 extern void HAL_GPIO_EXTI_Rising_Callback  (uint16_t GPIO_Pin);
 extern void HAL_GPIO_EXTI_Falling_Callback (uint16_t GPIO_Pin);
 
-// Compile-time configuration *************************************************
+// Compile-time configuration **************************************************
 
 // Configuration depending on the local macros
 
 // Compile-time configuration (that can be externally overridden if necessary)
 // Maximum number of ports
 #ifndef GPIO_MAX_PORTS_NUM
-#define GPIO_MAX_PORTS_NUM              (12U)
+#define GPIO_MAX_PORTS_NUM      (12U)
 #endif
 
 // Maximum number of pins
 #ifndef GPIO_MAX_PINS_NUM
-#define GPIO_MAX_PINS_NUM               ((GPIO_MAX_PORTS_NUM)*16U)
+#define GPIO_MAX_PINS_NUM       ((GPIO_MAX_PORTS_NUM)*16U)
 #endif
 
-// ****************************************************************************
+// *****************************************************************************
 
 // Pin configuration
 typedef struct {
@@ -335,7 +335,7 @@ static int32_t GPIO_PinConfigure (ARM_GPIO_Pin_t pin, PinConfig_t pin_config) {
   return ARM_DRIVER_OK;
 }
 
-// Driver functions ***********************************************************
+// Driver functions ************************************************************
 
 /**
   \fn          int32_t ARM_GPIO_Setup (ARM_GPIO_Pin_t pin, ARM_GPIO_SignalEvent_t cb_event)
@@ -587,7 +587,7 @@ static uint32_t GPIO_GetInput (ARM_GPIO_Pin_t pin) {
   return pin_val;
 }
 
-// HAL callback functions *****************************************************
+// HAL callback functions ******************************************************
 
 /**
   \fn          void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
@@ -646,7 +646,7 @@ void HAL_GPIO_EXTI_Falling_Callback (uint16_t GPIO_Pin) {
   }
 }
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 ARM_DRIVER_GPIO Driver_GPIO0 = {
   GPIO_Setup,

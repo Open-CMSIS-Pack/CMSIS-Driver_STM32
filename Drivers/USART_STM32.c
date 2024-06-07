@@ -201,15 +201,15 @@ This driver requires the following configuration in CubeMX:
 #include "USART_STM32.h"
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+#include  CMSIS_device_header
 
 #include <string.h>
 
-// Driver Version *************************************************************
+// Driver Version **************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// ****************************************************************************
+// *****************************************************************************
 
-// Compile-time configuration *************************************************
+// Compile-time configuration **************************************************
 
 // Configuration depending on MX_Device.h
 
@@ -239,12 +239,12 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #error  USART driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
 
 #else
-#define DRIVER_CONFIG_VALID             1
+#define DRIVER_CONFIG_VALID     1
 #endif
 
-// ****************************************************************************
+// *****************************************************************************
 
-#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
+#ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -554,7 +554,7 @@ static const RO_Info_t *USARTn_GetInfo (const UART_HandleTypeDef *huart) {
   return ptr_ro_info;
 }
 
-// Driver functions ***********************************************************
+// Driver functions ************************************************************
 
 /**
   \fn          ARM_DRIVER_VERSION USART_GetVersion (void)
@@ -1241,7 +1241,7 @@ static ARM_USART_MODEM_STATUS USART_GetModemStatus (void) {
   return modem_status;
 }
 
-// HAL callback functions *****************************************************
+// HAL callback functions ******************************************************
 
 /**
   \fn          void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart)
@@ -1387,7 +1387,7 @@ FUNCS_DEFINE(22)
 FUNCS_DEFINE(23)
 #endif
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 #ifdef MX_UART1
 USART_DRIVER(1)
@@ -1444,6 +1444,6 @@ USART_DRIVER(22)
 USART_DRIVER(23)
 #endif
 
-#endif // DRIVER_CONFIG_VALID
+#endif  // DRIVER_CONFIG_VALID
 
 /*! \endcond */

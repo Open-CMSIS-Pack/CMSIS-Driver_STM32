@@ -195,15 +195,15 @@ This driver requires the following configuration in CubeMX:
 #include "USBD_STM32.h"
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+#include  CMSIS_device_header
 
 #include <string.h>
 
-// Driver Version *************************************************************
+// Driver Version **************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// ****************************************************************************
+// *****************************************************************************
 
-// Compile-time configuration *************************************************
+// Compile-time configuration **************************************************
 
 // Configuration depending on MX_Device.h
 
@@ -243,9 +243,9 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define USBD_EP0_MAX_PACKET_SIZE        (64U)
 #endif
 
-// ****************************************************************************
+// *****************************************************************************
 
-#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
+#ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -346,14 +346,14 @@ typedef struct {
   uint8_t                       reserved     : 6;       // Reserved (for padding)
 } DriverStatus_t;
 
-// Driver status
+// USB Device state
 typedef struct {
   volatile uint8_t              vbus;                   // USB Device VBUS state
   volatile uint8_t              speed;                  // USB Device speed (ARM_USB_SPEED_xxx) state
   volatile uint8_t              active;                 // USB Device active state
 } USBD_State_t;
 
-// Driver status
+// Endpoint information
 typedef struct {
   volatile uint16_t             active;                 // Endpoint activity status
            uint16_t             max_packet_size;        // Maximum packet size (in bytes)
@@ -548,7 +548,7 @@ static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t *ptr_ro_info, uint
   return ARM_DRIVER_OK;
 }
 
-// Driver functions ***********************************************************
+// Driver functions ************************************************************
 
 /**
   \fn          ARM_DRIVER_VERSION USBD_GetVersion (void)
@@ -1144,7 +1144,7 @@ static uint16_t USBDn_GetFrameNumber (const RO_Info_t *ptr_ro_info) {
   return ((uint16_t)USB_GetCurrentFrame(ptr_ro_info->ptr_hpcd->Instance));
 }
 
-// HAL callback functions *****************************************************
+// HAL callback functions ******************************************************
 
 /**
   \fn          void HAL_PCD_DataOutStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum)
@@ -1474,7 +1474,7 @@ FUNCS_DEFINE(0)
 FUNCS_DEFINE(1)
 #endif
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 #ifdef MX_USBD0
 USBD_DRIVER(0)
@@ -1484,6 +1484,6 @@ USBD_DRIVER(0)
 USBD_DRIVER(1)
 #endif
 
-#endif // DRIVER_CONFIG_VALID
+#endif  // DRIVER_CONFIG_VALID
 
 /*! \endcond */

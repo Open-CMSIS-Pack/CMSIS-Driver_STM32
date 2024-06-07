@@ -255,15 +255,15 @@ RW_ETH_TX_BUF  0x30041900 0x00001800 {
 #include "ETH_MAC_STM32.h"
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+#include  CMSIS_device_header
 
 #include <string.h>
 
-// Driver Version *************************************************************
+// Driver Version **************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// ****************************************************************************
+// *****************************************************************************
 
-// Compile-time configuration *************************************************
+// Compile-time configuration **************************************************
 
 // Configuration depending on MX_Device.h
 
@@ -274,9 +274,9 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define DRIVER_CONFIG_VALID             1
 #endif
 
-// ****************************************************************************
+// *****************************************************************************
 
-#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
+#ifdef  DRIVER_CONFIG_VALID             // Driver code is available only if configuration is valid
 
 // Driver status
 typedef struct {
@@ -337,7 +337,7 @@ static int32_t                  ETH_MAC_ControlTimer     (uint32_t control, ARM_
 static int32_t                  ETH_MAC_PHY_Read         (uint8_t phy_addr, uint8_t reg_addr, uint16_t *data);
 static int32_t                  ETH_MAC_PHY_Write        (uint8_t phy_addr, uint8_t reg_addr, uint16_t data);
 
-// Driver functions ***********************************************************
+// Driver functions ************************************************************
 
 /**
   \fn          ARM_DRIVER_VERSION ETH_MAC_GetVersion (void)
@@ -347,7 +347,6 @@ static int32_t                  ETH_MAC_PHY_Write        (uint8_t phy_addr, uint
 static ARM_DRIVER_VERSION ETH_MAC_GetVersion (void) {
   return driver_version;
 }
-
 
 /**
   \fn          ARM_ETH_MAC_CAPABILITIES ETH_MAC_GetCapabilities (void)
@@ -384,7 +383,6 @@ static ARM_ETH_MAC_CAPABILITIES ETH_MAC_GetCapabilities (void) {
 
   return driver_capabilities;
 }
-
 
 /**
   \fn          int32_t ETH_MAC_Initialize (ARM_ETH_MAC_SignalEvent_t cb_event)
@@ -862,7 +860,7 @@ static int32_t ETH_MAC_PHY_Write (uint8_t phy_addr, uint8_t reg_addr, uint16_t d
   return ARM_DRIVER_OK;
 }
 
-// HAL callback functions *****************************************************
+// HAL callback functions ******************************************************
 
 /**
   * @brief  Rx Allocate callback.
@@ -937,8 +935,7 @@ void HAL_ETH_PMTCallback(ETH_HandleTypeDef *h_eth) {
   }
 }
 
-
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 ARM_DRIVER_ETH_MAC Driver_ETH_MAC0 = {
   ETH_MAC_GetVersion,
@@ -960,6 +957,6 @@ ARM_DRIVER_ETH_MAC Driver_ETH_MAC0 = {
   ETH_MAC_PHY_Write
 };
 
-#endif // DRIVER_CONFIG_VALID
+#endif  // DRIVER_CONFIG_VALID
 
 /*! \endcond */

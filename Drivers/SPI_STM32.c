@@ -195,15 +195,15 @@ This driver requires the following configuration in CubeMX:
 #include "SPI_STM32.h"
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+#include  CMSIS_device_header
 
 #include <string.h>
 
-// Driver Version *************************************************************
+// Driver Version **************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// ****************************************************************************
+// *****************************************************************************
 
-// Driver Capabilities ********************************************************
+// Driver Capabilities *********************************************************
 static const ARM_SPI_CAPABILITIES driver_capabilities = {
   0U,                           // Simplex Mode not supported
   1U,                           // TI Synchronous Serial Interface supported
@@ -211,9 +211,9 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
   1U,                           // Signal Mode Fault event: \ref ARM_SPI_EVENT_MODE_FAULT
   0U                            // Reserved (must be zero)
 };
-// ****************************************************************************
+// *****************************************************************************
 
-// Compile-time configuration *************************************************
+// Compile-time configuration **************************************************
 
 // Configuration depending on MX_Device.h
 
@@ -229,12 +229,12 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 #error  SPI driver requires at least one SPI peripheral configured in STM32CubeMX!
 
 #else
-#define DRIVER_CONFIG_VALID             1
+#define DRIVER_CONFIG_VALID     1
 #endif
 
-// ****************************************************************************
+// *****************************************************************************
 
-#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
+#ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
@@ -509,7 +509,7 @@ static uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
   return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
-// Driver functions ***********************************************************
+// Driver functions ************************************************************
 
 /**
   \fn          ARM_DRIVER_VERSION SPI_GetVersion (void)
@@ -1295,7 +1295,7 @@ static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t *ptr_ro_info) {
   return status;
 }
 
-// HAL callback functions *****************************************************
+// HAL callback functions ******************************************************
 
 /**
   \fn          void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi)
@@ -1439,7 +1439,7 @@ FUNCS_DEFINE(7)
 FUNCS_DEFINE(8)
 #endif
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 #ifdef MX_SPI1
 SPI_DRIVER(1)
@@ -1466,6 +1466,6 @@ SPI_DRIVER(7)
 SPI_DRIVER(8)
 #endif
 
-#endif // DRIVER_CONFIG_VALID
+#endif  // DRIVER_CONFIG_VALID
 
 /*! \endcond */

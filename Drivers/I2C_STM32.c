@@ -175,22 +175,22 @@ This driver requires the following configuration in CubeMX:
 #include "I2C_STM32.h"
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+#include  CMSIS_device_header
 
 #include <string.h>
 
-// Driver Version *************************************************************
+// Driver Version **************************************************************
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// ****************************************************************************
+// *****************************************************************************
 
-// Driver Capabilities ********************************************************
+// Driver Capabilities *********************************************************
 static const ARM_I2C_CAPABILITIES driver_capabilities = {
   1U,                           // 10-bit addressing supported
   0U                            // Reserved (must be zero)
 };
-// ****************************************************************************
+// *****************************************************************************
 
-// Compile-time configuration *************************************************
+// Compile-time configuration **************************************************
 
 // Configuration depending on MX_Device.h
 
@@ -258,16 +258,16 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #define RCC_PERIPHCLK_I2C8              (0xFFFFFFFFFFFFFFFFULL)
 #endif
 
-// ****************************************************************************
+// *****************************************************************************
 
-#ifdef DRIVER_CONFIG_VALID              // Driver code is available only if configuration is valid
+#ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
 // Macro to create section name for RW info
 #define I2C_SECTION_NAME_STRING(str)    #str
 #define I2C_SECTION_NAME(n,post)        I2C_SECTION_NAME_STRING(.driver.i2c##n##post)
 
-#ifdef MX_I2C_FILTER_EXISTS             // If I2C peripheral has filters
+#ifdef MX_I2C_FILTER_EXISTS     // If I2C peripheral has filters
 // Macro to create i2c_ro_info and i2c_rw_info (for instances), with filter settings
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
@@ -311,7 +311,7 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          }                                                     \
                                                       };
-#endif // MX_I2C_FILTER_EXISTS
+#endif  // MX_I2C_FILTER_EXISTS
 
 // Macro for declaring functions (for instances)
 #define FUNCS_DECLARE(n)                                                                                       \
@@ -795,7 +795,7 @@ static uint32_t I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const Standa
 }
 #endif
 
-// Driver functions ***********************************************************
+// Driver functions ************************************************************
 
 /**
   \fn          ARM_DRIVER_VERSION I2C_GetVersion (void)
@@ -1583,7 +1583,7 @@ static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t *ptr_ro_info) {
   return status;
 }
 
-// HAL callback functions *****************************************************
+// HAL callback functions ******************************************************
 
 /**
   \fn          void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c)
@@ -1883,7 +1883,7 @@ FUNCS_DEFINE(7)
 FUNCS_DEFINE(8)
 #endif
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 #ifdef MX_I2C1
 I2C_DRIVER(1)
@@ -1910,6 +1910,6 @@ I2C_DRIVER(7)
 I2C_DRIVER(8)
 #endif
 
-#endif // DRIVER_CONFIG_VALID
+#endif  // DRIVER_CONFIG_VALID
 
 /*! \endcond */
