@@ -562,24 +562,24 @@ static const RO_Info_t * const i2c_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t       *I2Cn_GetInfo        (const I2C_HandleTypeDef *hi2c);
-static uint32_t               I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
-#ifdef  MX_I2C_FILTER_EXISTS  // If I2C peripheral has filters
-static int32_t                I2Cn_GetSCLRatio    (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg);
-static uint32_t               I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
+static const RO_Info_t         *I2C_GetInfo         (const I2C_HandleTypeDef * const hi2c);
+static uint32_t                 I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info);
+#ifdef  MX_I2C_FILTER_EXISTS    // If I2C peripheral has filters
+static int32_t                  I2Cn_GetSCLRatio    (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg);
+static uint32_t                 I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
 #endif
-static ARM_DRIVER_VERSION     I2C_GetVersion      (void);
-static ARM_I2C_CAPABILITIES   I2C_GetCapabilities (void);
-static int32_t                I2Cn_Initialize     (const RO_Info_t *ptr_ro_info, ARM_I2C_SignalEvent_t cb_event);
-static int32_t                I2Cn_Uninitialize   (const RO_Info_t *ptr_ro_info);
-static int32_t                I2Cn_PowerControl   (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state);
-static int32_t                I2Cn_MasterTransmit (const RO_Info_t *ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending);
-static int32_t                I2Cn_MasterReceive  (const RO_Info_t *ptr_ro_info, uint32_t addr,       uint8_t *data, uint32_t num, bool xfer_pending);
-static int32_t                I2Cn_SlaveTransmit  (const RO_Info_t *ptr_ro_info,                const uint8_t *data, uint32_t num);
-static int32_t                I2Cn_SlaveReceive   (const RO_Info_t *ptr_ro_info,                      uint8_t *data, uint32_t num);
-static int32_t                I2Cn_GetDataCount   (const RO_Info_t *ptr_ro_info);
-static int32_t                I2Cn_Control        (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg);
-static ARM_I2C_STATUS         I2Cn_GetStatus      (const RO_Info_t *ptr_ro_info);
+static ARM_DRIVER_VERSION       I2C_GetVersion      (void);
+static ARM_I2C_CAPABILITIES     I2C_GetCapabilities (void);
+static int32_t                  I2Cn_Initialize     (const RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event);
+static int32_t                  I2Cn_Uninitialize   (const RO_Info_t * const ptr_ro_info);
+static int32_t                  I2Cn_PowerControl   (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
+static int32_t                  I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending);
+static int32_t                  I2Cn_MasterReceive  (const RO_Info_t * const ptr_ro_info, uint32_t addr,       uint8_t *data, uint32_t num, bool xfer_pending);
+static int32_t                  I2Cn_SlaveTransmit  (const RO_Info_t * const ptr_ro_info,                const uint8_t *data, uint32_t num);
+static int32_t                  I2Cn_SlaveReceive   (const RO_Info_t * const ptr_ro_info,                      uint8_t *data, uint32_t num);
+static int32_t                  I2Cn_GetDataCount   (const RO_Info_t * const ptr_ro_info);
+static int32_t                  I2Cn_Control        (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg);
+static ARM_I2C_STATUS           I2Cn_GetStatus      (const RO_Info_t * const ptr_ro_info);
 
 // Local driver functions declarations (for instances)
 #ifdef MX_I2C1
@@ -610,12 +610,12 @@ FUNCS_DECLARE(8)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *I2Cn_GetInfo (const I2C_HandleTypeDef *hi2c)
+  \fn          RO_Info_t *I2C_GetInfo (const I2C_HandleTypeDef * const hi2c)
   \brief       Get pointer to RO_Info_t structure corresponding to specified hi2c.
   \param[in]   hi2c     Pointer to I2C handle structure (I2C_HandleTypeDef)
   \return      pointer to I2C RO info structure (RO_Info_t)
 */
-static const RO_Info_t *I2Cn_GetInfo (const I2C_HandleTypeDef *hi2c) {
+static const RO_Info_t *I2C_GetInfo (const I2C_HandleTypeDef * const hi2c) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -636,12 +636,12 @@ static const RO_Info_t *I2Cn_GetInfo (const I2C_HandleTypeDef *hi2c) {
 }
 
 /**
-  \fn          uint32_t I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info)
+  \fn          uint32_t I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info)
   \brief       Get peripheral clock frequency.
   \param[in]   ptr_ro_info     Pointer to I2C RO info structure (RO_Info_t)
   \return      frequency in Hz
 */
-static uint32_t I2Cn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
+static uint32_t I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
   return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
@@ -820,13 +820,13 @@ static ARM_I2C_CAPABILITIES I2C_GetCapabilities (void) {
 }
 
 /**
-  \fn          int32_t I2Cn_Initialize (const RO_Info_t *ptr_ro_info, ARM_I2C_SignalEvent_t cb_event)
+  \fn          int32_t I2Cn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event)
   \brief       Initialize I2C Interface.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   cb_event      Pointer to \ref ARM_I2C_SignalEvent
   \return      \ref execution_status
 */
-static int32_t I2Cn_Initialize (const RO_Info_t *ptr_ro_info, ARM_I2C_SignalEvent_t cb_event) {
+static int32_t I2Cn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -841,12 +841,12 @@ static int32_t I2Cn_Initialize (const RO_Info_t *ptr_ro_info, ARM_I2C_SignalEven
 }
 
 /**
-  \fn          int32_t I2Cn_Uninitialize (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t I2Cn_Uninitialize (const RO_Info_t * const ptr_ro_info)
   \brief       De-initialize I2C Interface.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t I2Cn_Uninitialize (const RO_Info_t *ptr_ro_info) {
+static int32_t I2Cn_Uninitialize (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered != 0U) {
     // If peripheral is powered, power off the peripheral
@@ -860,13 +860,13 @@ static int32_t I2Cn_Uninitialize (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state)
+  \fn          int32_t I2Cn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state)
   \brief       Control I2C Interface Power.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   state           Power state
   \return      \ref execution_status
 */
-static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state) {
+static int32_t I2Cn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state) {
   ARM_I2C_SignalEvent_t cb_event;
   DriverStatus_t        drv_status;
 
@@ -951,7 +951,7 @@ static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE 
 }
 
 /**
-  \fn          int32_t I2Cn_MasterTransmit (const RO_Info_t *ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending)
+  \fn          int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending)
   \brief       Start transmitting data as I2C Master.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   addr          Slave address (7-bit or 10-bit)
@@ -960,7 +960,7 @@ static int32_t I2Cn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE 
   \param[in]   xfer_pending  Transfer operation is pending - Stop condition will not be generated
   \return      \ref execution_status
 */
-static int32_t I2Cn_MasterTransmit (const RO_Info_t *ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending) {
+static int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending) {
   HAL_StatusTypeDef tx_status;
   uint16_t          saddr;
   uint32_t          opt;
@@ -1041,7 +1041,7 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t *ptr_ro_info, uint32_t addr,
 }
 
 /**
-  \fn          int32_t I2Cn_MasterReceive (const RO_Info_t *ptr_ro_info, uint32_t addr, uint8_t *data, uint32_t num, bool xfer_pending)
+  \fn          int32_t I2Cn_MasterReceive (const RO_Info_t * const ptr_ro_info, uint32_t addr, uint8_t *data, uint32_t num, bool xfer_pending)
   \brief       Start receiving data as I2C Master.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   addr          Slave address (7-bit or 10-bit)
@@ -1050,7 +1050,7 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t *ptr_ro_info, uint32_t addr,
   \param[in]   xfer_pending  Transfer operation is pending - Stop condition will not be generated
   \return      \ref execution_status
 */
-static int32_t I2Cn_MasterReceive (const RO_Info_t *ptr_ro_info, uint32_t addr, uint8_t *data, uint32_t num, bool xfer_pending) {
+static int32_t I2Cn_MasterReceive (const RO_Info_t * const ptr_ro_info, uint32_t addr, uint8_t *data, uint32_t num, bool xfer_pending) {
   HAL_StatusTypeDef rx_status;
   uint16_t          saddr;
   uint32_t          opt;
@@ -1131,14 +1131,14 @@ static int32_t I2Cn_MasterReceive (const RO_Info_t *ptr_ro_info, uint32_t addr, 
 }
 
 /**
-  \fn          int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *data, uint32_t num)
+  \fn          int32_t I2Cn_SlaveTransmit (const RO_Info_t * const ptr_ro_info, const uint8_t *data, uint32_t num)
   \brief       Start transmitting data as I2C Slave.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   data          Pointer to buffer with data to transmit to I2C Master
   \param[in]   num           Number of data bytes to transmit
   \return      \ref execution_status
 */
-static int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *data, uint32_t num) {
+static int32_t I2Cn_SlaveTransmit (const RO_Info_t * const ptr_ro_info, const uint8_t *data, uint32_t num) {
 
   if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
     // If any parameter is invalid
@@ -1170,14 +1170,14 @@ static int32_t I2Cn_SlaveTransmit (const RO_Info_t *ptr_ro_info, const uint8_t *
 }
 
 /**
-  \fn          int32_t I2Cn_SlaveReceive (const RO_Info_t *ptr_ro_info, uint8_t *data, uint32_t num)
+  \fn          int32_t I2Cn_SlaveReceive (const RO_Info_t * const ptr_ro_info, uint8_t *data, uint32_t num)
   \brief       Start receiving data as I2C Slave.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[out]  data          Pointer to buffer for data to receive from I2C Master
   \param[in]   num           Number of data bytes to receive
   \return      \ref execution_status
 */
-static int32_t I2Cn_SlaveReceive (const RO_Info_t *ptr_ro_info, uint8_t *data, uint32_t num) {
+static int32_t I2Cn_SlaveReceive (const RO_Info_t * const ptr_ro_info, uint8_t *data, uint32_t num) {
 
   if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
     // If any parameter is invalid
@@ -1205,12 +1205,12 @@ static int32_t I2Cn_SlaveReceive (const RO_Info_t *ptr_ro_info, uint8_t *data, u
 }
 
 /**
-  \fn          int32_t I2Cn_GetDataCount (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t I2Cn_GetDataCount (const RO_Info_t * const ptr_ro_info)
   \brief       Get transferred data count.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \return      number of data bytes transferred; -1 when Slave is not addressed by Master
 */
-static int32_t I2Cn_GetDataCount (const RO_Info_t *ptr_ro_info) {
+static int32_t I2Cn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
   int32_t cnt;
   int32_t cnt_xferred;
   uint8_t cnt_xferred_valid;
@@ -1251,14 +1251,14 @@ static int32_t I2Cn_GetDataCount (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg)
+  \fn          int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg)
   \brief       Control I2C Interface.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \param[in]   control       Operation
   \param[in]   arg           Argument of operation (optional)
   \return      \ref execution_status
 */
-static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg) {
+static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg) {
         HAL_I2C_ModeTypeDef mode;
         GPIO_InitTypeDef    GPIO_InitStruct;
         GPIO_PinState       state;
@@ -1531,12 +1531,12 @@ static int32_t I2Cn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 }
 
 /**
-  \fn          ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t *ptr_ro_info)
+  \fn          ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t * const ptr_ro_info)
   \brief       Get I2C status.
   \param[in]   ptr_ro_info   Pointer to I2C RO info structure (RO_Info_t)
   \return      I2C status \ref ARM_I2C_STATUS
 */
-static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t *ptr_ro_info) {
+static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   ARM_I2C_STATUS status;
 
   // Clear status structure
@@ -1598,7 +1598,7 @@ static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t *ptr_ro_info) {
 void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1622,7 +1622,7 @@ void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c) {
 void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1649,7 +1649,7 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
   const RO_Info_t *ptr_ro_info;
         uint32_t   event;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1718,7 +1718,7 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
 void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1750,7 +1750,7 @@ void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
 void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1782,7 +1782,7 @@ void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
 void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1803,7 +1803,7 @@ void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c) {
         uint32_t   error;
         uint32_t   event;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1849,7 +1849,7 @@ void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c) {
 void HAL_I2C_AbortCpltCallback (I2C_HandleTypeDef *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = I2Cn_GetInfo(hi2c);
+  ptr_ro_info = I2C_GetInfo(hi2c);
 
   if (ptr_ro_info == NULL) {
     return;
