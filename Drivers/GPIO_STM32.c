@@ -32,20 +32,17 @@
 
 # Requirements
 
-This driver requires device specific **HAL** and **STM32CubeMX** initialization code generator.
+This driver requires the STM32 device specific **HAL** and **STM32CubeMX** (CubeMX) initialization code generator.
+The driver instance is mapped to hardware as shown in the table below:
 
-# Instances
-
-Hardware resource relating to driver instance is shown in the table below:
-
-  Driver Instance | Hardware Resource
-  :---------------|:-----------------:
-  Driver_GPIO0    | PORTA .. PORTZ
+  CMSIS Driver Instance | STM32 Hardware Resource
+  :---------------------|:-----------------------
+  Driver_GPIO0          | PORTA .. PORTZ
 
 # Pin mapping
 
-  Pin Id          | Hardware Resource
-  :---------------|:-----------------:
+  Pin Id          | STM32 Hardware Resource
+  :---------------|:-----------------------
     0 ..  15      | PORTA 0..15
    16 ..  31      | PORTB 0..15
    32 ..  47      | PORTC 0..15
@@ -64,43 +61,35 @@ Hardware resource relating to driver instance is shown in the table below:
 This driver has the following deviations from the CMSIS-Driver specification:
 
 __Conceptual__ deviations:
-  - the STM32CubeMX generated initialization code (function MX_GPIO_Init) will already
-    configure pins, enable clocks and enable interrupts as configured in the STM32CubeMX tool,
-    meaning pins configured with external interrupt functionality are by default operational
-    after this initialization function executes before main loop starts executing
+  - CubeMX generated initialization code (function MX_GPIO_Init) already configures
+    the peripheral. Power, clocks, pins, and interrupts are enabled after execution 
+    of initialization that executes in `main.c`.
 
-# Configuration
-
-All pins used with GPIO driver should be configured in the STM32CubeMX tool.
+# CubeMX Configuration
 
 > **Important**
-It is important that pins requiring edge detection are configured as such in the STM32CubeMX tool.
+>
+> Pins requiring edge detection must be configured as such in CubeMX.
 
-## STM32CubeMX
-
-This driver requires the following configuration in the STM32CubeMX tool:
+This driver requires the following configuration in CubeMX:
 
   - **pins** used for **edge detection**:
-    - pin function selected as **GPIO_EXTIn**
-    - for **GPIO mode** selected **External Interrupt Mode** any edge trigger detection (Rising or Falling or Rising/Falling)
-    - for **GPIO Pull-up/Pull-down** selected **No pull-up and no pull-down**
+    - pin function selected as **GPIO_EXTIn**.
+    - for **GPIO mode** selected **External Interrupt Mode** any edge trigger detection (Rising or Falling or Rising/Falling).
+    - for **GPIO Pull-up/Pull-down** selected **No pull-up and no pull-down**.
   - **pins** not used for **edge detection**:
-    - pin function selected as **GPIO_Input**
-    - for **GPIO mode** selected **Input mode**
-    - for **GPIO Pull-up/Pull-down** selected **No pull-up and no pull-down**
-  - **interrupts**: enabled appropriate **EXTI line interrupt** and **IRQ handlers** that **Call HAL handlers**
+    - pin function selected as **GPIO_Input**.
+    - for **GPIO mode** selected **Input mode**.
+    - for **GPIO Pull-up/Pull-down** selected **No pull-up and no pull-down**.
+  - **interrupts**: enabled appropriate **EXTI line interrupt** and **IRQ handlers** that **Call HAL handlers**.
 
-> **Note**
-> - Due to hardware limitations only one pin at the same port position can be configured with edge detection functionality
->   (for example, for pins PC5 and PG5 only one can be selected for edge detection at one point in time)
+> **Notes**
+>
+> - configuration information in the file **MX_Device.h** file is based on CubeMX configuration.
+> - due to hardware limitations only one pin at the same port position can be configured with edge detection functionality
+>   (for example, for pins PC5 and PG5 only one can be selected for edge detection at one point in time).
 
 ## Example
-
-This is example of configuring **PG5** pin on the **STM32H735IGK3** device with the **STM32CubeMX** tool.
-
-> **Note**
-> - To start the **STM32CubeMX** tool from the uVision in the **RTE window** under **Software Component**,
->   expand **Device**, enable **CubeMX** component and click on the ▶️ button.
 
 ### Pinout & Configuration tab
 
@@ -133,10 +122,6 @@ This is example of configuring **PG5** pin on the **STM32H735IGK3** device with 
            :---------------------------------|:-----------:|:-------------------:|:----------------:|:----------------:
            EXTI line[9:5] interrupts         | unchecked   | checked             | checked          | checked
          \n
-
-# Validation
-
-Results of the **CMSIS-Driver Validation** for this driver can be found in the [GPIO_TestReport.txt](../../Drivers/Validation/GPIO_TestReport.txt) file.
 */
 
 /*! \cond */
