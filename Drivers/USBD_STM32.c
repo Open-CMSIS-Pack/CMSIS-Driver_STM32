@@ -405,25 +405,26 @@ static const RO_Info_t * const usbd_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t       *USBDn_GetInfo                   (const PCD_HandleTypeDef *hpcd);
-static int32_t                USBDn_EndpointConfigureBuffer   (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size);
-static ARM_USBD_CAPABILITIES  USBDn_GetCapabilities           (const RO_Info_t *ptr_ro_info);
-static int32_t                USBDn_Initialize                (const RO_Info_t *ptr_ro_info, ARM_USBD_SignalDeviceEvent_t cb_device_event, ARM_USBD_SignalEndpointEvent_t cb_endpoint_event);
-static int32_t                USBDn_Uninitialize              (const RO_Info_t *ptr_ro_info);
-static int32_t                USBDn_PowerControl              (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state);
-static int32_t                USBDn_DeviceConnect             (const RO_Info_t *ptr_ro_info);
-static int32_t                USBDn_DeviceDisconnect          (const RO_Info_t *ptr_ro_info);
-static ARM_USBD_STATE         USBDn_DeviceGetState            (const RO_Info_t *ptr_ro_info);
-static int32_t                USBDn_DeviceRemoteWakeup        (const RO_Info_t *ptr_ro_info);
-static int32_t                USBDn_DeviceSetAddress          (const RO_Info_t *ptr_ro_info, uint8_t  dev_addr);
-static int32_t                USBDn_ReadSetupPacket           (const RO_Info_t *ptr_ro_info, uint8_t *setup);
-static int32_t                USBDn_EndpointConfigure         (const RO_Info_t *ptr_ro_info, uint8_t  ep_addr, uint8_t  ep_type, uint16_t ep_max_packet_size);
-static int32_t                USBDn_EndpointUnconfigure       (const RO_Info_t *ptr_ro_info, uint8_t  ep_addr);
-static int32_t                USBDn_EndpointStall             (const RO_Info_t *ptr_ro_info, uint8_t  ep_addr, bool stall);
-static int32_t                USBDn_EndpointTransfer          (const RO_Info_t *ptr_ro_info, uint8_t  ep_addr, uint8_t *data, uint32_t num);
-static uint32_t               USBDn_EndpointTransferGetResult (const RO_Info_t *ptr_ro_info, uint8_t  ep_addr);
-static int32_t                USBDn_EndpointTransferAbort     (const RO_Info_t *ptr_ro_info, uint8_t  ep_addr);
-static uint16_t               USBDn_GetFrameNumber            (const RO_Info_t *ptr_ro_info);
+static const RO_Info_t         *USBD_GetInfo                    (const PCD_HandleTypeDef * const hpcd);
+static int32_t                  USBDn_EndpointConfigureBuffer   (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size);
+static ARM_DRIVER_VERSION       USBD_GetVersion                 (void);
+static ARM_USBD_CAPABILITIES    USBDn_GetCapabilities           (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USBDn_Initialize                (const RO_Info_t * const ptr_ro_info, ARM_USBD_SignalDeviceEvent_t cb_device_event, ARM_USBD_SignalEndpointEvent_t cb_endpoint_event);
+static int32_t                  USBDn_Uninitialize              (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USBDn_PowerControl              (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
+static int32_t                  USBDn_DeviceConnect             (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USBDn_DeviceDisconnect          (const RO_Info_t * const ptr_ro_info);
+static ARM_USBD_STATE           USBDn_DeviceGetState            (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USBDn_DeviceRemoteWakeup        (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USBDn_DeviceSetAddress          (const RO_Info_t * const ptr_ro_info, uint8_t  dev_addr);
+static int32_t                  USBDn_ReadSetupPacket           (const RO_Info_t * const ptr_ro_info, uint8_t *setup);
+static int32_t                  USBDn_EndpointConfigure         (const RO_Info_t * const ptr_ro_info, uint8_t  ep_addr, uint8_t  ep_type, uint16_t ep_max_packet_size);
+static int32_t                  USBDn_EndpointUnconfigure       (const RO_Info_t * const ptr_ro_info, uint8_t  ep_addr);
+static int32_t                  USBDn_EndpointStall             (const RO_Info_t * const ptr_ro_info, uint8_t  ep_addr, bool stall);
+static int32_t                  USBDn_EndpointTransfer          (const RO_Info_t * const ptr_ro_info, uint8_t  ep_addr, uint8_t *data, uint32_t num);
+static uint32_t                 USBDn_EndpointTransferGetResult (const RO_Info_t * const ptr_ro_info, uint8_t  ep_addr);
+static int32_t                  USBDn_EndpointTransferAbort     (const RO_Info_t * const ptr_ro_info, uint8_t  ep_addr);
+static uint16_t                 USBDn_GetFrameNumber            (const RO_Info_t * const ptr_ro_info);
 
 // Local driver functions declarations (for instances)
 #ifdef MX_USBD0
@@ -436,12 +437,12 @@ FUNCS_DECLARE(1)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *USBDn_GetInfo (const PCD_HandleTypeDef *hpcd)
+  \fn          RO_Info_t *USBD_GetInfo (const PCD_HandleTypeDef * const hpcd)
   \brief       Get pointer to RO_Info_t structure corresponding to specified hpcd.
   \param[in]   hpcd     Pointer to USBD handle structure (PCD_HandleTypeDef)
   \return      pointer to USBD RO info structure (RO_Info_t)
 */
-static const RO_Info_t *USBDn_GetInfo (const PCD_HandleTypeDef *hpcd) {
+static const RO_Info_t *USBD_GetInfo (const PCD_HandleTypeDef * const hpcd) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -462,7 +463,7 @@ static const RO_Info_t *USBDn_GetInfo (const PCD_HandleTypeDef *hpcd) {
 }
 
 /**
-  \fn          int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size)
+  \fn          int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size)
   \brief       Configure buffer for USB Endpoint (separate IN and OUT).
   \detail      There are 2 different types of USB controllers. One uses HAL_PCDEx_PMAConfig
                for buffer configuration, and the other uses HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo
@@ -475,7 +476,7 @@ static const RO_Info_t *USBDn_GetInfo (const PCD_HandleTypeDef *hpcd) {
   \param[in]   ep_max_packet_size Endpoint Maximum Packet Size
   \return      \ref execution_status
 */
-static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size) {
+static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size) {
 
 #if (MX_USBD_EP_PMAConfig == 0)         // If using HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo functions
   uint16_t rx_fifo_size;
@@ -564,12 +565,12 @@ static ARM_DRIVER_VERSION USBD_GetVersion (void) {
 }
 
 /**
-  \fn          ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t *ptr_ro_info)
+  \fn          ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t * const ptr_ro_info)
   \brief       Get driver capabilities.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      \ref ARM_USBD_CAPABILITIES
 */
-static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t *ptr_ro_info) {
+static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t * const ptr_ro_info) {
   ARM_USBD_CAPABILITIES driver_capabilities;
   uint8_t               vbus_detection;
 
@@ -601,7 +602,7 @@ static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t *ptr_ro_info
 }
 
 /**
-  \fn          int32_t USBDn_Initialize (const RO_Info_t               *ptr_ro_info,
+  \fn          int32_t USBDn_Initialize (const RO_Info_t * const        ptr_ro_info,
                                          ARM_USBD_SignalDeviceEvent_t   cb_device_event,
                                          ARM_USBD_SignalEndpointEvent_t cb_endpoint_event)
   \brief       Initialize USB Device Interface.
@@ -610,7 +611,7 @@ static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t *ptr_ro_info
   \param[in]   cb_endpoint_event  Pointer to \ref ARM_USBD_SignalEndpointEvent
   \return      \ref execution_status
 */
-static int32_t USBDn_Initialize (const RO_Info_t                *ptr_ro_info,
+static int32_t USBDn_Initialize (const RO_Info_t * const         ptr_ro_info,
                                  ARM_USBD_SignalDeviceEvent_t    cb_device_event,
                                  ARM_USBD_SignalEndpointEvent_t  cb_endpoint_event) {
 
@@ -628,12 +629,12 @@ static int32_t USBDn_Initialize (const RO_Info_t                *ptr_ro_info,
 }
 
 /**
-  \fn          int32_t USBDn_Uninitialize (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t USBDn_Uninitialize (const RO_Info_t * const ptr_ro_info)
   \brief       De-initialize USB Device Interface.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t USBDn_Uninitialize (const RO_Info_t *ptr_ro_info) {
+static int32_t USBDn_Uninitialize (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered != 0U) {
     // If peripheral is powered, power off the peripheral
@@ -647,13 +648,13 @@ static int32_t USBDn_Uninitialize (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t USBDn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state)
+  \fn          int32_t USBDn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state)
   \brief       Control USB Device Interface Power.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   state  Power state
   \return      \ref execution_status
 */
-static int32_t USBDn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE  state) {
+static int32_t USBDn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state) {
   ARM_USBD_SignalDeviceEvent_t   cb_device_event;
   ARM_USBD_SignalEndpointEvent_t cb_endpoint_event;
   DriverStatus_t                 drv_status;
@@ -731,12 +732,12 @@ static int32_t USBDn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE
 }
 
 /**
-  \fn          int32_t USBDn_DeviceConnect (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t USBDn_DeviceConnect (const RO_Info_t * const ptr_ro_info)
   \brief       Connect USB Device.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t USBDn_DeviceConnect (const RO_Info_t *ptr_ro_info) {
+static int32_t USBDn_DeviceConnect (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -750,12 +751,12 @@ static int32_t USBDn_DeviceConnect (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t USBDn_DeviceDisconnect (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t USBDn_DeviceDisconnect (const RO_Info_t * const ptr_ro_info)
   \brief       Disconnect USB Device.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t USBDn_DeviceDisconnect (const RO_Info_t *ptr_ro_info) {
+static int32_t USBDn_DeviceDisconnect (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -769,12 +770,12 @@ static int32_t USBDn_DeviceDisconnect (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          ARM_USBD_STATE USBDn_DeviceGetState (const RO_Info_t *ptr_ro_info)
+  \fn          ARM_USBD_STATE USBDn_DeviceGetState (const RO_Info_t * const ptr_ro_info)
   \brief       Get current USB Device State.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      Device State \ref ARM_USBD_STATE
 */
-static ARM_USBD_STATE USBDn_DeviceGetState (const RO_Info_t *ptr_ro_info) {
+static ARM_USBD_STATE USBDn_DeviceGetState (const RO_Info_t * const ptr_ro_info) {
   ARM_USBD_STATE state;
 
   // Clear state structure
@@ -802,12 +803,12 @@ static ARM_USBD_STATE USBDn_DeviceGetState (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t USBDn_DeviceRemoteWakeup (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t USBDn_DeviceRemoteWakeup (const RO_Info_t * const ptr_ro_info)
   \brief       Trigger USB Remote Wakeup.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t USBDn_DeviceRemoteWakeup (const RO_Info_t *ptr_ro_info) {
+static int32_t USBDn_DeviceRemoteWakeup (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -821,13 +822,13 @@ static int32_t USBDn_DeviceRemoteWakeup (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t USBDn_DeviceSetAddress (const RO_Info_t *ptr_ro_info, uint8_t dev_addr)
+  \fn          int32_t USBDn_DeviceSetAddress (const RO_Info_t * const ptr_ro_info, uint8_t dev_addr)
   \brief       Set USB Device Address.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   dev_addr  Device Address
   \return      \ref execution_status
 */
-static int32_t USBDn_DeviceSetAddress (const RO_Info_t *ptr_ro_info, uint8_t dev_addr) {
+static int32_t USBDn_DeviceSetAddress (const RO_Info_t * const ptr_ro_info, uint8_t dev_addr) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -841,13 +842,13 @@ static int32_t USBDn_DeviceSetAddress (const RO_Info_t *ptr_ro_info, uint8_t dev
 }
 
 /**
-  \fn          int32_t USBDn_ReadSetupPacket (const RO_Info_t *ptr_ro_info, uint8_t *setup)
+  \fn          int32_t USBDn_ReadSetupPacket (const RO_Info_t * const ptr_ro_info, uint8_t *setup)
   \brief       Read setup packet received over Control Endpoint.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[out]  setup  Pointer to buffer for setup packet
   \return      \ref execution_status
 */
-static int32_t USBDn_ReadSetupPacket (const RO_Info_t *ptr_ro_info, uint8_t *setup) {
+static int32_t USBDn_ReadSetupPacket (const RO_Info_t * const ptr_ro_info, uint8_t *setup) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -866,10 +867,10 @@ static int32_t USBDn_ReadSetupPacket (const RO_Info_t *ptr_ro_info, uint8_t *set
 }
 
 /**
-  \fn          int32_t USBDn_EndpointConfigure (const RO_Info_t *ptr_ro_info,
-                                                      uint8_t    ep_addr,
-                                                      uint8_t    ep_type,
-                                                      uint16_t   ep_max_packet_size)
+  \fn          int32_t USBDn_EndpointConfigure (const RO_Info_t * const ptr_ro_info,
+                                                      uint8_t           ep_addr,
+                                                      uint8_t           ep_type,
+                                                      uint16_t          ep_max_packet_size)
   \brief       Configure USB Endpoint.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   ep_addr  Endpoint Address
@@ -879,10 +880,10 @@ static int32_t USBDn_ReadSetupPacket (const RO_Info_t *ptr_ro_info, uint8_t *set
   \param[in]   ep_max_packet_size Endpoint Maximum Packet Size
   \return      \ref execution_status
 */
-static int32_t USBDn_EndpointConfigure (const RO_Info_t *ptr_ro_info,
-                                              uint8_t    ep_addr,
-                                              uint8_t    ep_type,
-                                              uint16_t   ep_max_packet_size) {
+static int32_t USBDn_EndpointConfigure (const RO_Info_t * const ptr_ro_info,
+                                              uint8_t           ep_addr,
+                                              uint8_t           ep_type,
+                                              uint16_t          ep_max_packet_size) {
   EP_Info_t *ptr_ep;
   int32_t    ret;
   uint8_t    ep_num;
@@ -936,7 +937,7 @@ static int32_t USBDn_EndpointConfigure (const RO_Info_t *ptr_ro_info,
 }
 
 /**
-  \fn          int32_t USBDn_EndpointUnconfigure (const RO_Info_t *ptr_ro_info, uint8_t ep_addr)
+  \fn          int32_t USBDn_EndpointUnconfigure (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr)
   \brief       Unconfigure USB Endpoint.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   ep_addr  Endpoint Address
@@ -944,7 +945,7 @@ static int32_t USBDn_EndpointConfigure (const RO_Info_t *ptr_ro_info,
                 - ep_addr.7:    Direction
   \return      \ref execution_status
 */
-static int32_t USBDn_EndpointUnconfigure (const RO_Info_t *ptr_ro_info, uint8_t ep_addr) {
+static int32_t USBDn_EndpointUnconfigure (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr) {
   EP_Info_t *ptr_ep;
   uint8_t    ep_num;
   uint8_t    ep_dir;
@@ -982,7 +983,7 @@ static int32_t USBDn_EndpointUnconfigure (const RO_Info_t *ptr_ro_info, uint8_t 
 }
 
 /**
-  \fn          int32_t USBDn_EndpointStall (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, bool stall)
+  \fn          int32_t USBDn_EndpointStall (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, bool stall)
   \brief       Set/Clear Stall for USB Endpoint.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   ep_addr  Endpoint Address
@@ -993,19 +994,17 @@ static int32_t USBDn_EndpointUnconfigure (const RO_Info_t *ptr_ro_info, uint8_t 
                 - \b true Set
   \return      \ref execution_status
 */
-static int32_t USBDn_EndpointStall (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, bool stall) {
+static int32_t USBDn_EndpointStall (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, bool stall) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
   }
 
-  if (stall != 0U) {
-    // Set STALL
+  if (stall != 0U) {                    // If request to set STALL
     if (HAL_PCD_EP_SetStall(ptr_ro_info->ptr_hpcd, ep_addr) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
-  } else {
-    // Clear STALL
+  } else {                              // If request to clear STALL
     if (HAL_PCD_EP_ClrStall(ptr_ro_info->ptr_hpcd, ep_addr) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
@@ -1015,7 +1014,7 @@ static int32_t USBDn_EndpointStall (const RO_Info_t *ptr_ro_info, uint8_t ep_add
 }
 
 /**
-  \fn          int32_t USBDn_EndpointTransfer (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, uint8_t *data, uint32_t num)
+  \fn          int32_t USBDn_EndpointTransfer (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t *data, uint32_t num)
   \brief       Read data from or Write data to USB Endpoint.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   ep_addr  Endpoint Address
@@ -1025,7 +1024,7 @@ static int32_t USBDn_EndpointStall (const RO_Info_t *ptr_ro_info, uint8_t ep_add
   \param[in]   num  Number of data bytes to transfer
   \return      \ref execution_status
 */
-static int32_t USBDn_EndpointTransfer (const RO_Info_t *ptr_ro_info, uint8_t ep_addr, uint8_t *data, uint32_t num) {
+static int32_t USBDn_EndpointTransfer (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t *data, uint32_t num) {
   EP_Info_t *ptr_ep;
   uint8_t    ep_num;
   uint8_t    ep_dir;
@@ -1079,7 +1078,7 @@ static int32_t USBDn_EndpointTransfer (const RO_Info_t *ptr_ro_info, uint8_t ep_
 }
 
 /**
-  \fn          uint32_t USBDn_EndpointTransferGetResult (const RO_Info_t *ptr_ro_info, uint8_t ep_addr)
+  \fn          uint32_t USBDn_EndpointTransferGetResult (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr)
   \brief       Get result of USB Endpoint transfer.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   ep_addr  Endpoint Address
@@ -1087,7 +1086,7 @@ static int32_t USBDn_EndpointTransfer (const RO_Info_t *ptr_ro_info, uint8_t ep_
                 - ep_addr.7:    Direction
   \return      number of successfully transferred data bytes
 */
-static uint32_t USBDn_EndpointTransferGetResult (const RO_Info_t *ptr_ro_info, uint8_t ep_addr) {
+static uint32_t USBDn_EndpointTransferGetResult (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr) {
   uint8_t ep_num;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
@@ -1104,7 +1103,7 @@ static uint32_t USBDn_EndpointTransferGetResult (const RO_Info_t *ptr_ro_info, u
 }
 
 /**
-  \fn          int32_t USBDn_EndpointTransferAbort (const RO_Info_t *ptr_ro_info, uint8_t ep_addr)
+  \fn          int32_t USBDn_EndpointTransferAbort (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr)
   \brief       Abort current USB Endpoint transfer.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \param[in]   ep_addr  Endpoint Address
@@ -1112,7 +1111,7 @@ static uint32_t USBDn_EndpointTransferGetResult (const RO_Info_t *ptr_ro_info, u
                 - ep_addr.7:    Direction
   \return      \ref execution_status
 */
-static int32_t USBDn_EndpointTransferAbort (const RO_Info_t *ptr_ro_info, uint8_t ep_addr) {
+static int32_t USBDn_EndpointTransferAbort (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr) {
   uint8_t ep_num;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
@@ -1134,12 +1133,12 @@ static int32_t USBDn_EndpointTransferAbort (const RO_Info_t *ptr_ro_info, uint8_
 }
 
 /**
-  \fn          uint16_t USBDn_GetFrameNumber (const RO_Info_t *ptr_ro_info)
+  \fn          uint16_t USBDn_GetFrameNumber (const RO_Info_t * const ptr_ro_info)
   \brief       Get current USB Frame Number.
   \param[in]   ptr_ro_info     Pointer to USBD RO info structure (RO_Info_t)
   \return      Frame Number
 */
-static uint16_t USBDn_GetFrameNumber (const RO_Info_t *ptr_ro_info) {
+static uint16_t USBDn_GetFrameNumber (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return 0U;
@@ -1164,7 +1163,7 @@ void HAL_PCD_DataOutStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum) {
         uint8_t   *data_to_transfer;
         uint32_t   event;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1218,7 +1217,7 @@ void HAL_PCD_DataInStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum) {
         uint8_t   *data_to_transfer;
         uint32_t   event;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1265,7 +1264,7 @@ void HAL_PCD_DataInStageCallback (PCD_HandleTypeDef *hpcd, uint8_t epnum) {
 void HAL_PCD_SetupStageCallback (PCD_HandleTypeDef *hpcd) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1302,7 +1301,7 @@ void HAL_PCD_SetupStageCallback (PCD_HandleTypeDef *hpcd) {
 void HAL_PCD_ResetCallback (PCD_HandleTypeDef *hpcd) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1354,7 +1353,7 @@ void HAL_PCD_ResetCallback (PCD_HandleTypeDef *hpcd) {
 void HAL_PCD_SuspendCallback (PCD_HandleTypeDef *hpcd) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1378,7 +1377,7 @@ void HAL_PCD_SuspendCallback (PCD_HandleTypeDef *hpcd) {
 void HAL_PCD_ResumeCallback (PCD_HandleTypeDef *hpcd) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1430,7 +1429,7 @@ void HAL_PCD_ISOINIncompleteCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum) {
 void HAL_PCD_ConnectCallback (PCD_HandleTypeDef *hpcd) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1454,7 +1453,7 @@ void HAL_PCD_ConnectCallback (PCD_HandleTypeDef *hpcd) {
 void HAL_PCD_DisconnectCallback (PCD_HandleTypeDef *hpcd) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USBDn_GetInfo(hpcd);
+  ptr_ro_info = USBD_GetInfo(hpcd);
 
   if (ptr_ro_info == NULL) {
     return;
