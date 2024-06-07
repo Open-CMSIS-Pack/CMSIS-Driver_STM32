@@ -25,18 +25,18 @@
  * -----------------------------------------------------------------------------
  */
 
-#ifndef  I2C_STM32_H__
-#define  I2C_STM32_H__
-
-#ifdef  __cplusplus
-extern "C"
-{
-#endif
+#ifndef I2C_STM32_H_
+#define I2C_STM32_H_
 
 #include "Driver_I2C.h"
 #include "MX_Device.h"
 
-// Global driver structures ***************************************************
+#ifdef  __cplusplus
+extern  "C"
+{
+#endif
+
+// Global driver structures ****************************************************
 
 #ifdef  MX_I2C1
 extern  ARM_DRIVER_I2C Driver_I2C1;
@@ -67,4 +67,4 @@ extern  ARM_DRIVER_I2C Driver_I2C8;
 }
 #endif
 
-#endif /* I2C_STM32_H__ */
+#endif  // I2C_STM32_H_

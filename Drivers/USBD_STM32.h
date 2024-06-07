@@ -25,18 +25,18 @@
  * -----------------------------------------------------------------------------
  */
 
-#ifndef  USBD_STM32_H__
-#define  USBD_STM32_H__
-
-#ifdef  __cplusplus
-extern "C"
-{
-#endif
+#ifndef USBD_STM32_H_
+#define USBD_STM32_H_
 
 #include "Driver_USBD.h"
 #include "MX_Device.h"
 
-// Configuration **************************************************************
+#ifdef  __cplusplus
+extern  "C"
+{
+#endif
+
+// Configuration ***************************************************************
 
 #if     defined(MX_USB)
 #define MX_USBD0                        1
@@ -56,7 +56,7 @@ extern "C"
 #define MX_USBD1_HANDLE                 MX_USB_OTG_HS_HANDLE
 #endif
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 #ifdef  MX_USBD0
 extern  ARM_DRIVER_USBD Driver_USBD0;
@@ -70,4 +70,4 @@ extern  ARM_DRIVER_USBD Driver_USBD1;
 }
 #endif
 
-#endif /* USBD_STM32_H__ */
+#endif  // USBD_STM32_H_

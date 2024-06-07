@@ -25,18 +25,18 @@
  * -----------------------------------------------------------------------------
  */
 
-#ifndef  ETH_MAC_STM32_H__
-#define  ETH_MAC_STM32_H__
-
-#ifdef  __cplusplus
-extern "C"
-{
-#endif
+#ifndef ETH_MAC_STM32_H_
+#define ETH_MAC_STM32_H_
 
 #include "Driver_ETH_MAC.h"
 #include "MX_Device.h"
 
-// Global driver structures ***************************************************
+#ifdef  __cplusplus
+extern  "C"
+{
+#endif
+
+// Global driver structures ****************************************************
 
 #ifdef  MX_ETH
 extern  ARM_DRIVER_ETH_MAC Driver_ETH_MAC0;
@@ -46,4 +46,4 @@ extern  ARM_DRIVER_ETH_MAC Driver_ETH_MAC0;
 }
 #endif
 
-#endif /* ETH_MAC_STM32_H__ */
+#endif  // ETH_MAC_STM32_H_

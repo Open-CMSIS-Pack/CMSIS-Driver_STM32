@@ -25,18 +25,18 @@
  * -----------------------------------------------------------------------------
  */
 
-#ifndef  USART_STM32_H__
-#define  USART_STM32_H__
-
-#ifdef  __cplusplus
-extern "C"
-{
-#endif
+#ifndef USART_STM32_H_
+#define USART_STM32_H_
 
 #include "Driver_USART.h"
 #include "MX_Device.h"
 
-// Configuration **************************************************************
+#ifdef  __cplusplus
+extern  "C"
+{
+#endif
+
+// Configuration ***************************************************************
 
 #if    !defined(MX_UART1)  && (defined(MX_USART1)  && defined(MX_USART1_VM_ASYNC))
 #define MX_UART1                        1
@@ -93,7 +93,7 @@ extern "C"
 #define MX_UART23                       1
 #endif
 
-// Global driver structures ***************************************************
+// Global driver structures ****************************************************
 
 #ifdef  MX_UART1
 extern  ARM_DRIVER_USART Driver_USART1;
@@ -154,4 +154,4 @@ extern  ARM_DRIVER_USART Driver_USART23;
 }
 #endif
 
-#endif /* USART_STM32_H__ */
+#endif  // USART_STM32_H_

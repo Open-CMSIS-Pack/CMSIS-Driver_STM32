@@ -25,18 +25,18 @@
  * -----------------------------------------------------------------------------
  */
 
-#ifndef  SPI_STM32_H__
-#define  SPI_STM32_H__
-
-#ifdef  __cplusplus
-extern "C"
-{
-#endif
+#ifndef SPI_STM32_H_
+#define SPI_STM32_H_
 
 #include "Driver_SPI.h"
 #include "MX_Device.h"
 
-// Global driver structures ***************************************************
+#ifdef  __cplusplus
+extern  "C"
+{
+#endif
+
+// Global driver structures ****************************************************
 
 #ifdef  MX_SPI1
 extern  ARM_DRIVER_SPI Driver_SPI1;
@@ -67,4 +67,4 @@ extern  ARM_DRIVER_SPI Driver_SPI8;
 }
 #endif
 
-#endif /* SPI_STM32_H__ */
+#endif  // SPI_STM32_H_

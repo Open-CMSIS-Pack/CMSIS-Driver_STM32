@@ -25,18 +25,18 @@
  * -----------------------------------------------------------------------------
  */
 
-#ifndef  GPIO_STM32_H__
-#define  GPIO_STM32_H__
-
-#ifdef  __cplusplus
-extern "C"
-{
-#endif
+#ifndef GPIO_STM32_H_
+#define GPIO_STM32_H_
 
 #include "Driver_GPIO.h"
 #include "MX_Device.h"
 
-// Global driver structures ***************************************************
+#ifdef  __cplusplus
+extern  "C"
+{
+#endif
+
+// Global driver structures ****************************************************
 
 extern  ARM_DRIVER_GPIO Driver_GPIO0;
 
@@ -44,4 +44,4 @@ extern  ARM_DRIVER_GPIO Driver_GPIO0;
 }
 #endif
 
-#endif /* GPIO_STM32_H__ */
+#endif  // GPIO_STM32_H_
