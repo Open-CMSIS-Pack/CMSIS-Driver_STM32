@@ -1,12 +1,5 @@
-/******************************************************************************
- * @file     GPIO_STM32.h
- * @brief    GPIO Driver header for STMicroelectronics STM32 devices
- * @version  V1.0
- * @date     15. April 2024
- ******************************************************************************/
 /*
- * Copyright (c) 2024 Arm Limited (or its affiliates).
- * All rights reserved.
+ * Copyright (c) 2024 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -21,6 +14,15 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * -----------------------------------------------------------------------------
+ *
+ * $Date:       7. June 2024
+ * $Revision:   V1.0
+ *
+ * Project:     GPIO Driver header for STMicroelectronics STM32 devices
+ *
+ * -----------------------------------------------------------------------------
  */
 
 #ifndef  GPIO_STM32_H__
