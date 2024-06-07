@@ -435,19 +435,19 @@ static const RO_Info_t * const spi_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t       *SPIn_GetInfo        (const SPI_HandleTypeDef *hspi);
-static uint32_t               SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info);
-static ARM_DRIVER_VERSION     SPI_GetVersion      (void);
-static ARM_SPI_CAPABILITIES   SPI_GetCapabilities (void);
-static int32_t                SPIn_Initialize     (const RO_Info_t *ptr_ro_info, ARM_SPI_SignalEvent_t cb_event);
-static int32_t                SPIn_Uninitialize   (const RO_Info_t *ptr_ro_info);
-static int32_t                SPIn_PowerControl   (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state);
-static int32_t                SPIn_Send           (const RO_Info_t *ptr_ro_info, const void *data, uint32_t num);
-static int32_t                SPIn_Receive        (const RO_Info_t *ptr_ro_info,       void *data, uint32_t num);
-static int32_t                SPIn_Transfer       (const RO_Info_t *ptr_ro_info, const void *data_out, void *data_in, uint32_t num);
-static uint32_t               SPIn_GetDataCount   (const RO_Info_t *ptr_ro_info);
-static int32_t                SPIn_Control        (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg);
-static ARM_SPI_STATUS         SPIn_GetStatus      (const RO_Info_t *ptr_ro_info);
+static const RO_Info_t         *SPI_GetInfo         (const SPI_HandleTypeDef * const hspi);
+static uint32_t                 SPIn_GetPeriphClock (const RO_Info_t * const ptr_ro_info);
+static ARM_DRIVER_VERSION       SPI_GetVersion      (void);
+static ARM_SPI_CAPABILITIES     SPI_GetCapabilities (void);
+static int32_t                  SPIn_Initialize     (const RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event);
+static int32_t                  SPIn_Uninitialize   (const RO_Info_t * const ptr_ro_info);
+static int32_t                  SPIn_PowerControl   (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
+static int32_t                  SPIn_Send           (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num);
+static int32_t                  SPIn_Receive        (const RO_Info_t * const ptr_ro_info,       void *data, uint32_t num);
+static int32_t                  SPIn_Transfer       (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num);
+static uint32_t                 SPIn_GetDataCount   (const RO_Info_t * const ptr_ro_info);
+static int32_t                  SPIn_Control        (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg);
+static ARM_SPI_STATUS           SPIn_GetStatus      (const RO_Info_t * const ptr_ro_info);
 
 // Local driver functions declarations (for instances)
 #ifdef MX_SPI1
@@ -478,12 +478,12 @@ FUNCS_DECLARE(8)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *SPIn_GetInfo (const SPI_HandleTypeDef *hspi)
+  \fn          RO_Info_t *SPI_GetInfo (const SPI_HandleTypeDef * const hspi)
   \brief       Get pointer to RO_Info_t structure corresponding to specified hspi.
   \param[in]   hspi     Pointer to SPI handle structure (SPI_HandleTypeDef)
   \return      pointer to SPI RO info structure (RO_Info_t)
 */
-static const RO_Info_t *SPIn_GetInfo (const SPI_HandleTypeDef *hspi) {
+static const RO_Info_t *SPI_GetInfo (const SPI_HandleTypeDef * const hspi) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -504,12 +504,12 @@ static const RO_Info_t *SPIn_GetInfo (const SPI_HandleTypeDef *hspi) {
 }
 
 /**
-  \fn          uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info)
+  \fn          uint32_t SPIn_GetPeriphClock (const RO_Info_t * const ptr_ro_info)
   \brief       Get peripheral clock frequency.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \return      frequency in Hz
 */
-static uint32_t SPIn_GetPeriphClock (const RO_Info_t *ptr_ro_info) {
+static uint32_t SPIn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
   return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
 }
 
@@ -534,13 +534,13 @@ static ARM_SPI_CAPABILITIES SPI_GetCapabilities (void) {
 }
 
 /**
-  \fn          int32_t SPIn_Initialize (const RO_Info_t *ptr_ro_info, ARM_SPI_SignalEvent_t cb_event)
+  \fn          int32_t SPIn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event)
   \brief       Initialize SPI Interface.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \param[in]   cb_event        Pointer to \ref ARM_SPI_SignalEvent
   \return      \ref execution_status
 */
-static int32_t SPIn_Initialize (const RO_Info_t *ptr_ro_info, ARM_SPI_SignalEvent_t cb_event) {
+static int32_t SPIn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -555,12 +555,12 @@ static int32_t SPIn_Initialize (const RO_Info_t *ptr_ro_info, ARM_SPI_SignalEven
 }
 
 /**
-  \fn          int32_t SPIn_Uninitialize (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t SPIn_Uninitialize (const RO_Info_t * const ptr_ro_info)
   \brief       De-initialize SPI Interface.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t SPIn_Uninitialize (const RO_Info_t *ptr_ro_info) {
+static int32_t SPIn_Uninitialize (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered != 0U) {
     // If peripheral is powered, power off the peripheral
@@ -574,13 +574,13 @@ static int32_t SPIn_Uninitialize (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t SPIn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state)
+  \fn          int32_t SPIn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state)
   \brief       Control SPI Interface Power.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \param[in]   state           Power state
   \return      \ref execution_status
 */
-static int32_t SPIn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state) {
+static int32_t SPIn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
     return ARM_DRIVER_ERROR;
@@ -626,14 +626,14 @@ static int32_t SPIn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE 
 }
 
 /**
-  \fn          int32_t SPIn_Send (const RO_Info_t *ptr_ro_info, const void *data, uint32_t num)
+  \fn          int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num)
   \brief       Start sending data to SPI transmitter.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \param[in]   data            Pointer to buffer with data to send to SPI transmitter
   \param[in]   num             Number of data items to send
   \return      \ref execution_status
 */
-static int32_t SPIn_Send (const RO_Info_t *ptr_ro_info, const void *data, uint32_t num) {
+static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num) {
   HAL_StatusTypeDef send_status;
   int32_t           ret;
 
@@ -677,14 +677,14 @@ static int32_t SPIn_Send (const RO_Info_t *ptr_ro_info, const void *data, uint32
 }
 
 /**
-  \fn          int32_t SPIn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_t num)
+  \fn          int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, uint32_t num)
   \brief       Start receiving data from SPI receiver.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \param[out]  data            Pointer to buffer for data to receive from SPI receiver
   \param[in]   num             Number of data items to receive
   \return      \ref execution_status
 */
-static int32_t SPIn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_t num) {
+static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, uint32_t num) {
   HAL_StatusTypeDef receive_status;
   int32_t           ret;
   uint32_t          i;
@@ -758,7 +758,7 @@ static int32_t SPIn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_t 
 }
 
 /**
-  \fn          int32_t SPIn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_out, void *data_in, uint32_t num)
+  \fn          int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num)
   \brief       Start sending/receiving data to/from SPI transmitter/receiver.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \param[in]   data_out        Pointer to buffer with data to send to SPI transmitter
@@ -766,7 +766,7 @@ static int32_t SPIn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_t 
   \param[in]   num             Number of data items to transfer
   \return      \ref execution_status
 */
-static int32_t SPIn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_out, void *data_in, uint32_t num) {
+static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num) {
   HAL_StatusTypeDef transfer_status;
   int32_t           ret;
 
@@ -811,12 +811,12 @@ static int32_t SPIn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_out
 }
 
 /**
-  \fn          uint32_t SPIn_GetDataCount (const RO_Info_t *ptr_ro_info)
+  \fn          uint32_t SPIn_GetDataCount (const RO_Info_t * const ptr_ro_info)
   \brief       Get transferred data count.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \return      number of data items transferred
 */
-static uint32_t SPIn_GetDataCount (const RO_Info_t *ptr_ro_info) {
+static uint32_t SPIn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
   uint32_t cnt;
   uint32_t cnt_xferred;
 
@@ -850,14 +850,14 @@ static uint32_t SPIn_GetDataCount (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg)
+  \fn          int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg)
   \brief       Control SPI Interface.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \param[in]   control         Operation
   \param[in]   arg             Argument of operation (optional)
   \return      common \ref execution_status and driver specific \ref spi_execution_status
 */
-static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg) {
+static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg) {
   GPIO_InitTypeDef GPIO_InitStruct;
   uint32_t         periph_clk;
   uint32_t         spi_clk;
@@ -1256,12 +1256,12 @@ static int32_t SPIn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uin
 }
 
 /**
-  \fn          ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t *ptr_ro_info)
+  \fn          ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t * const ptr_ro_info)
   \brief       Get SPI status.
   \param[in]   ptr_ro_info     Pointer to SPI RO info structure (RO_Info_t)
   \return      SPI status \ref ARM_SPI_STATUS
 */
-static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t *ptr_ro_info) {
+static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   ARM_SPI_STATUS status;
   uint32_t       error;
 
@@ -1309,7 +1309,7 @@ static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t *ptr_ro_info) {
 void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = SPIn_GetInfo(hspi);
+  ptr_ro_info = SPI_GetInfo(hspi);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1341,7 +1341,7 @@ void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi) {
 void HAL_SPI_RxCpltCallback (SPI_HandleTypeDef *hspi) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = SPIn_GetInfo(hspi);
+  ptr_ro_info = SPI_GetInfo(hspi);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1364,7 +1364,7 @@ void HAL_SPI_RxCpltCallback (SPI_HandleTypeDef *hspi) {
 void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef *hspi) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = SPIn_GetInfo(hspi);
+  ptr_ro_info = SPI_GetInfo(hspi);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1389,7 +1389,7 @@ void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi) {
         uint32_t   error;
         uint32_t   event;
 
-  ptr_ro_info = SPIn_GetInfo(hspi);
+  ptr_ro_info = SPI_GetInfo(hspi);
 
   if (ptr_ro_info == NULL) {
     return;
