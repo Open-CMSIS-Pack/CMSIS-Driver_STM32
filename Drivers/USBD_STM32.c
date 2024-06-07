@@ -248,14 +248,18 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
-// Macro to create section name for RW info
-#define USBD_SECTION_NAME_STRING(str)   #str
-#define USBD_SECTION_NAME(n,post)       USBD_SECTION_NAME_STRING(.driver.usbd##n##post)
+// Macro for section for RW info
+#ifdef  USBD_SECTION_NAME
+#define USBDn_SECTION_(name,n)  __attribute__((section(name #n)))
+#define USBDn_SECTION(n)        USBDn_SECTION_(USBD_SECTION_NAME,n)
+#else
+#define USBDn_SECTION(n)
+#endif
 
 // Macro to create usbd_ro_info and usbd_rw_info (for instances)
 #define INFO_DEFINE(n)                                                                                                 \
 extern  PCD_HandleTypeDef       MX_USBD##n##_HANDLE;                                                                   \
-static        RW_Info_t         usbd##n##_rw_info __attribute__((section(USBD_SECTION_NAME(n,_rw))));                  \
+static        RW_Info_t         usbd##n##_rw_info USBDn_SECTION(n);                                                    \
 static  const RO_Info_t         usbd##n##_ro_info = { &MX_USBD##n##_HANDLE,                                            \
                                                       &usbd##n##_rw_info                                               \
                                                     };

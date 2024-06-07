@@ -278,6 +278,15 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 #ifdef  DRIVER_CONFIG_VALID             // Driver code is available only if configuration is valid
 
+// Macros
+// Macro for section for RW info
+#ifdef  ETH_MAC_SECTION_NAME
+#define ETH_MACn_SECTION_(name,n)       __attribute__((section(name #n)))
+#define ETH_MACn_SECTION(n)             ETH_MACn_SECTION_(ETH_MAC_SECTION_NAME,n)
+#else
+#define ETH_MACn_SECTION(n)
+#endif
+
 // Driver status
 typedef struct {
   uint8_t                       initialized  : 1;       // Initialized status: 0 - not initialized, 1 - initialized
@@ -312,7 +321,7 @@ static uint8_t                  eth_mac0_tx_buf[ETH_TX_DESC_CNT][ETH_MAX_PACKET_
 // Information definitions
 extern ETH_HandleTypeDef        heth;
 extern ETH_TxPacketConfig       TxConfig;
-static       RW_Info_t          eth_mac0_rw_info __attribute__((section(".driver.eth_mac0_rw")));
+static       RW_Info_t          eth_mac0_rw_info ETH_MACn_SECTION(0);
 static const RO_Info_t          eth_mac0_ro_info = { &heth,
                                                      &TxConfig,
                                                      &eth_mac0_rw_info

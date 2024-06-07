@@ -237,9 +237,13 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 #ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
-// Macro to create section name for RW info
-#define SPI_SECTION_NAME_STRING(str)    #str
-#define SPI_SECTION_NAME(n,post)        SPI_SECTION_NAME_STRING(.driver.spi##n##post)
+// Macro for section for RW info
+#ifdef  SPI_SECTION_NAME
+#define SPIn_SECTION_(name,n)   __attribute__((section(name #n)))
+#define SPIn_SECTION(n)         SPIn_SECTION_(SPI_SECTION_NAME,n)
+#else
+#define SPIn_SECTION(n)
+#endif
 
 // Macro to create spi_ro_info and spi_rw_info (for instances), with NSS pin configured in the STM32CubeMX
 #define INFO_W_NSS_DEFINE(n)                                                                                   \
@@ -250,7 +254,7 @@ static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx, 
                                                          MX_SPI##n##_NSS_GPIO_PuPd,                            \
                                                          MX_SPI##n##_NSS_GPIO_Speed                            \
                                                       };                                                       \
-static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
+static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
                                                         &spi##n##_rw_info,                                     \
                                                          RCC_PERIPHCLK_SPI##n,                                 \
@@ -261,7 +265,7 @@ static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,               
 // Macro to create spi_ro_info and spi_rw_info (for instances), without NSS pin configured in the STM32CubeMX
 #define INFO_WO_NSS_DEFINE(n)                                                                                  \
 extern  SPI_HandleTypeDef       hspi##n;                                                                       \
-static        RW_Info_t         spi##n##_rw_info __attribute__((section(SPI_SECTION_NAME(n,_rw))));            \
+static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
                                                         &spi##n##_rw_info,                                     \
                                                          RCC_PERIPHCLK_SPI##n,                                 \

@@ -247,14 +247,18 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
-// Macro to create section name for RW info
-#define USART_SECTION_NAME_STRING(str)  #str
-#define USART_SECTION_NAME(n,post)      USART_SECTION_NAME_STRING(.driver.usart##n##post)
+// Macro for section for RW info
+#ifdef  USART_SECTION_NAME
+#define USARTn_SECTION_(name,n) __attribute__((section(name #n)))
+#define USARTn_SECTION(n)       USARTn_SECTION_(USART_SECTION_NAME,n)
+#else
+#define USARTn_SECTION(n)
+#endif
 
 // Macro to create usart_ro_info and usart_rw_info (for U(S)ART instances)
 #define INFO_DEFINE(n)                                                                                         \
 extern  UART_HandleTypeDef      huart##n;                                                                      \
-static        RW_Info_t         usart##n##_rw_info __attribute__((section(USART_SECTION_NAME(n,_rw))));        \
+static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                          \
 static  const RO_Info_t         usart##n##_ro_info = { &huart##n,                                              \
                                                        &usart##n##_rw_info                                     \
                                                      };
@@ -262,7 +266,7 @@ static  const RO_Info_t         usart##n##_ro_info = { &huart##n,               
 // Macro to create usart_ro_info and usart_rw_info (for LPUART instances)
 #define LP_INFO_DEFINE(n,lp_n)                                                                                 \
 extern  UART_HandleTypeDef      hlpuart##n;                                                                    \
-static        RW_Info_t         usart##n##_rw_info __attribute__((section(USART_SECTION_NAME(n,_rw))));        \
+static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                          \
 static  const RO_Info_t         usart##n##_ro_info = { &hlpuart##n,                                            \
                                                        &usart##n##_rw_info                                     \
                                                      };

@@ -263,15 +263,19 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
 // Macros
-// Macro to create section name for RW info
-#define I2C_SECTION_NAME_STRING(str)    #str
-#define I2C_SECTION_NAME(n,post)        I2C_SECTION_NAME_STRING(.driver.i2c##n##post)
+// Macro for section for RW info
+#ifdef  I2C_SECTION_NAME
+#define I2Cn_SECTION_(name,n)   __attribute__((section(name #n)))
+#define I2Cn_SECTION(n)         I2Cn_SECTION_(I2C_SECTION_NAME,n)
+#else
+#define I2Cn_SECTION(n)
+#endif
 
 #ifdef MX_I2C_FILTER_EXISTS     // If I2C peripheral has filters
 // Macro to create i2c_ro_info and i2c_rw_info (for instances), with filter settings
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
-static        RW_Info_t         i2c##n##_rw_info __attribute__((section(I2C_SECTION_NAME(n,_rw))));            \
+static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
                                                          RCC_PERIPHCLK_I2C##n,                                 \
@@ -294,7 +298,7 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
 // Macro to create i2c_ro_info and i2c_rw_info (for instances), without filter settings
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
-static        RW_Info_t         i2c##n##_rw_info __attribute__((section(I2C_SECTION_NAME(n,_rw))));            \
+static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
                                                          RCC_PERIPHCLK_I2C##n,                                 \

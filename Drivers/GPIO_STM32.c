@@ -155,6 +155,15 @@ extern void HAL_GPIO_EXTI_Falling_Callback (uint16_t GPIO_Pin);
 
 // *****************************************************************************
 
+// Macros
+// Macro for section for RW info
+#ifdef  GPIO_SECTION_NAME
+#define GPIO_SECTION_(name)     __attribute__((section(name)))
+#define GPIO_SECTION            GPIO_SECTION_(GPIO_SECTION_NAME)
+#else
+#define GPIO_SECTION
+#endif
+
 // Pin configuration
 typedef struct {
   uint8_t                       cb_registered : 1;      // Callback registered flag
@@ -173,7 +182,7 @@ typedef struct {
 } RW_Info_t;
 
 // Information definitions
-static  RW_Info_t gpio0_rw_info __attribute__((section(".driver.gpio0_rw")));
+static  RW_Info_t gpio0_rw_info GPIO_SECTION;
 
 // GPIO Peripheral addresses
 static GPIO_TypeDef * const gpio_addr[GPIO_MAX_PORTS_NUM] = {
