@@ -458,21 +458,21 @@ static const RO_Info_t * const usart_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t       *USARTn_GetInfo         (const UART_HandleTypeDef *huart);
-static ARM_DRIVER_VERSION     USART_GetVersion       (void);
-static ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t *ptr_ro_info);
-static int32_t                USARTn_Initialize      (const RO_Info_t *ptr_ro_info, ARM_USART_SignalEvent_t cb_event);
-static int32_t                USARTn_Uninitialize    (const RO_Info_t *ptr_ro_info);
-static int32_t                USARTn_PowerControl    (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state);
-static int32_t                USARTn_Send            (const RO_Info_t *ptr_ro_info, const void *data, uint32_t num);
-static int32_t                USARTn_Receive         (const RO_Info_t *ptr_ro_info,       void *data, uint32_t num);
-static int32_t                USARTn_Transfer        (const RO_Info_t *ptr_ro_info, const void *data_out, void *data_in, uint32_t num);
-static uint32_t               USARTn_GetTxCount      (const RO_Info_t *ptr_ro_info);
-static uint32_t               USARTn_GetRxCount      (const RO_Info_t *ptr_ro_info);
-static int32_t                USARTn_Control         (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg);
-static ARM_USART_STATUS       USARTn_GetStatus       (const RO_Info_t *ptr_ro_info);
-static int32_t                USART_SetModemControl  (ARM_USART_MODEM_CONTROL control);
-static ARM_USART_MODEM_STATUS USART_GetModemStatus   (void);
+static const RO_Info_t         *USART_GetInfo          (const UART_HandleTypeDef * const huart);
+static ARM_DRIVER_VERSION       USART_GetVersion       (void);
+static ARM_USART_CAPABILITIES   USARTn_GetCapabilities (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USARTn_Initialize      (const RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event);
+static int32_t                  USARTn_Uninitialize    (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USARTn_PowerControl    (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
+static int32_t                  USARTn_Send            (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num);
+static int32_t                  USARTn_Receive         (const RO_Info_t * const ptr_ro_info,       void *data, uint32_t num);
+static int32_t                  USARTn_Transfer        (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num);
+static uint32_t                 USARTn_GetTxCount      (const RO_Info_t * const ptr_ro_info);
+static uint32_t                 USARTn_GetRxCount      (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USARTn_Control         (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg);
+static ARM_USART_STATUS         USARTn_GetStatus       (const RO_Info_t * const ptr_ro_info);
+static int32_t                  USART_SetModemControl  (ARM_USART_MODEM_CONTROL control);
+static ARM_USART_MODEM_STATUS   USART_GetModemStatus   (void);
 
 // Local driver functions declarations (for instances)
 #ifdef MX_UART1
@@ -533,12 +533,12 @@ FUNCS_DECLARE(23)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *USARTn_GetInfo (const UART_HandleTypeDef *huart)
+  \fn          RO_Info_t *USART_GetInfo (const UART_HandleTypeDef * const huart)
   \brief       Get pointer to RO_Info_t structure corresponding to specified huart.
   \param[in]   huart    Pointer to UART handle structure (UART_HandleTypeDef)
   \return      pointer to USART RO info structure (RO_Info_t)
 */
-static const RO_Info_t *USARTn_GetInfo (const UART_HandleTypeDef *huart) {
+static const RO_Info_t *USART_GetInfo (const UART_HandleTypeDef * const huart) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -570,12 +570,12 @@ static ARM_DRIVER_VERSION USART_GetVersion (void) {
 }
 
 /**
-  \fn          ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t *ptr_ro_info)
+  \fn          ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t * const ptr_ro_info)
   \brief       Get driver capabilities.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \return      \ref ARM_USART_CAPABILITIES
 */
-static ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t *ptr_ro_info) {
+static ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t * const ptr_ro_info) {
   ARM_USART_CAPABILITIES driver_capabilities;
 
   // Clear capabilities structure
@@ -611,13 +611,13 @@ static ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t *ptr_ro_in
 }
 
 /**
-  \fn          int32_t USARTn_Initialize (const RO_Info_t *ptr_ro_info, ARM_USART_SignalEvent_t cb_event)
+  \fn          int32_t USARTn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event)
   \brief       Initialize USART Interface.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[in]   cb_event        Pointer to \ref ARM_USART_SignalEvent
   \return      \ref execution_status
 */
-static int32_t USARTn_Initialize (const RO_Info_t *ptr_ro_info, ARM_USART_SignalEvent_t cb_event) {
+static int32_t USARTn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -632,12 +632,12 @@ static int32_t USARTn_Initialize (const RO_Info_t *ptr_ro_info, ARM_USART_Signal
 }
 
 /**
-  \fn          int32_t USARTn_Uninitialize (const RO_Info_t *ptr_ro_info)
+  \fn          int32_t USARTn_Uninitialize (const RO_Info_t * const ptr_ro_info)
   \brief       De-initialize USART Interface.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \return      \ref execution_status
 */
-static int32_t USARTn_Uninitialize (const RO_Info_t *ptr_ro_info) {
+static int32_t USARTn_Uninitialize (const RO_Info_t * const ptr_ro_info) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered != 0U) {
     // If peripheral is powered, power off the peripheral
@@ -651,13 +651,13 @@ static int32_t USARTn_Uninitialize (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t USARTn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state)
+  \fn          int32_t USARTn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state)
   \brief       Control USART Interface Power.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[in]   state           Power state
   \return      \ref execution_status
 */
-static int32_t USARTn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STATE state) {
+static int32_t USARTn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state) {
 
   if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
     return ARM_DRIVER_ERROR;
@@ -714,14 +714,14 @@ static int32_t USARTn_PowerControl (const RO_Info_t *ptr_ro_info, ARM_POWER_STAT
 }
 
 /**
-  \fn          int32_t USARTn_Send (const RO_Info_t *ptr_ro_info, const void *data, uint32_t num)
+  \fn          int32_t USARTn_Send (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num)
   \brief       Start sending data to USART transmitter.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[in]   data            Pointer to buffer with data to send to USART transmitter
   \param[in]   num             Number of data items to send
   \return      \ref execution_status
 */
-static int32_t USARTn_Send (const RO_Info_t *ptr_ro_info, const void *data, uint32_t num) {
+static int32_t USARTn_Send (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num) {
   HAL_StatusTypeDef send_status;
   int32_t           ret;
 
@@ -765,14 +765,14 @@ static int32_t USARTn_Send (const RO_Info_t *ptr_ro_info, const void *data, uint
 }
 
 /**
-  \fn          int32_t USARTn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_t num)
+  \fn          int32_t USARTn_Receive (const RO_Info_t * const ptr_ro_info, void *data, uint32_t num)
   \brief       Start receiving data from USART receiver.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[out]  data            Pointer to buffer for data to receive from USART receiver
   \param[in]   num             Number of data items to receive
   \return      \ref execution_status
 */
-static int32_t USARTn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_t num) {
+static int32_t USARTn_Receive (const RO_Info_t * const ptr_ro_info, void *data, uint32_t num) {
   HAL_StatusTypeDef receive_status;
   int32_t           ret;
 
@@ -821,7 +821,7 @@ static int32_t USARTn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_
 }
 
 /**
-  \fn          int32_t USARTn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_out, void *data_in, uint32_t num)
+  \fn          int32_t USARTn_Transfer (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num)
   \brief       Start sending/receiving data to/from USART transmitter/receiver.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[in]   data_out        Pointer to buffer with data to send to USART transmitter
@@ -829,7 +829,7 @@ static int32_t USARTn_Receive (const RO_Info_t *ptr_ro_info, void *data, uint32_
   \param[in]   num             Number of data items to transfer
   \return      \ref execution_status
 */
-static int32_t USARTn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_out, void *data_in, uint32_t num) {
+static int32_t USARTn_Transfer (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num) {
   (void)data_out;
   (void)data_in;
   (void)num;
@@ -844,12 +844,12 @@ static int32_t USARTn_Transfer (const RO_Info_t *ptr_ro_info, const void *data_o
 }
 
 /**
-  \fn          uint32_t USARTn_GetTxCount (const RO_Info_t *ptr_ro_info)
+  \fn          uint32_t USARTn_GetTxCount (const RO_Info_t * const ptr_ro_info)
   \brief       Get transmitted data count.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \return      number of data items transmitted
 */
-static uint32_t USARTn_GetTxCount (const RO_Info_t *ptr_ro_info) {
+static uint32_t USARTn_GetTxCount (const RO_Info_t * const ptr_ro_info) {
   uint32_t cnt;
   uint32_t cnt_xferred;
 
@@ -869,12 +869,12 @@ static uint32_t USARTn_GetTxCount (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          uint32_t USARTn_GetRxCount (const RO_Info_t *ptr_ro_info)
+  \fn          uint32_t USARTn_GetRxCount (const RO_Info_t * const ptr_ro_info)
   \brief       Get received data count.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \return      number of data items received
 */
-static uint32_t USARTn_GetRxCount (const RO_Info_t *ptr_ro_info) {
+static uint32_t USARTn_GetRxCount (const RO_Info_t * const ptr_ro_info) {
   uint32_t cnt;
   uint32_t cnt_xferred;
 
@@ -894,14 +894,14 @@ static uint32_t USARTn_GetRxCount (const RO_Info_t *ptr_ro_info) {
 }
 
 /**
-  \fn          int32_t USARTn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg)
+  \fn          int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg)
   \brief       Control USART Interface.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[in]   control         Operation
   \param[in]   arg             Argument of operation (optional)
   \return      common \ref execution_status and driver specific \ref usart_execution_status
 */
-static int32_t USARTn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, uint32_t arg) {
+static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg) {
   ARM_USART_STATUS status;
   uint8_t          parity_bits;
   uint8_t          data_bits;
@@ -1168,12 +1168,12 @@ static int32_t USARTn_Control (const RO_Info_t *ptr_ro_info, uint32_t control, u
 }
 
 /**
-  \fn          ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t *ptr_ro_info)
+  \fn          ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t * const ptr_ro_info)
   \brief       Get USART status.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \return      USART status \ref ARM_USART_STATUS
 */
-static ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t *ptr_ro_info) {
+static ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   ARM_USART_STATUS status;
 
   // Clear status structure
@@ -1255,7 +1255,7 @@ static ARM_USART_MODEM_STATUS USART_GetModemStatus (void) {
 void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USARTn_GetInfo(huart);
+  ptr_ro_info = USART_GetInfo(huart);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1278,7 +1278,7 @@ void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart) {
 void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart) {
   const RO_Info_t *ptr_ro_info;
 
-  ptr_ro_info = USARTn_GetInfo(huart);
+  ptr_ro_info = USART_GetInfo(huart);
 
   if (ptr_ro_info == NULL) {
     return;
@@ -1303,7 +1303,7 @@ void HAL_UART_ErrorCallback (UART_HandleTypeDef *huart) {
         uint32_t   error;
         uint32_t   event;
 
-  ptr_ro_info = USARTn_GetInfo(huart);
+  ptr_ro_info = USART_GetInfo(huart);
 
   if (ptr_ro_info == NULL) {
     return;
