@@ -34,8 +34,8 @@ Driver API Shim Source     | Description
 
 ### Supported STM32 Device Families
 
-- [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u0xx_dfp-keil)
-- :
+- [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u5xx_dfp-keil)
+- [STMicroelectronics STM32H7 Series](https://www.keil.arm.com/packs/stm32h7xx_dfp-keil)
 - :
 
 ### Driver Validation
