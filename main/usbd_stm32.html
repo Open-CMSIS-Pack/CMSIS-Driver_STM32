@@ -148,6 +148,7 @@ Deviations</h1>
 <p>This driver has the following deviations from the CMSIS-Driver specification:</p>
 <p><b>Conceptual</b> deviations:</p><ul>
 <li>CubeMX generated initialization code (function MX_USB_...PCD_Init) already configures the peripheral. Power, clocks, pins, and interrupts are enabled after execution of initialization that executes in <code>main.c</code>.</li>
+<li>Role (Device to Host) cannot be changed at run-time.</li>
 </ul>
 <p><b>Functional</b> deviations:</p><ul>
 <li>GetCapabilities:<ul>
