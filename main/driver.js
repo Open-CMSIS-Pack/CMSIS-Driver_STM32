@@ -71,5 +71,18 @@ var driver =
           [ "Project Manager tab", "usbd_stm32.html#autotoc_md47", null ]
         ] ]
       ] ]
+    ] ],
+    [ "USB Host", "usbh_stm32.html", [
+      [ "Revision History", "usbh_stm32.html#autotoc_md48", null ],
+      [ "Requirements", "usbh_stm32.html#autotoc_md49", null ],
+      [ "Deviations", "usbh_stm32.html#autotoc_md50", null ],
+      [ "CubeMX Configuration", "usbh_stm32.html#autotoc_md51", [
+        [ "Example", "usbh_stm32.html#autotoc_md52", [
+          [ "Pinout & Configuration tab", "usbh_stm32.html#autotoc_md53", null ],
+          [ "Clock Configuration tab", "usbh_stm32.html#autotoc_md54", null ],
+          [ "Project Manager tab", "usbh_stm32.html#autotoc_md55", null ]
+        ] ],
+        [ "Source Code", "usbh_stm32.html#autotoc_md56", null ]
+      ] ]
     ] ]
 ];

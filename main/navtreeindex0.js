@@ -28,8 +28,8 @@ var NAVTREEINDEX0 =
 "i2c_stm32.html#autotoc_md21":[1,2,3,0,0],
 "i2c_stm32.html#autotoc_md22":[1,2,3,0,1],
 "i2c_stm32.html#autotoc_md23":[1,2,3,0,2],
-"index.html":[0],
 "index.html":[],
+"index.html":[0],
 "index.html#license":[0,1],
 "index.html#pack_content":[0,0],
 "pages.html":[],
@@ -59,5 +59,15 @@ var NAVTREEINDEX0 =
 "usbd_stm32.html#autotoc_md44":[1,5,3,0],
 "usbd_stm32.html#autotoc_md45":[1,5,3,0,0],
 "usbd_stm32.html#autotoc_md46":[1,5,3,0,1],
-"usbd_stm32.html#autotoc_md47":[1,5,3,0,2]
+"usbd_stm32.html#autotoc_md47":[1,5,3,0,2],
+"usbh_stm32.html":[1,6],
+"usbh_stm32.html#autotoc_md48":[1,6,0],
+"usbh_stm32.html#autotoc_md49":[1,6,1],
+"usbh_stm32.html#autotoc_md50":[1,6,2],
+"usbh_stm32.html#autotoc_md51":[1,6,3],
+"usbh_stm32.html#autotoc_md52":[1,6,3,0],
+"usbh_stm32.html#autotoc_md53":[1,6,3,0,0],
+"usbh_stm32.html#autotoc_md54":[1,6,3,0,1],
+"usbh_stm32.html#autotoc_md55":[1,6,3,0,2],
+"usbh_stm32.html#autotoc_md56":[1,6,3,1]
 };
