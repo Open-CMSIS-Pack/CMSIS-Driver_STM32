@@ -921,6 +921,7 @@ INPUT                  = ./src/mainpage.md             \
                          ../../Drivers/ETH_MAC_STM32.c \
                          ../../Drivers/GPIO_STM32.c    \
                          ../../Drivers/I2C_STM32.c     \
+                         ../../Drivers/MCI_STM32.c     \
                          ../../Drivers/SPI_STM32.c     \
                          ../../Drivers/USART_STM32.c   \
                          ../../Drivers/USBD_STM32.c    \
