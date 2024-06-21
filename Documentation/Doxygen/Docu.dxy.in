@@ -47,7 +47,7 @@ PROJECT_NAME           = "CMSIS-Driver_STM32"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "Version {projectNumber}"
+PROJECT_NUMBER         = "Version 1.0.0"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -923,7 +923,8 @@ INPUT                  = ./src/mainpage.md             \
                          ../../Drivers/I2C_STM32.c     \
                          ../../Drivers/SPI_STM32.c     \
                          ../../Drivers/USART_STM32.c   \
-                         ../../Drivers/USBD_STM32.c
+                         ../../Drivers/USBD_STM32.c    \
+                         ../../Drivers/USBH_STM32.c
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

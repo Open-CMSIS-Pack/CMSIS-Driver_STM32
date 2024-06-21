@@ -140,7 +140,7 @@
         <file category="source"  name="Drivers/USART_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"  Capiversion="2.3.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"   Capiversion="2.3.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
       <description>USB Device Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBD0               /* Driver USBD0 */
@@ -150,6 +150,18 @@
         <file category="doc"     name="Documentation/html/usbd_stm32.html"/>
         <file category="header"  name="Drivers/USBD_STM32.h"/>
         <file category="source"  name="Drivers/USBD_STM32.c"/>
+      </files>
+    </component>
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.0.0" condition="CMSIS Driver requirements">
+      <description>USB Host Driver for STM32 devices</description>
+      <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
+        #define RTE_Drivers_USBH0               /* Driver USBH0 */
+        #define RTE_Drivers_USBH1               /* Driver USBH1 */
+      </RTE_Components_h>
+      <files>
+        <file category="doc"     name="Documentation/html/usbh_stm32.html"/>
+        <file category="header"  name="Drivers/USBH_STM32.h"/>
+        <file category="source"  name="Drivers/USBH_STM32.c"/>
       </files>
     </component>
   </components>

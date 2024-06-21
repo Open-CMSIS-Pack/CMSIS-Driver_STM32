@@ -81,3 +81,15 @@
     - [example of Interrupt OUT endpoint abort timing-out on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_ll_usb.c#L958)
 5.  some drivers do not call **HAL_PCD_DataOutStageCallback** when **zero-length packet is received**
     - [example on STM32H5](https://github.com/STMicroelectronics/stm32h5xx_hal_driver/blob/afcafe6d4f21a18d898400705addd9c94fba8660/Src/stm32h5xx_hal_pcd.c#L1793)
+
+## USB Host
+
+1.  no support for **Port suspend** and **resume**
+2.  no support for **over-current detection**
+3.  no support for **periodic transfer period handling**
+4.  no support for **disabling Host Channel** (only **HAL_HCD_HC_Init** function exists)
+5.  no support for **toggle control/reset**
+6.  **transfers of max packet size packets on Control Host Channel mishandles toggle bit**
+7.  no support for **transfers of sizes larger then max packet size**
+8.  **HAL_HCD_HC_GetXferCount** returns correct size only for **IN transfers**
+9.  no support for **aborting of transfer**
