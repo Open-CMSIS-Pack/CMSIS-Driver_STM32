@@ -47,7 +47,7 @@ This driver has the following deviations from the CMSIS-Driver specification:
 
 __Conceptual__ deviations:
   - CubeMX generated initialization code (function MX_ETH_Init) already configures
-    the peripheral. Power, clocks, pins, and interrupts are enabled after execution 
+    the peripheral. Power, clocks, pins, and interrupts are enabled after execution
     of initialization that executes in `main.c`.
 
 __Functional__ deviations:

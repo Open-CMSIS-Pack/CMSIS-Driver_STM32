@@ -534,7 +534,7 @@ __STATIC_INLINE int32_t MCI_Setup_DTransfer(MCI_RESOURCES *mci, uint8_t *data, u
   mci->reg->IDMACTRL  = SDMMC_IDMA_IDMAEN;
 
   mci->reg->DLEN = b_size * b_count;
-  
+
   if (b_size == 512U) { sz = 9U; }
   else {
     for (sz = 0U; sz < 14U; sz++) {

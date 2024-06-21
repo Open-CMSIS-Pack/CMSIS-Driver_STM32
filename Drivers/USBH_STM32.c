@@ -48,7 +48,7 @@ This driver has the following deviations from the CMSIS-Driver specification:
 
 __Conceptual__ deviations:
   - CubeMX generated initialization code (function MX_USB_...HCD_Init) already configures
-    the peripheral. Power, clocks, pins, and interrupts are enabled after execution 
+    the peripheral. Power, clocks, pins, and interrupts are enabled after execution
     of initialization that executes in `main.c`.
   - Role (Host to Device) cannot be changed at run-time.
 
@@ -535,7 +535,7 @@ __STATIC_INLINE void USBH_Transfer_UpdateInfo (const RO_Info_t * const ptr_ro_in
 */
 __STATIC_INLINE int32_t USBH_Transfer_GetStatus (const RO_Info_t * const ptr_ro_info, uint8_t ch) {
 
-  if ((ptr_ro_info->ptr_rw_info->ch_info[ch].num == ptr_ro_info->ptr_rw_info->ch_info[ch].num_transferred) || 
+  if ((ptr_ro_info->ptr_rw_info->ch_info[ch].num == ptr_ro_info->ptr_rw_info->ch_info[ch].num_transferred) ||
       (ptr_ro_info->ptr_rw_info->ch_info[ch].num_last_transferred != ptr_ro_info->ptr_rw_info->ch_info[ch].ep_max_packet_size)) {
     // If short packet or ZLP were received in IN direction, or if less data then requested was
     // sent in OUT direction then transfer is considered finished
@@ -914,7 +914,7 @@ static ARM_USBH_PORT_STATE USBHn_PortGetState (const RO_Info_t * const ptr_ro_in
 }
 
 /**
-  \fn          ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_info, 
+  \fn          ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_info,
                                                             uint8_t           dev_addr,
                                                             uint8_t           dev_speed,
                                                             uint8_t           hub_addr,
@@ -937,7 +937,7 @@ static ARM_USBH_PORT_STATE USBHn_PortGetState (const RO_Info_t * const ptr_ro_in
   \param[in]   ep_interval        Endpoint Polling Interval
   \return      Pipe Handle \ref ARM_USBH_PIPE_HANDLE
 */
-static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_info, 
+static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_info,
                                                     uint8_t           dev_addr,
                                                     uint8_t           dev_speed,
                                                     uint8_t           hub_addr,
@@ -1032,7 +1032,7 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
 }
 
 /**
-  \fn          int32_t USBHn_PipeModify (const RO_Info_t * const    ptr_ro_info, 
+  \fn          int32_t USBHn_PipeModify (const RO_Info_t * const    ptr_ro_info,
                                                ARM_USBH_PIPE_HANDLE pipe_hndl,
                                                uint8_t              dev_addr,
                                                uint8_t              dev_speed,
@@ -1049,7 +1049,7 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
   \param[in]   ep_max_packet_size Endpoint Maximum Packet Size
   \return      \ref execution_status
 */
-static int32_t USBHn_PipeModify (const RO_Info_t * const    ptr_ro_info, 
+static int32_t USBHn_PipeModify (const RO_Info_t * const    ptr_ro_info,
                                        ARM_USBH_PIPE_HANDLE pipe_hndl,
                                        uint8_t              dev_addr,
                                        uint8_t              dev_speed,
@@ -1194,7 +1194,7 @@ static int32_t USBHn_PipeReset (const RO_Info_t * const ptr_ro_info, ARM_USBH_PI
 }
 
 /**
-  \fn          int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info, 
+  \fn          int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
                                                  ARM_USBH_PIPE_HANDLE pipe_hndl,
                                                  uint32_t             packet,
                                                  uint8_t             *data,
@@ -1207,7 +1207,7 @@ static int32_t USBHn_PipeReset (const RO_Info_t * const ptr_ro_info, ARM_USBH_PI
   \param[in]   num        Number of data bytes to transfer
   \return      \ref execution_status
 */
-static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info, 
+static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
                                          ARM_USBH_PIPE_HANDLE pipe_hndl,
                                          uint32_t             packet,
                                          uint8_t             *data,
@@ -1266,7 +1266,7 @@ static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
   ptr_ro_info->ptr_rw_info->ch_info[ch].num_last_transferred  = 0U;
 
   do_transfer = 1U;
-  if ((ep_type == ARM_USB_ENDPOINT_INTERRUPT) || (ep_type == ARM_USB_ENDPOINT_INTERRUPT)) { 
+  if ((ep_type == ARM_USB_ENDPOINT_INTERRUPT) || (ep_type == ARM_USB_ENDPOINT_INTERRUPT)) {
     // For Interrupt and Isochronous transfers
     if (ptr_ro_info->ptr_rw_info->ch_info[ch].cd_time != 0U) {
       // If countdown time (cd_time) is active then just register transfer request, but transfer
@@ -1368,7 +1368,7 @@ void HAL_HCD_SOF_Callback (HCD_HandleTypeDef *hhcd) {
     for (uint8_t i = 0U; i < ptr_ro_info->ptr_rw_info->max_channels; i++) {
       if (ptr_ro_info->ptr_rw_info->ch_info[i].periodic != 0U) {
         // If the pipe is periodic
-  
+
         if (ptr_ro_info->ptr_rw_info->ch_info[i].cd_time != 0U) {
           ptr_ro_info->ptr_rw_info->ch_info[i].cd_time--;
           if (ptr_ro_info->ptr_rw_info->ch_info[i].cd_time == 0U) {
