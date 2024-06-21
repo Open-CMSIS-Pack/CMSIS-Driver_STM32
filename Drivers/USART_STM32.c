@@ -206,6 +206,7 @@ This driver requires the following configuration in CubeMX:
 #include <string.h>
 
 // Driver Version **************************************************************
+                                                //  CMSIS Driver API version           , Driver version
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // *****************************************************************************
 

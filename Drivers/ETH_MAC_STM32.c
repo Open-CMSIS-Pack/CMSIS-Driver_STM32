@@ -260,6 +260,7 @@ RW_ETH_TX_BUF  0x30041900 0x00001800 {
 #include <string.h>
 
 // Driver Version **************************************************************
+                                                //  CMSIS Driver API version           , Driver version
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // *****************************************************************************
 
