@@ -36,53 +36,64 @@ var driver =
         ] ]
       ] ]
     ] ],
+    [ "MCI", "mci_stm32.html", [
+      [ "Revision History", "mci_stm32.html#autotoc_md24", null ],
+      [ "Requirements", "mci_stm32.html#autotoc_md25", null ],
+      [ "CubeMX Configuration", "mci_stm32.html#autotoc_md26", [
+        [ "Example", "mci_stm32.html#autotoc_md27", [
+          [ "Pinout & Configuration tab", "mci_stm32.html#autotoc_md28", null ],
+          [ "Clock Configuration tab", "mci_stm32.html#autotoc_md29", null ],
+          [ "Project Manager tab", "mci_stm32.html#autotoc_md30", null ]
+        ] ]
+      ] ]
+    ] ],
     [ "SPI", "spi_stm32.html", [
-      [ "Revision History", "spi_stm32.html#autotoc_md24", null ],
-      [ "Requirements", "spi_stm32.html#autotoc_md25", null ],
-      [ "Deviations", "spi_stm32.html#autotoc_md26", null ],
-      [ "CubeMX Configuration", "spi_stm32.html#autotoc_md27", [
-        [ "Example", "spi_stm32.html#autotoc_md28", [
-          [ "Pinout & Configuration tab", "spi_stm32.html#autotoc_md29", null ],
-          [ "Clock Configuration tab", "spi_stm32.html#autotoc_md30", null ],
-          [ "Project Manager tab", "spi_stm32.html#autotoc_md31", null ]
+      [ "Revision History", "spi_stm32.html#autotoc_md31", null ],
+      [ "Requirements", "spi_stm32.html#autotoc_md32", null ],
+      [ "Deviations", "spi_stm32.html#autotoc_md33", null ],
+      [ "CubeMX Configuration", "spi_stm32.html#autotoc_md34", [
+        [ "Example", "spi_stm32.html#autotoc_md35", [
+          [ "Pinout & Configuration tab", "spi_stm32.html#autotoc_md36", null ],
+          [ "Clock Configuration tab", "spi_stm32.html#autotoc_md37", null ],
+          [ "Project Manager tab", "spi_stm32.html#autotoc_md38", null ]
         ] ]
       ] ]
     ] ],
     [ "USART", "usart_stm32.html", [
-      [ "Revision History", "usart_stm32.html#autotoc_md32", null ],
-      [ "Requirements", "usart_stm32.html#autotoc_md33", null ],
-      [ "Deviations", "usart_stm32.html#autotoc_md34", null ],
-      [ "CubeMX Configuration", "usart_stm32.html#autotoc_md35", [
-        [ "Example", "usart_stm32.html#autotoc_md36", [
-          [ "Pinout & Configuration tab", "usart_stm32.html#autotoc_md37", null ],
-          [ "Clock Configuration tab", "usart_stm32.html#autotoc_md38", null ],
-          [ "Project Manager tab", "usart_stm32.html#autotoc_md39", null ]
+      [ "Revision History", "usart_stm32.html#autotoc_md39", null ],
+      [ "Requirements", "usart_stm32.html#autotoc_md40", null ],
+      [ "Deviations", "usart_stm32.html#autotoc_md41", null ],
+      [ "CubeMX Configuration", "usart_stm32.html#autotoc_md42", [
+        [ "Example", "usart_stm32.html#autotoc_md43", [
+          [ "Pinout & Configuration tab", "usart_stm32.html#autotoc_md44", null ],
+          [ "Clock Configuration tab", "usart_stm32.html#autotoc_md45", null ],
+          [ "Project Manager tab", "usart_stm32.html#autotoc_md46", null ]
         ] ]
       ] ]
     ] ],
     [ "USB Device", "usbd_stm32.html", [
-      [ "Revision History", "usbd_stm32.html#autotoc_md40", null ],
-      [ "Requirements", "usbd_stm32.html#autotoc_md41", null ],
-      [ "Deviations", "usbd_stm32.html#autotoc_md42", null ],
-      [ "CubeMX Configuration", "usbd_stm32.html#autotoc_md43", [
-        [ "Example", "usbd_stm32.html#autotoc_md44", [
-          [ "Pinout & Configuration tab", "usbd_stm32.html#autotoc_md45", null ],
-          [ "Clock Configuration tab", "usbd_stm32.html#autotoc_md46", null ],
-          [ "Project Manager tab", "usbd_stm32.html#autotoc_md47", null ]
+      [ "Revision History", "usbd_stm32.html#autotoc_md47", null ],
+      [ "Requirements", "usbd_stm32.html#autotoc_md48", null ],
+      [ "Deviations", "usbd_stm32.html#autotoc_md49", null ],
+      [ "CubeMX Configuration", "usbd_stm32.html#autotoc_md50", [
+        [ "Example", "usbd_stm32.html#autotoc_md51", [
+          [ "Pinout & Configuration tab", "usbd_stm32.html#autotoc_md52", null ],
+          [ "Clock Configuration tab", "usbd_stm32.html#autotoc_md53", null ],
+          [ "Project Manager tab", "usbd_stm32.html#autotoc_md54", null ]
         ] ]
       ] ]
     ] ],
     [ "USB Host", "usbh_stm32.html", [
-      [ "Revision History", "usbh_stm32.html#autotoc_md48", null ],
-      [ "Requirements", "usbh_stm32.html#autotoc_md49", null ],
-      [ "Deviations", "usbh_stm32.html#autotoc_md50", null ],
-      [ "CubeMX Configuration", "usbh_stm32.html#autotoc_md51", [
-        [ "Example", "usbh_stm32.html#autotoc_md52", [
-          [ "Pinout & Configuration tab", "usbh_stm32.html#autotoc_md53", null ],
-          [ "Clock Configuration tab", "usbh_stm32.html#autotoc_md54", null ],
-          [ "Project Manager tab", "usbh_stm32.html#autotoc_md55", null ]
+      [ "Revision History", "usbh_stm32.html#autotoc_md55", null ],
+      [ "Requirements", "usbh_stm32.html#autotoc_md56", null ],
+      [ "Deviations", "usbh_stm32.html#autotoc_md57", null ],
+      [ "CubeMX Configuration", "usbh_stm32.html#autotoc_md58", [
+        [ "Example", "usbh_stm32.html#autotoc_md59", [
+          [ "Pinout & Configuration tab", "usbh_stm32.html#autotoc_md60", null ],
+          [ "Clock Configuration tab", "usbh_stm32.html#autotoc_md61", null ],
+          [ "Project Manager tab", "usbh_stm32.html#autotoc_md62", null ]
         ] ],
-        [ "Source Code", "usbh_stm32.html#autotoc_md56", null ]
+        [ "Source Code", "usbh_stm32.html#autotoc_md63", null ]
       ] ]
     ] ]
 ];
