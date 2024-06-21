@@ -50,6 +50,7 @@ __Conceptual__ deviations:
   - CubeMX generated initialization code (function MX_USB_...PCD_Init) already configures
     the peripheral. Power, clocks, pins, and interrupts are enabled after execution 
     of initialization that executes in `main.c`.
+  - Role (Device to Host) cannot be changed at run-time.
 
 __Functional__ deviations:
   - GetCapabilities:
@@ -200,6 +201,7 @@ This driver requires the following configuration in CubeMX:
 #include <string.h>
 
 // Driver Version **************************************************************
+                                                //  CMSIS Driver API version           , Driver version
 static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
 // *****************************************************************************
 
@@ -610,9 +612,9 @@ static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t * const ptr_
   \param[in]   cb_endpoint_event  Pointer to \ref ARM_USBD_SignalEndpointEvent
   \return      \ref execution_status
 */
-static int32_t USBDn_Initialize (const RO_Info_t * const         ptr_ro_info,
-                                 ARM_USBD_SignalDeviceEvent_t    cb_device_event,
-                                 ARM_USBD_SignalEndpointEvent_t  cb_endpoint_event) {
+static int32_t USBDn_Initialize (const RO_Info_t * const        ptr_ro_info,
+                                 ARM_USBD_SignalDeviceEvent_t   cb_device_event,
+                                 ARM_USBD_SignalEndpointEvent_t cb_endpoint_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -697,6 +699,9 @@ static int32_t USBDn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWE
           (void)USBDn_EndpointTransferAbort(ptr_ro_info, (uint8_t)(ep_dir << 7) | ep_num);
         }
       }
+
+      // Stop USB Device operation
+      (void)HAL_PCD_Stop(ptr_ro_info->ptr_hpcd);
 
       // De-initialize pins, clocks, interrupts and peripheral
       (void)HAL_PCD_DeInit(ptr_ro_info->ptr_hpcd);
