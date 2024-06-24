@@ -565,7 +565,11 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
     tx_index = eth_mac0_ro_info.ptr_heth->TxDescList.CurTxDesc;
     tx_desc  = (ETH_DMADescTypeDef *)eth_mac0_ro_info.ptr_heth->TxDescList.TxDesc[tx_index];
 
+#ifdef ETH_DMATXDESC_OWN
+    if ((*((volatile uint32_t *)tx_desc) & ETH_DMATXDESC_OWN) != 0U) {
+#else
     if ((tx_desc->DESC3 & ETH_DMATXNDESCWBF_OWN) != 0U) {
+#endif
       // If Transmitter is busy
       return ARM_DRIVER_ERROR_BUSY;
     }
