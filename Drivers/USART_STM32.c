@@ -660,12 +660,11 @@ static int32_t USARTn_Uninitialize (const RO_Info_t * const ptr_ro_info) {
 */
 static int32_t USARTn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state) {
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
-    return ARM_DRIVER_ERROR;
-  }
-
   switch (state) {
     case ARM_POWER_FULL:
+      if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
+        return ARM_DRIVER_ERROR;
+      }
 
       // Clear communication error status
       ptr_ro_info->ptr_rw_info->rx_overflow      = 0U;

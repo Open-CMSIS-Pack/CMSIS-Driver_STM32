@@ -662,12 +662,11 @@ static int32_t USBDn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWE
   uint8_t                        ep_num;
   uint8_t                        ep_dir;
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
-    return ARM_DRIVER_ERROR;
-  }
-
   switch (state) {
     case ARM_POWER_FULL:
+      if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
+        return ARM_DRIVER_ERROR;
+      }
 
       // Store variables we need to preserve
       cb_device_event   = ptr_ro_info->ptr_rw_info->cb_device_event;

@@ -440,12 +440,11 @@ static int32_t ETH_MAC_Uninitialize (void) {
 */
 static int32_t ETH_MAC_PowerControl (ARM_POWER_STATE state) {
 
-  if (eth_mac0_rw_info.drv_status.initialized == 0U) {
-    return ARM_DRIVER_ERROR;
-  }
-
   switch (state) {
     case ARM_POWER_FULL:
+      if (eth_mac0_rw_info.drv_status.initialized == 0U) {
+        return ARM_DRIVER_ERROR;
+      }
 
       // Initialize pins, clocks, interrupts and peripheral
       if (HAL_ETH_Init(eth_mac0_ro_info.ptr_heth) != HAL_OK) {

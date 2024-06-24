@@ -583,12 +583,11 @@ static int32_t SPIn_Uninitialize (const RO_Info_t * const ptr_ro_info) {
 */
 static int32_t SPIn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state) {
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
-    return ARM_DRIVER_ERROR;
-  }
-
   switch (state) {
     case ARM_POWER_FULL:
+      if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
+        return ARM_DRIVER_ERROR;
+      }
 
       // Clear default Tx value
       ptr_ro_info->ptr_rw_info->default_tx_value = 0U;

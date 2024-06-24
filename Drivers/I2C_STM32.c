@@ -871,12 +871,11 @@ static int32_t I2Cn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER
   ARM_I2C_SignalEvent_t cb_event;
   DriverStatus_t        drv_status;
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
-    return ARM_DRIVER_ERROR;
-  }
-
   switch (state) {
     case ARM_POWER_FULL:
+      if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
+        return ARM_DRIVER_ERROR;
+      }
 
       // Store variables we need to preserve
       cb_event   = ptr_ro_info->ptr_rw_info->cb_event;

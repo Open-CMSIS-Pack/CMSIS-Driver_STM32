@@ -723,12 +723,11 @@ static int32_t USBHn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWE
   DriverStatus_t             drv_status;
   uint8_t                    max_ch;
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
-    return ARM_DRIVER_ERROR;
-  }
-
   switch (state) {
     case ARM_POWER_FULL:
+      if (ptr_ro_info->ptr_rw_info->drv_status.initialized == 0U) {
+        return ARM_DRIVER_ERROR;
+      }
 
       // Store variables we need to preserve
       cb_port_event = ptr_ro_info->ptr_rw_info->cb_port_event;
