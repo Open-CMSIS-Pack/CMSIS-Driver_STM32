@@ -11,7 +11,7 @@ The table below explains the content of **ARM::CMSIS-Driver_STM32** pack.
 Directory                             | Description
 :-------------------------------------|:------------------------------------------------------
 📂 Documentation                      | Folder with this documentation
-📂 Drivers                            | Drivers implementations (and validation results)
+📂 Drivers                            | Drivers implementations
 📄 ARM.CMSIS-Driver_STM32.pdsc        | Pack description file in CMSIS-Pack format
 📄 LICENSE                            | License Agreement (Apache 2.0)
 

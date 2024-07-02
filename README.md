@@ -40,7 +40,7 @@ Driver API Shim Source     | Description
 
 ### Driver Validation
 
-The [Driver API Shim implementations](#available-cmsis-drivers) are validated using the [CMSIS-Driver_Validation](https://github.com/ARM-software/CMSIS-Driver_Validation) tests. Refer to the [Test Reports](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/Drivers/Validation) for details.
+The [Driver API Shim implementations](#available-cmsis-drivers) are validated using the [CMSIS-Driver_Validation](https://github.com/ARM-software/CMSIS-Driver_Validation) tests.
 
 ## Usage
 
