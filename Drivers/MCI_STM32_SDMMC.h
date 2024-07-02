@@ -27,6 +27,13 @@
 
 #include "main.h"
 
+/* SDMMC peripheral version that requires external DMA strams (no dedicated DMA) */
+#if defined(MX_SDMMC1_RX_DMA_Instance) && defined(MX_SDMMC1_TX_DMA_Instance) || \
+    defined(MX_SDMMC2_RX_DMA_Instance) && defined(MX_SDMMC2_TX_DMA_Instance)
+  #define MCI_SDMMC_V1
+  #define MCI_DMA_EXT
+#endif
+
 /* MCI1: Define 4-bit data bus width */
 #if defined(MX_SDMMC1_D0_Pin) && defined(MX_SDMMC1_D1_Pin) && defined(MX_SDMMC1_D2_Pin) && defined(MX_SDMMC1_D3_Pin)
   #define MCI1_CFG_BUS_WIDTH_4          MCI_CFG_BUS_WIDTH_4
@@ -160,7 +167,7 @@
 #if MCI1_ENABLE
 #define MCI1_REG_BLOCK                  SDMMC1
 #define MCI1_IRQ_HANDLER                SDMMC1_IRQHandler
-#if !defined(MemoryCard_MMC1)
+#if !defined(MemoryCard_1_MMC)
 #define MCI1_HAL_MSPINIT                (HAL_MspFunc_t)HAL_SD_MspInit
 #define MCI1_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_SD_MspDeInit
 #define MCI1_HANDLE                     hsd1
@@ -176,7 +183,7 @@ extern MMC_HandleTypeDef                hmmc1;
 #if MCI2_ENABLE
 #define MCI2_REG_BLOCK                  SDMMC2
 #define MCI2_IRQ_HANDLER                SDMMC2_IRQHandler
-#if !defined(MemoryCard_MMC2)
+#if !defined(MemoryCard_2_MMC)
 #define MCI2_HAL_MSPINIT                (HAL_MspFunc_t)HAL_SD_MspInit
 #define MCI2_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_SD_MspDeInit
 #define MCI2_HANDLE                     hsd2
@@ -212,6 +219,17 @@ extern MMC_HandleTypeDef                hmmc2;
                                          ARM_MCI_RESPONSE_SHORT_BUSY | \
                                          ARM_MCI_RESPONSE_LONG)
 
+#if defined(MCI_DMA_EXT)
+/* DMA Callback function */
+typedef void (*DMA_Callback_t) (DMA_HandleTypeDef *hdma);
+
+/* DMA Information Definition */
+typedef struct {
+  DMA_HandleTypeDef *h;                 /* DMA handle                         */
+  DMA_Callback_t     cb_complete;       /* DMA complete callback              */
+} const MCI_DMA;
+#endif
+
 /* MCI Input/Output Definition */
 typedef const struct {
   GPIO_TypeDef         *port;           /* IO port                            */
@@ -240,6 +258,10 @@ typedef struct {
   MCI_IO         io_cd;                 /* I/O config: card detect            */
   MCI_IO         io_wp;                 /* I/O config: write protect line     */
   MCI_IO         io_pwr;                /* I/O config: card power select      */
+#if defined(MCI_DMA_EXT)
+  MCI_DMA        rx_dma;                /* DMA configuration for receive      */
+  MCI_DMA        tx_dma;                /* DMA configuration for transmit     */
+#endif
   uint32_t       cfg;                   /* Configuration flags                */
   MCI_INFO      *info;                  /* Run-Time information               */
 } const MCI_RESOURCES;
@@ -265,10 +287,6 @@ typedef struct {
 #define MCI_DTRANSFER_MODE_READ         (SDMMC_DCTRL_DTDIR)
 #define MCI_DTRANSFER_MODE_WRITE        (0)
 
-/* Direction I/O Polarity definition */
-#define MCI_DIR_IO_OUT_LOW              (0)
-#define MCI_DIR_IO_OUT_HIGH             (SDMMC_POWER_DIRPOL)
-
 #define MCI_RESPONSE_NO                 (0)
 #define MCI_RESPONSE_SHORT              (SDMMC_CMD_WAITRESP_0)
 #define MCI_RESPONSE_LONG               (SDMMC_CMD_WAITRESP_1 | SDMMC_CMD_WAITRESP_0)
@@ -282,9 +300,7 @@ typedef struct {
 #define MCI_IT_CMDREND                  (SDMMC_STA_CMDREND)
 #define MCI_IT_CMDSENT                  (SDMMC_STA_CMDSENT)
 #define MCI_IT_DATAEND                  (SDMMC_STA_DATAEND)
-#define MCI_IT_DHOLD                    (SDMMC_STA_DHOLD)
 #define MCI_IT_DBCKEND                  (SDMMC_STA_DBCKEND)
-#define MCI_IT_DABORT                   (SDMMC_STA_DABORT)
 #define MCI_IT_DPSMACT                  (SDMMC_STA_DPSMACT)
 #define MCI_IT_CMDACT                   (SDMMC_STA_CPSMACT)
 #define MCI_IT_TXFIFOHE                 (SDMMC_STA_TXFIFOHE)
@@ -293,15 +309,31 @@ typedef struct {
 #define MCI_IT_RXFIFOF                  (SDMMC_STA_RXFIFOF)
 #define MCI_IT_TXFIFOE                  (SDMMC_STA_TXFIFOE)
 #define MCI_IT_RXFIFOE                  (SDMMC_STA_RXFIFOE)
-#define MCI_IT_BUSYD0                   (SDMMC_STA_BUSYD0)
-#define MCI_IT_BUSYD0END                (SDMMC_STA_BUSYD0END)
 #define MCI_IT_SDIOIT                   (SDMMC_STA_SDIOIT)
+
+#if defined(MCI_SDMMC_V1)
+#define MCI_IT_DABORT                   (0)
+#define MCI_IT_DHOLD                    (0)
+#define MCI_IT_BUSYD0END                (0)
+#define MCI_IT_ACKFAIL                  (0)
+#define MCI_IT_ACKTIMEOUT               (0)
+#define MCI_IT_VSWEND                   (0)
+#define MCI_IT_CKSTOP                   (0)
+#define MCI_IT_BUSYD0                   (0)
+#define MCI_IT_IDMATE                   (0)
+#define MCI_IT_IDMABTC                  (0)
+#else
+#define MCI_IT_DABORT                   (SDMMC_STA_DABORT)
+#define MCI_IT_DHOLD                    (SDMMC_STA_DHOLD)
+#define MCI_IT_BUSYD0END                (SDMMC_STA_BUSYD0END)
 #define MCI_IT_ACKFAIL                  (SDMMC_STA_ACKFAIL)
 #define MCI_IT_ACKTIMEOUT               (SDMMC_STA_ACKTIMEOUT)
 #define MCI_IT_VSWEND                   (SDMMC_STA_VSWEND)
 #define MCI_IT_CKSTOP                   (SDMMC_STA_CKSTOP)
+#define MCI_IT_BUSYD0                   (SDMMC_STA_BUSYD0)
 #define MCI_IT_IDMATE                   (SDMMC_STA_IDMATE)
 #define MCI_IT_IDMABTC                  (SDMMC_STA_IDMABTC)
+#endif
 
 /* Interrupt clear mask */
 #define MCI_IT_CLR_Msk                  (MCI_IT_CCRCFAIL   | \
@@ -340,13 +372,31 @@ typedef struct {
 /* Maximum Data Block Size */
 #define MCI_MAX_BLOCK_SIZE              (16384U)
 
+#if defined(MCI_DMA_EXT)
+/**
+  \brief Common DMA receive complete callback
+*/
+static void RX_DMA_Complete (DMA_HandleTypeDef *hdma, MCI_RESOURCES *mci) {
+  (void)hdma;
+
+  mci->info->status.transfer_active = 0U;
+
+  if (mci->info->cb_event) {
+    (mci->info->cb_event)(ARM_MCI_EVENT_TRANSFER_COMPLETE);
+  }
+}
+#endif
 
 /**
   \brief Initialize MCI peripheral
 */
 __STATIC_INLINE void MCI_Init_Peripheral (MCI_RESOURCES *mci) {
   (void)mci;
-  /* Nothing to do */
+
+#if defined(MCI_DMA_EXT)
+  /* Set DMA callback function */
+  mci->rx_dma.h->XferCpltCallback = mci->rx_dma.cb_complete;
+#endif
 }
 
 /**
@@ -383,7 +433,11 @@ __STATIC_INLINE void MCI_Reset_Peripheral (MCI_RESOURCES *mci) {
 __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
   (void)mci;
 
+#if defined(RCC_PERIPHCLK_SDMMC)
   return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC);
+#else
+  return HAL_RCC_GetHCLKFreq();
+#endif
 }
 
 /**
@@ -423,14 +477,104 @@ __STATIC_INLINE void MCI_Disable_ClockPowerSave (MCI_RESOURCES *mci) {
 }
 
 /**
-  \brief Set the bus speed mode
+  \brief Set the bus speed mode: default speed
 */
-__STATIC_INLINE int32_t MCI_Set_BusSpeedMode(MCI_RESOURCES *mci, uint32_t bus_speed_mode) {
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_DS(MCI_RESOURCES *mci) {
 
+#if defined(MCI_SDMMC_V1)
+  mci->reg->CLKCR &= ~(SDMMC_CLKCR_NEGEDGE);
+#else
   mci->reg->CLKCR &= ~(SDMMC_CLKCR_DDR | SDMMC_CLKCR_BUSSPEED);
-  mci->reg->CLKCR |= bus_speed_mode;
-
+#endif
   return ARM_DRIVER_OK;
+}
+
+/**
+  \brief Set the bus speed mode: high speed
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_HS(MCI_RESOURCES *mci) {
+
+#if defined(MCI_SDMMC_V1)
+  (void)mci;
+#else
+  mci->reg->CLKCR &= ~(SDMMC_CLKCR_DDR | SDMMC_CLKCR_BUSSPEED);
+#endif
+  return ARM_DRIVER_OK;
+}
+
+/**
+  \brief Set the bus speed mode: SDR12
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR12(MCI_RESOURCES *mci) {
+
+#if defined(MCI_SDMMC_V1)
+  (void)mci;
+  /* Not available */
+  return ARM_DRIVER_ERROR;
+#else
+  mci->reg->CLKCR &= ~(SDMMC_CLKCR_DDR | SDMMC_CLKCR_BUSSPEED);
+  return ARM_DRIVER_OK;
+#endif
+}
+
+/**
+  \brief Set the bus speed mode: SDR25
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR25(MCI_RESOURCES *mci) {
+
+#if defined(MCI_SDMMC_V1)
+  (void)mci;
+  /* Not available */
+  return ARM_DRIVER_ERROR;
+#else
+  mci->reg->CLKCR &= ~(SDMMC_CLKCR_DDR | SDMMC_CLKCR_BUSSPEED);
+  return ARM_DRIVER_OK;
+#endif
+}
+
+/**
+  \brief Set the bus speed mode: SDR50
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR50(MCI_RESOURCES *mci) {
+
+#if defined(MCI_SDMMC_V1)
+  (void)mci;
+  /* Not available */
+  return ARM_DRIVER_ERROR;
+#else
+  mci->reg->CLKCR = (mci->reg->CLKCR & ~SDMMC_CLKCR_DDR) | SDMMC_CLKCR_BUSSPEED;
+  return ARM_DRIVER_OK;
+#endif
+}
+
+/**
+  \brief Set the bus speed mode: SDR104
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR104(MCI_RESOURCES *mci) {
+
+#if defined(MCI_SDMMC_V1)
+  (void)mci;
+  /* Not available */
+  return ARM_DRIVER_ERROR;
+#else
+  mci->reg->CLKCR = (mci->reg->CLKCR & ~SDMMC_CLKCR_DDR) | SDMMC_CLKCR_BUSSPEED;
+  return ARM_DRIVER_OK;
+#endif
+}
+
+/**
+  \brief Set the bus speed mode: DDR50
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_DDR50(MCI_RESOURCES *mci) {
+
+#if defined(MCI_SDMMC_V1)
+  (void)mci;
+  /* Not available */
+  return ARM_DRIVER_ERROR;
+#else
+  mci->reg->CLKCR |= (SDMMC_CLKCR_DDR | SDMMC_CLKCR_BUSSPEED);
+  return ARM_DRIVER_OK;
+#endif
 }
 
 /**
@@ -450,18 +594,36 @@ __STATIC_INLINE void MCI_Set_DTimeout(MCI_RESOURCES *mci, uint32_t periods) {
 }
 
 /**
-  \brief Set the direction signals polarity
+  \brief Set the direction signals polarity to high
 */
-__STATIC_INLINE void MCI_Set_DirIOPolarity(MCI_RESOURCES *mci, uint32_t polarity) {
+__STATIC_INLINE void MCI_Set_DirIOPolarity_High(MCI_RESOURCES *mci) {
+  #if defined(MCI_SDMMC_V1)
+  (void)mci;
+  #else
+  mci->reg->POWER |= SDMMC_POWER_DIRPOL;
+  #endif
+}
+
+/**
+  \brief Set the direction signals polarity to low
+*/
+__STATIC_INLINE void MCI_Set_DirIOPolarity_Low(MCI_RESOURCES *mci) {
+  #if defined(MCI_SDMMC_V1)
+  (void)mci;
+  #else
   mci->reg->POWER &= ~SDMMC_POWER_DIRPOL;
-  mci->reg->POWER |= (polarity);
+  #endif
 }
 
 /**
   \brief Start voltage switch procedure
 */
-__STATIC_INLINE void MCI_Start_VSwitch (MCI_RESOURCES *mci) {
+__STATIC_INLINE void MCI_Start_VSwitch(MCI_RESOURCES *mci) {
+  #if defined(MCI_SDMMC_V1)
+  (void)mci;
+  #else
   mci->reg->POWER |= SDMMC_POWER_VSWITCHEN;
+  #endif
 }
 
 /**
@@ -529,12 +691,19 @@ __STATIC_INLINE void MCI_Start_CTransfer(MCI_RESOURCES *mci, uint32_t cmd, uint3
 */
 __STATIC_INLINE int32_t MCI_Setup_DTransfer(MCI_RESOURCES *mci, uint8_t *data, uint32_t b_count, uint32_t b_size) {
   uint32_t sz;
+  uint32_t cnt = b_count * b_size;
 
-  mci->reg->IDMABASE0 = (uint32_t)data;
-  mci->reg->IDMACTRL  = SDMMC_IDMA_IDMAEN;
+  #if !defined(MCI_SDMMC_V1)
+    #if defined(SDMMC_IDMABASER_IDMABASER)
+    mci->reg->IDMABASER = (uint32_t)data;
+    #else
+    mci->reg->IDMABASE0 = (uint32_t)data;
+    #endif
+    mci->reg->IDMACTRL  = SDMMC_IDMA_IDMAEN;
+  #endif
 
-  mci->reg->DLEN = b_size * b_count;
-
+  mci->reg->DLEN = cnt;
+  
   if (b_size == 512U) { sz = 9U; }
   else {
     for (sz = 0U; sz < 14U; sz++) {
@@ -544,7 +713,23 @@ __STATIC_INLINE int32_t MCI_Setup_DTransfer(MCI_RESOURCES *mci, uint8_t *data, u
     }
   }
 
+  #if defined(MCI_SDMMC_V1)
+  if (mci->info->flags & MCI_DATA_READ) {
+    /* Enable RX DMA stream */
+    if (HAL_DMA_Start_IT(mci->rx_dma.h, (uint32_t)&(mci->reg->FIFO), (uint32_t)data, cnt) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+  else {
+    /* Enable TX DMA stream */
+    if (HAL_DMA_Start_IT(mci->tx_dma.h, (uint32_t)data, (uint32_t)&(mci->reg->FIFO), cnt) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+  mci->reg->DCTRL = (mci->reg->DCTRL & ~(SDMMC_DCTRL_DBLOCKSIZE | SDMMC_DCTRL_DTEN)) | (sz << 4);
+  #else
   mci->reg->DCTRL = (mci->reg->DCTRL & ~(SDMMC_DCTRL_DBLOCKSIZE)) | (sz << 4);
+  #endif
 
   return ARM_DRIVER_OK;
 }
@@ -554,7 +739,10 @@ __STATIC_INLINE int32_t MCI_Setup_DTransfer(MCI_RESOURCES *mci, uint8_t *data, u
 */
 __STATIC_INLINE void MCI_Start_DTransfer(MCI_RESOURCES *mci, uint32_t dtransfer_mode) {
 
-  mci->reg->DCTRL = (mci->reg->DCTRL & ~(SDMMC_DCTRL_DTMODE | SDMMC_DCTRL_DTDIR)) | dtransfer_mode |
+  mci->reg->DCTRL = (mci->reg->DCTRL & ~(SDMMC_DCTRL_DTMODE | SDMMC_DCTRL_DTDIR)) | dtransfer_mode    |
+                                                                                    #if defined(MCI_SDMMC_V1)
+                                                                                    SDMMC_DCTRL_DMAEN |
+                                                                                    #endif
                                                                                     SDMMC_DCTRL_DTEN;
 }
 
@@ -562,15 +750,28 @@ __STATIC_INLINE void MCI_Start_DTransfer(MCI_RESOURCES *mci, uint32_t dtransfer_
   \brief Abort data transfer
 */
 __STATIC_INLINE int32_t MCI_Abort_DTransfer (MCI_RESOURCES *mci) {
+  int32_t status = ARM_DRIVER_OK;
 
-  /* Disable IDMA */                          \
-  mci->reg->IDMACTRL &= ~SDMMC_IDMA_IDMAEN; \
-  /* Flush FIFO */                            \
-  mci->reg->DCTRL |= SDMMC_DCTRL_FIFORST;   \
-  /* Clear data transfer bit */               \
-  mci->reg->DCTRL &= ~(SDMMC_DCTRL_DTEN);   \
+  #if defined(MCI_SDMMC_V1)
+  /* Disable DMA and clear data transfer bit */
+  mci->reg->DCTRL &= ~(SDMMC_DCTRL_DMAEN | SDMMC_DCTRL_DTEN);
 
-  return ARM_DRIVER_OK;
+  if (HAL_DMA_Abort(mci->rx_dma.h) != HAL_OK) {
+    status = ARM_DRIVER_ERROR;
+  }
+  if (HAL_DMA_Abort(mci->tx_dma.h) != HAL_OK) {
+    status = ARM_DRIVER_ERROR;
+  }
+  #else
+  /* Disable IDMA */
+  mci->reg->IDMACTRL &= ~SDMMC_IDMA_IDMAEN;
+  /* Flush FIFO */
+  mci->reg->DCTRL |= SDMMC_DCTRL_FIFORST;
+  /* Clear data transfer bit */
+  mci->reg->DCTRL &= ~(SDMMC_DCTRL_DTEN);
+  #endif
+
+  return (status);
 }
 
 /**
