@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
+ * $Date:       2. July 2024
  * $Revision:   V3.0
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
@@ -283,13 +283,13 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
-                                                           MX_I2C##n##_SCL_GPIO_Pu,                            \
+                                                           MX_I2C##n##_SCL_GPIO_PuPd,                          \
                                                            MX_I2C##n##_SCL_GPIO_Speed                          \
                                                          },                                                    \
                                                          { MX_I2C##n##_SDA_GPIOx,                              \
                                                            MX_I2C##n##_SDA_GPIO_Pin,                           \
                                                            MX_I2C##n##_SDA_GPIO_AF,                            \
-                                                           MX_I2C##n##_SDA_GPIO_Pu,                            \
+                                                           MX_I2C##n##_SDA_GPIO_PuPd,                          \
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          },                                                    \
                                                          MX_I2C##n##_ANF_ENABLE,                               \
@@ -306,13 +306,13 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
-                                                           MX_I2C##n##_SCL_GPIO_Pu,                            \
+                                                           MX_I2C##n##_SCL_GPIO_PuPd,                          \
                                                            MX_I2C##n##_SCL_GPIO_Speed                          \
                                                          },                                                    \
                                                          { MX_I2C##n##_SDA_GPIOx,                              \
                                                            MX_I2C##n##_SDA_GPIO_Pin,                           \
                                                            MX_I2C##n##_SDA_GPIO_AF,                            \
-                                                           MX_I2C##n##_SDA_GPIO_Pu,                            \
+                                                           MX_I2C##n##_SDA_GPIO_PuPd,                          \
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          }                                                     \
                                                       };
@@ -1558,8 +1558,6 @@ static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t * const ptr_ro_info) {
 
     case HAL_I2C_STATE_RESET:           // Peripheral is not yet Initialized
     case HAL_I2C_STATE_READY:           // Peripheral Initialized and ready for use
-    case HAL_I2C_STATE_TIMEOUT:         // Timeout state
-    case HAL_I2C_STATE_ERROR:           // Error
     default:
       // Not busy related
       break;
