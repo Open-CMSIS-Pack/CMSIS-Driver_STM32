@@ -150,7 +150,7 @@ CubeMX Configuration</h1>
 <li>When using SDMMC peripheral:<ul>
 <li><b>clock</b>: <b>SDMMC*** peripheral clock.</b></li>
 <li><b>**peripheral</b>: <b>SDMMC</b> peripheral configured in <b>SD</b> or <b>MMC</b> mode.</li>
-<li><b>pins</b>: <b>CMD</b>, <b>CK</b>, <b>D0</b> - <b>D3</b> and for 8-bit MMC optionaly <b>D4</b> - <b>D7</b>.</li>
+<li><b>pins</b>: <b>CMD</b>, <b>CK</b>, <b>D0</b> - <b>D3</b> and for 8-bit MMC optionally <b>D4</b> - <b>D7</b>.</li>
 <li><b>interrupts</b>:<ul>
 <li>enabled <b>SDMMC global interrupt</b> with <b>Generate Enable in Init</b> and without <b>Generate IRQ handler</b></li>
 </ul>
@@ -160,11 +160,24 @@ CubeMX Configuration</h1>
 <li>When using SDIO peripheral:<ul>
 <li><b>clock</b>: <b>SDIO</b> peripheral clock.</li>
 <li><b>peripheral</b>: <b>SDIO</b> peripheral configured in <b>SD</b> or <b>MMC</b> mode.</li>
-<li><b>pins</b>: <b>CMD</b>, <b>CK</b>, <b>D0</b> - <b>D3</b> and for 8-bit MMC optionaly <b>D4</b> - <b>D7</b>.</li>
+<li><b>pins</b>: <b>CMD</b>, <b>CK</b>, <b>D0</b> - <b>D3</b> and for 8-bit MMC optionally <b>D4</b> - <b>D7</b>.</li>
 <li><b>DMA</b>: <b>DMA</b> stream configuration.</li>
 <li><b>interrupts</b>:<ul>
 <li>enabled <b>SDIO global interrupt</b> with <b>Generate Enable in Init</b> and without <b>Generate IRQ handler</b></li>
 <li>enabled <b>SDIO_RX</b> and <b>SDIO_TX</b> DMA Requests that <b>Call HAL handlers</b>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Optionally Card Detect or Write Protect pin may be configured:<ul>
+<li>Chose any general purpose pin as input and add <b>User Label</b>:<ul>
+<li>MemoryCard_1_CD to add Card Detect pin for SDMMC1 or SDIO</li>
+<li>MemoryCard_1_WP to add Write Protect pin for SDMMC1</li>
+</ul>
+</li>
+<li>Similar for SDMMC2, add <b>User Label</b> as below:<ul>
+<li>MemoryCard_2_CD</li>
+<li>MemoryCard_2_WP</li>
 </ul>
 </li>
 </ul>
@@ -179,6 +192,11 @@ CubeMX Configuration</h1>
 <li>some DMA controllers can only access specific memories, so ensure that proper memory is used for the buffers according to the DMA requirement. </li>
 </ul>
 </blockquote>
+<p>When <b>peripheral is configured for MMC</b> in CubeMX (regardless of peripheral type):</p>
+<ul>
+<li>When using SDMMC1 or SDIO define <b>MemoryCard_1_MMC</b> in your project when compiling this module</li>
+<li>When using SDMMC2 define <b>MemoryCard_2_MMC</b> in your project when compiling this module</li>
+</ul>
 <h2><a class="anchor" id="autotoc_md27"></a>
 Example</h2>
 <h3><a class="anchor" id="autotoc_md28"></a>
