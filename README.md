@@ -28,14 +28,16 @@ Driver API Shim Source     | Description
 [ETH_MAC_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/ETH_MAC_STM32.c) | [Ethernet MAC Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__eth__mac__interface__gr.html); Can be combined with generic [Ethernet PHY Drivers](https://github.com/ARM-software/CMSIS-Driver/tree/main/Ethernet_PHY).
 [GPIO_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/GPIO_STM32.c) | [GPIO Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__gpio__interface__gr.html); used for control lines (i.e. SPI) and [Virtual I/O interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__vio__interface__gr.html).
 [I2C_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/I2C_STM32.c) | [I2C Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__i2c__interface__gr.html) that supports Master and Slave modes.
+[MCI_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/MCI_STM32.c) | [MCI Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__mci__interface__gr.html) that supports SDMMC and SDIO peripherals.
 [SPI_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/SPI_STM32.c) | [SPI Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__spi__interface__gr.html) that supports Master and Slave modes.
 [USART_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/USART_STM32.c) | [USART Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__usart__interface__gr.html) in asynchronous mode without control lines.
-[USBD_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/USBD_STM32.c) |  [USB Device Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__usart__interface__gr.html) supports high-speed and and full-speed mode.
+[USBD_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/USBD_STM32.c) |  [USB Device Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__usbd__interface__gr.html) supports high-speed and and full-speed mode.
+[USBH_STM32.c](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/blob/main/Drivers/USBH_STM32.c) |  [USB Host Interface](https://arm-software.github.io/CMSIS_6/latest/Driver/group__usbh__interface__gr.html) supports high-speed and and full-speed mode.
 
 ### Supported STM32 Device Families
 
-- [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u5xx_dfp-keil)
 - [STMicroelectronics STM32H7 Series](https://www.keil.arm.com/packs/stm32h7xx_dfp-keil)
+- [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u5xx_dfp-keil)
 - :
 
 ### Driver Validation

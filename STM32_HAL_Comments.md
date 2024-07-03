@@ -58,7 +58,7 @@
 
 ## MCI
 
-1. not HAL based driver, only abstracted register access
+1.  HAL does not offer the low-level functionality needed
 
 ## SPI
 

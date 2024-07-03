@@ -917,7 +917,9 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ./src/mainpage.md             \
-                         ./src/Drivers.md              \
+                         ./src/history.md              \
+                         ./src/soft_arch.md            \
+                         ./src/drivers.md              \
                          ../../Drivers/ETH_MAC_STM32.c \
                          ../../Drivers/GPIO_STM32.c    \
                          ../../Drivers/I2C_STM32.c     \
@@ -1078,7 +1080,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             =
+IMAGE_PATH             = src
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
