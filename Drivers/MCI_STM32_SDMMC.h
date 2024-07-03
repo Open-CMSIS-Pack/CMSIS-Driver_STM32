@@ -27,7 +27,7 @@
 
 #include "main.h"
 
-/* SDMMC peripheral version that requires external DMA strams (no dedicated DMA) */
+/* SDMMC peripheral version that requires external DMA streams (no dedicated DMA) */
 #if defined(MX_SDMMC1_RX_DMA_Instance) && defined(MX_SDMMC1_TX_DMA_Instance) || \
     defined(MX_SDMMC2_RX_DMA_Instance) && defined(MX_SDMMC2_TX_DMA_Instance)
   #define MCI_SDMMC_V1
@@ -266,15 +266,6 @@ typedef struct {
   MCI_INFO      *info;                  /* Run-Time information               */
 } const MCI_RESOURCES;
 
-
-/* Bus Speed Mode definitions */
-#define MCI_BUS_SPEED_MODE_DS           (0)
-#define MCI_BUS_SPEED_MODE_HS           (0)
-#define MCI_BUS_SPEED_MODE_SDR12        (0)
-#define MCI_BUS_SPEED_MODE_SDR25        (0)
-#define MCI_BUS_SPEED_MODE_SDR50        (SDMMC_CLKCR_BUSSPEED)
-#define MCI_BUS_SPEED_MODE_SDR104       (SDMMC_CLKCR_BUSSPEED)
-#define MCI_BUS_SPEED_MODE_DDR50        (SDMMC_CLKCR_BUSSPEED | SDMMC_CLKCR_DDR)
 
 /* Bus Width definitions */
 #define MCI_BUS_WIDTH_1                 (0)

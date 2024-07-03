@@ -145,15 +145,6 @@ typedef struct {
 /* SDIO Adapter Clock definition */
 #define SDIOCLK                         (48000000U)
 
-/* Bus Speed Mode definitions */
-#define MCI_BUS_SPEED_MODE_DS           (0)
-#define MCI_BUS_SPEED_MODE_HS           (1)
-#define MCI_BUS_SPEED_MODE_SDR12        (2)
-#define MCI_BUS_SPEED_MODE_SDR25        (3)
-#define MCI_BUS_SPEED_MODE_SDR50        (4)
-#define MCI_BUS_SPEED_MODE_SDR104       (5)
-#define MCI_BUS_SPEED_MODE_DDR50        (6)
-
 /* Bus Width definitions */
 #define MCI_BUS_WIDTH_1                 (0)
 #define MCI_BUS_WIDTH_4                 (SDIO_CLKCR_WIDBUS_0)

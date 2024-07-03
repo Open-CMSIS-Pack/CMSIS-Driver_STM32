@@ -49,24 +49,24 @@ This driver requires the following configuration in CubeMX:
   - When using SDMMC peripheral:
     - **clock**: **SDMMC*** peripheral clock.
     - **peripheral**: **SDMMC** peripheral configured in **SD** or **MMC** mode.
-    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionaly **D4** - **D7**.
+    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionally **D4** - **D7**.
     - **interrupts**:
       - enabled **SDMMC global interrupt** with **Generate Enable in Init** and without **Generate IRQ handler**
 
   - When using SDIO peripheral:
     - **clock**: **SDIO** peripheral clock.
     - **peripheral**: **SDIO** peripheral configured in **SD** or **MMC** mode.
-    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionaly **D4** - **D7**.
+    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionally **D4** - **D7**.
     - **DMA**: **DMA** stream configuration.
     - **interrupts**:
       - enabled **SDIO global interrupt** with **Generate Enable in Init** and without **Generate IRQ handler**
       - enabled **SDIO_RX** and **SDIO_TX** DMA Requests that **Call HAL handlers**.
 
-  - Optionaly Card Detect or Write Protect pin may be configured:
+  - Optionally Card Detect or Write Protect pin may be configured:
     - Chose any general purpose pin as input and add **User Label**:
       - MemoryCard_1_CD to add Card Detect pin for SDMMC1 or SDIO
       - MemoryCard_1_WP to add Write Protect pin for SDMMC1
-    - Analogues for SDMMC2 add **User Label** as below:
+    - Similar for SDMMC2, add **User Label** as below:
       - MemoryCard_2_CD
       - MemoryCard_2_WP
 
@@ -80,7 +80,7 @@ This driver requires the following configuration in CubeMX:
 > - some DMA controllers can only access specific memories, so ensure that proper memory is used for the buffers
 >   according to the DMA requirement.
 
-When **peripheral is configured for MMC** in CubeMX (regardles of peripheral type):
+When **peripheral is configured for MMC** in CubeMX (regardless of peripheral type):
 
   - When using SDMMC1 or SDIO define **MemoryCard_1_MMC** in your project when compiling this module
   - When using SDMMC2 define **MemoryCard_2_MMC** in your project when compiling this module
@@ -451,7 +451,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
   if (mci == &MCI1) {
     #if (MCI1_HANDLE_TYPE == 0)
       h_sd = (SD_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_sd->Instance = NULL;
       } else {
@@ -459,7 +459,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
       }
     #else
       h_mmc = (MMC_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_mmc->Instance = NULL;
       } else {
@@ -473,7 +473,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
   if (mci == &MCI2) {
     #if (MCI2_HANDLE_TYPE == 0)
       h_sd = (SD_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_sd->Instance = NULL;
       } else {
@@ -481,7 +481,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
       }
     #else
       h_mmc = (MMC_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_mmc->Instance = NULL;
       } else {

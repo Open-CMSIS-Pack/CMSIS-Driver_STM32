@@ -56,6 +56,10 @@
 8.  Slave transfer has to be started from HAL_I2C_AddrCallback
 9.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
 
+## MCI
+
+1. not HAL based driver, only abstracted register access
+
 ## SPI
 
 1.  no way to **get bus speed**
