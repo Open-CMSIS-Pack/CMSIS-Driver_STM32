@@ -26,6 +26,8 @@ var NAVTREE =
 [
   [ "CMSIS-Driver_STM32", "index.html", [
     [ "Overview", "index.html", "index" ],
+    [ "Revision History", "rev_hist.html", null ],
+    [ "Software Architecture", "soft_arch.html", null ],
     [ "Drivers", "driver.html", "driver" ]
   ] ]
 ];

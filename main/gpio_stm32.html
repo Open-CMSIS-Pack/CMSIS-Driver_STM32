@@ -124,7 +124,7 @@ $(document).ready(function(){initNavTree('gpio_stm32.html',''); initResizable();
   <div class="headertitle"><div class="title">GPIO </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="autotoc_md9"></a>
+<div class="textblock"><h1><a class="anchor" id="autotoc_md10"></a>
 Revision History</h1>
 <ul>
 <li>Version 1.0<ul>
@@ -132,7 +132,7 @@ Revision History</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md10"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Requirements</h1>
 <p>This driver requires the STM32 device specific <b>HAL</b> and <b>STM32CubeMX</b> (CubeMX) initialization code generator. The driver instance is mapped to hardware as shown in the table below:</p>
 <table class="markdownTable">
@@ -141,7 +141,7 @@ Requirements</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft">Driver_GPIO0   </td><td class="markdownTableBodyLeft">PORTA .. PORTZ   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 Pin mapping</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -171,13 +171,13 @@ Pin mapping</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">176 .. 191   </td><td class="markdownTableBodyLeft">PORTZ 0..15   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Deviations</h1>
 <p>This driver has the following deviations from the CMSIS-Driver specification:</p>
 <p><b>Conceptual</b> deviations:</p><ul>
 <li>CubeMX generated initialization code (function MX_GPIO_Init) already configures the peripheral. Power, clocks, pins, and interrupts are enabled after execution of initialization that executes in <code>main.c</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 CubeMX Configuration</h1>
 <blockquote class="doxtable">
 <p>&zwj;<b>Important</b></p>
@@ -206,9 +206,9 @@ CubeMX Configuration</h1>
 <li>due to hardware limitations only one pin at the same port position can be configured with edge detection functionality (for example, for pins PC5 and PG5 only one can be selected for edge detection at one point in time). </li>
 </ul>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md14"></a>
+<h2><a class="anchor" id="autotoc_md15"></a>
 Example</h2>
-<h3><a class="anchor" id="autotoc_md15"></a>
+<h3><a class="anchor" id="autotoc_md16"></a>
 Pinout &amp; Configuration tab</h3>
 <ol type="1">
 <li>In the <b>Pinout view</b> window click on a pin and select it's functionality: <table class="markdownTable">

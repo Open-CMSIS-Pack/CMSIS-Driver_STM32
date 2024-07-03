@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['usart_0',['USART',['../usart_stm32.html',1,'driver']]],
-  ['usb_20device_1',['USB Device',['../usbd_stm32.html',1,'driver']]],
-  ['usb_20host_2',['USB Host',['../usbh_stm32.html',1,'driver']]]
+  ['software_20architecture_0',['Software Architecture',['../soft_arch.html',1,'']]],
+  ['spi_1',['SPI',['../spi_stm32.html',1,'driver']]]
 ];

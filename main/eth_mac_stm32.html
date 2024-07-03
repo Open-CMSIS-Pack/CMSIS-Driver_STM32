@@ -124,7 +124,7 @@ $(document).ready(function(){initNavTree('eth_mac_stm32.html',''); initResizable
   <div class="headertitle"><div class="title">Ethernet MAC </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="autotoc_md0"></a>
+<div class="textblock"><h1><a class="anchor" id="autotoc_md1"></a>
 Revision History</h1>
 <ul>
 <li>Version 3.0<ul>
@@ -132,7 +132,7 @@ Revision History</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1"></a>
+<h1><a class="anchor" id="autotoc_md2"></a>
 Requirements</h1>
 <p>This driver requires the STM32 device specific <b>HAL</b> and <b>STM32CubeMX</b> (CubeMX) initialization code generator. The driver instance is mapped to hardware as shown in the table below:</p>
 <table class="markdownTable">
@@ -141,7 +141,7 @@ Requirements</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft">Driver_ETH_MAC0   </td><td class="markdownTableBodyLeft">EMAC   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md2"></a>
+<h1><a class="anchor" id="autotoc_md3"></a>
 Deviations</h1>
 <p>This driver has the following deviations from the CMSIS-Driver specification:</p>
 <p><b>Conceptual</b> deviations:</p><ul>
@@ -188,7 +188,7 @@ Deviations</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md3"></a>
+<h1><a class="anchor" id="autotoc_md4"></a>
 CubeMX Configuration</h1>
 <p>This driver requires the following configuration in CubeMX:</p>
 <ul>
@@ -209,9 +209,9 @@ CubeMX Configuration</h1>
 <li>for devices with cache, ensure that ETH data buffers (<b>eth_mac0_rx_buf</b> and <b>eth_mac0_tx_buf</b>) are located in <b>non-cacheable</b> and <b>non-shareable normal memory</b>. </li>
 </ul>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md4"></a>
+<h2><a class="anchor" id="autotoc_md5"></a>
 Example</h2>
-<h3><a class="anchor" id="autotoc_md5"></a>
+<h3><a class="anchor" id="autotoc_md6"></a>
 Pinout &amp; Configuration tab</h3>
 <ol type="1">
 <li>In the <b>Pinout view</b> window click on a pin and select it's functionality: <table class="markdownTable">
@@ -410,12 +410,12 @@ Pinout &amp; Configuration tab</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md6"></a>
+<h3><a class="anchor" id="autotoc_md7"></a>
 Clock Configuration tab</h3>
 <ol type="1">
 <li>Configure <b>To AHB1,2 Peripheral Clocks (MHz)</b>: <b>200</b></li>
 </ol>
-<h3><a class="anchor" id="autotoc_md7"></a>
+<h3><a class="anchor" id="autotoc_md8"></a>
 Project Manager tab</h3>
 <ol type="1">
 <li><p class="startli">Under <b>Advanced Settings</b>:</p>
@@ -427,7 +427,7 @@ Project Manager tab</h3>
 </table>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Source Code</h2>
 <p>Add <b>RxDecripSection</b>, <b>TxDecripSection</b>, <b>.driver.eth_mac0_rx_buf</b> and <b>.driver.eth_mac0_tx_buf</b> sections to the Scatter file if GNU Compiler or Arm Compiler 6 is used.</p>
 <p>Example: </p><div class="fragment"><div class="line">RW_ETH_RX_DESC 0x30040000 0x00000060 {</div>
