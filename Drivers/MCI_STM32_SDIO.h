@@ -448,7 +448,7 @@ __STATIC_INLINE uint32_t MCI_Get_InterruptMask(MCI_RESOURCES *mci) {
 }
 
 /**
-  \brief Return bit mask of the MCI interrupts that have occured
+  \brief Return bit mask of the MCI interrupts that have occurred
   \param[in]  instance    pointer to SD/MMC peripheral base
 */
 __STATIC_INLINE uint32_t MCI_Get_InterruptStatus(MCI_RESOURCES *mci) {
