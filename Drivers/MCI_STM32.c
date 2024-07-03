@@ -49,18 +49,26 @@ This driver requires the following configuration in CubeMX:
   - When using SDMMC peripheral:
     - **clock**: **SDMMC*** peripheral clock.
     - **peripheral**: **SDMMC** peripheral configured in **SD** or **MMC** mode.
-    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionaly **D4** - **D7**.
+    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionally **D4** - **D7**.
     - **interrupts**:
       - enabled **SDMMC global interrupt** with **Generate Enable in Init** and without **Generate IRQ handler**
 
   - When using SDIO peripheral:
     - **clock**: **SDIO** peripheral clock.
     - **peripheral**: **SDIO** peripheral configured in **SD** or **MMC** mode.
-    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionaly **D4** - **D7**.
+    - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionally **D4** - **D7**.
     - **DMA**: **DMA** stream configuration.
     - **interrupts**:
       - enabled **SDIO global interrupt** with **Generate Enable in Init** and without **Generate IRQ handler**
       - enabled **SDIO_RX** and **SDIO_TX** DMA Requests that **Call HAL handlers**.
+
+  - Optionally Card Detect or Write Protect pin may be configured:
+    - Chose any general purpose pin as input and add **User Label**:
+      - MemoryCard_1_CD to add Card Detect pin for SDMMC1 or SDIO
+      - MemoryCard_1_WP to add Write Protect pin for SDMMC1
+    - Similar for SDMMC2, add **User Label** as below:
+      - MemoryCard_2_CD
+      - MemoryCard_2_WP
 
 > **Notes**
 >
@@ -71,6 +79,11 @@ This driver requires the following configuration in CubeMX:
 >   is called and that memory containing received data is updated after the reception finishes (**cache invalidate**).
 > - some DMA controllers can only access specific memories, so ensure that proper memory is used for the buffers
 >   according to the DMA requirement.
+
+When **peripheral is configured for MMC** in CubeMX (regardless of peripheral type):
+
+  - When using SDMMC1 or SDIO define **MemoryCard_1_MMC** in your project when compiling this module
+  - When using SDMMC2 define **MemoryCard_2_MMC** in your project when compiling this module
 
 ## Example
 
@@ -168,7 +181,7 @@ This driver requires the following configuration in CubeMX:
 
 
 /**
-  \brief MCI1: Define MemoryCard_MMC1 if STM32CubeMX configures SDMMC1 for MMC device
+  \brief MCI1: Define MemoryCard_1_MMC if STM32CubeMX configures SDMMC1 for MMC device
 */
 #if !defined(MemoryCard_1_MMC)
   #define MCI1_HANDLE_TYPE              0U
@@ -177,7 +190,7 @@ This driver requires the following configuration in CubeMX:
 #endif
 
 /**
-  \brief MCI2: Define MemoryCard_MMC2 if STM32CubeMX configures SDMMC2 for MMC device
+  \brief MCI2: Define MemoryCard_2_MMC if STM32CubeMX configures SDMMC2 for MMC device
 */
 #if !defined(MemoryCard_2_MMC)
   #define MCI2_HANDLE_TYPE              0U
@@ -297,6 +310,23 @@ static MCIn_SECTION(0) MCI_INFO MCI1_Info = {
   0U
 };
 
+#if defined(MCI_DMA_EXT)
+extern DMA_HandleTypeDef hdma_sdmmc1_rx;
+extern DMA_HandleTypeDef hdma_sdmmc1_tx;
+
+static void MCI1_RX_DMA_Complete(DMA_HandleTypeDef *hdma);
+
+static MCI_DMA MCI1_RxDma = {
+  &hdma_sdmmc1_rx,
+  &MCI1_RX_DMA_Complete
+};
+
+static MCI_DMA MCI1_TxDma = {
+  &hdma_sdmmc1_tx,
+  NULL
+};
+#endif
+
 /* MCI1 Resources */
 static MCI_RESOURCES MCI1 = {
   MCI1_HAL_MSPINIT,
@@ -318,9 +348,20 @@ static MCI_RESOURCES MCI1 = {
   #else
   { NULL, 0U, 0U },
   #endif
+  #if defined(MCI_DMA_EXT)
+  MCI1_RxDma,
+  MCI1_TxDma,
+  #endif
   MCI1_CFG,
   &MCI1_Info
 };
+
+#if defined(MCI_DMA_EXT)
+/* DMA RX complete callback */
+static void MCI1_RX_DMA_Complete(DMA_HandleTypeDef *hdma) {
+  RX_DMA_Complete (hdma, &MCI1);
+}
+#endif
 
 #endif /* MCI1_ENABLE */
 
@@ -335,6 +376,23 @@ static MCIn_SECTION(0) MCI_INFO MCI2_Info = {
   0U,
   0U
 };
+
+#if defined(MCI_DMA_EXT)
+extern DMA_HandleTypeDef hdma_sdmmc2_rx;
+extern DMA_HandleTypeDef hdma_sdmmc2_tx;
+
+static void MCI2_RX_DMA_Complete(DMA_HandleTypeDef *hdma);
+
+static MCI_DMA MCI2_RxDma = {
+  &hdma_sdmmc2_rx,
+  &MCI2_RX_DMA_Complete
+};
+
+static MCI_DMA MCI2_TxDma = {
+  &hdma_sdmmc2_tx,
+  NULL
+};
+#endif
 
 /* MCI2 Resources */
 static MCI_RESOURCES MCI2 = {
@@ -357,9 +415,20 @@ static MCI_RESOURCES MCI2 = {
   #else
   { NULL, 0U, 0U },
   #endif
+  #if defined(MCI_DMA_EXT)
+  MCI2_RxDma,
+  MCI2_TxDma,
+  #endif
   MCI2_CFG,
   &MCI2_Info
 };
+
+#if defined(MCI_DMA_EXT)
+/* DMA RX complete callback */
+static void MCI2_RX_DMA_Complete(DMA_HandleTypeDef *hdma) {
+  RX_DMA_Complete (hdma, &MCI2);
+}
+#endif
 
 #endif /* MCI2_ENABLE */
 
@@ -382,7 +451,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
   if (mci == &MCI1) {
     #if (MCI1_HANDLE_TYPE == 0)
       h_sd = (SD_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_sd->Instance = NULL;
       } else {
@@ -390,7 +459,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
       }
     #else
       h_mmc = (MMC_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_mmc->Instance = NULL;
       } else {
@@ -404,7 +473,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
   if (mci == &MCI2) {
     #if (MCI2_HANDLE_TYPE == 0)
       h_sd = (SD_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_sd->Instance = NULL;
       } else {
@@ -412,7 +481,7 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
       }
     #else
       h_mmc = (MMC_HandleTypeDef *)mci->h;
-      /* Instance is the coresponding peripheral register inteface */
+      /* Instance is the corresponding peripheral register interface */
       if (set == 0) {
         h_mmc->Instance = NULL;
       } else {
@@ -705,9 +774,9 @@ static int32_t PowerControl (ARM_POWER_STATE state, MCI_RESOURCES *mci) {
 
       /* Set transceiver polarity */
       if (mci->cfg & MCI_CFG_DIR_POLARITY) {
-        MCI_Set_DirIOPolarity(mci, MCI_DIR_IO_OUT_HIGH);
+        MCI_Set_DirIOPolarity_High(mci);
       } else {
-        MCI_Set_DirIOPolarity(mci, MCI_DIR_IO_OUT_LOW);
+        MCI_Set_DirIOPolarity_Low(mci);
       }
 
       /* Set maximum clock divider */
@@ -742,7 +811,7 @@ static int32_t CardPower (uint32_t voltage, MCI_RESOURCES *mci) {
   if (mci->reg == MCI1_REG_BLOCK) { instance = 1U; }
 #endif
 #if MCI2_ENABLE
-  if (mci->reg == MCI1_REG_BLOCK) { instance = 2U; }
+  if (mci->reg == MCI2_REG_BLOCK) { instance = 2U; }
 #endif
 
   val = MCI_CardPower(instance, voltage);
@@ -766,7 +835,7 @@ static int32_t ReadCD (MCI_RESOURCES *mci) {
   if (mci->reg == MCI1_REG_BLOCK) { instance = 1U; }
 #endif
 #if MCI2_ENABLE
-  if (mci->reg == MCI1_REG_BLOCK) { instance = 2U; }
+  if (mci->reg == MCI2_REG_BLOCK) { instance = 2U; }
 #endif
 
   val = MCI_ReadCD(instance);
@@ -790,7 +859,7 @@ static int32_t ReadWP (MCI_RESOURCES *mci) {
   if (mci->reg == MCI1_REG_BLOCK) { instance = 1U; }
 #endif
 #if MCI2_ENABLE
-  if (mci->reg == MCI1_REG_BLOCK) { instance = 2U; }
+  if (mci->reg == MCI2_REG_BLOCK) { instance = 2U; }
 #endif
 
   val = MCI_ReadWP(instance);
@@ -1019,37 +1088,37 @@ static int32_t Control (uint32_t control, uint32_t arg, MCI_RESOURCES *mci) {
       switch (arg) {
         case ARM_MCI_BUS_DEFAULT_SPEED:
           /* Speed mode up to 25MHz */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_DS) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_DS(mci) == ARM_DRIVER_OK) {
             break;
           }
         case ARM_MCI_BUS_HIGH_SPEED:
           /* Speed mode up to 50MHz */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_HS) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_HS(mci) == ARM_DRIVER_OK) {
             break;
           }
         case ARM_MCI_BUS_UHS_SDR12:
           /* SDR12:  up to  25MHz,  12.5MB/s: UHS-I 1.8V signaling */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_SDR12) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_SDR12(mci) == ARM_DRIVER_OK) {
             break;
           }
         case ARM_MCI_BUS_UHS_SDR25:
           /* SDR25:  up to  50MHz,  25  MB/s: UHS-I 1.8V signaling */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_SDR25) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_SDR25(mci) == ARM_DRIVER_OK) {
             break;
           }
         case ARM_MCI_BUS_UHS_SDR50:
           /* SDR50:  up to 100MHz,  50  MB/s: UHS-I 1.8V signaling */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_SDR50) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_SDR50(mci) == ARM_DRIVER_OK) {
             break;
           }
         case ARM_MCI_BUS_UHS_SDR104:
           /* SDR104: up to 208MHz, 104  MB/s: UHS-I 1.8V signaling */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_SDR104) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_SDR104(mci) == ARM_DRIVER_OK) {
             break;
           }
         case ARM_MCI_BUS_UHS_DDR50:
           /* DDR50:  up to  50MHz,  50  MB/s: UHS-I 1.8V signaling */
-          if (MCI_Set_BusSpeedMode(mci, MCI_BUS_SPEED_MODE_DDR50) == ARM_DRIVER_OK) {
+          if (MCI_Set_BusSpeedMode_DDR50(mci) == ARM_DRIVER_OK) {
             break;
           }
 
@@ -1229,12 +1298,21 @@ static void MCI_IRQHandler (MCI_RESOURCES *mci) {
   }
   if (sta & MCI_IT_DATAEND) {
     icr |= MCI_IT_DATAEND;
+    #if !defined(MCI_DMA_EXT)
     /* Data end (DCOUNT is zero) */
     event |= ARM_MCI_EVENT_TRANSFER_COMPLETE;
+    #endif
   }
   if (sta & MCI_IT_DBCKEND) {
     icr |= MCI_IT_DBCKEND;
     /* Data block sent/received (CRC check passed) */
+    #if defined(MCI_DMA_EXT)
+    if ((mci->info->flags & MCI_DATA_READ) == 0) {
+      /* Write transfer */
+      event |= ARM_MCI_EVENT_TRANSFER_COMPLETE;
+    }
+    #endif
+    
   }
   if (sta & MCI_IT_SDIOIT) {
     icr |= MCI_IT_SDIOIT;

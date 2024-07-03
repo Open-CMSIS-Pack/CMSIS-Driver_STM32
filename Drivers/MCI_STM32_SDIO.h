@@ -51,7 +51,7 @@
 
 /* MCI1: Define Write Protect pin existence */
 #if defined(MemoryCard_1_WP_Pin)
-  #define MCI1_CFG_PIN_WP              MCI_CFG_PIN_WP
+  #define MCI1_CFG_PIN_WP               MCI_CFG_PIN_WP
 #else
   #define MCI1_CFG_PIN_WP               0U
 #endif
@@ -144,15 +144,6 @@ typedef struct {
 
 /* SDIO Adapter Clock definition */
 #define SDIOCLK                         (48000000U)
-
-/* Bus Speed Mode definitions */
-#define MCI_BUS_SPEED_MODE_DS           (0)
-#define MCI_BUS_SPEED_MODE_HS           (1)
-#define MCI_BUS_SPEED_MODE_SDR12        (2)
-#define MCI_BUS_SPEED_MODE_SDR25        (3)
-#define MCI_BUS_SPEED_MODE_SDR50        (4)
-#define MCI_BUS_SPEED_MODE_SDR104       (5)
-#define MCI_BUS_SPEED_MODE_DDR50        (6)
 
 /* Bus Width definitions */
 #define MCI_BUS_WIDTH_1                 (0)
@@ -312,22 +303,66 @@ __STATIC_INLINE void MCI_Disable_ClockPowerSave (MCI_RESOURCES *mci) {
 }
 
 /**
-  \brief Set the bus speed mode
+  \brief Set the bus speed mode: default speed
 */
-__STATIC_INLINE int32_t MCI_Set_BusSpeedMode(MCI_RESOURCES *mci, uint32_t bus_speed_mode) {
-  if (bus_speed_mode == MCI_BUS_SPEED_MODE_DS) {
-    mci->reg->CLKCR &= ~SDIO_CLKCR_NEGEDGE;
-  }
-  else if (bus_speed_mode == MCI_BUS_SPEED_MODE_HS) {
-    /* Speed mode up to 50MHz */
-    /* Errata: configuration with the NEGEDGE bit set should not be used. */
-    return ARM_DRIVER_ERROR_UNSUPPORTED;
-  }
-  else {
-    /* This peripheral doesn't have this functionality */
-    return ARM_DRIVER_ERROR_UNSUPPORTED;
-  }
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_DS(MCI_RESOURCES *mci) {
+  mci->reg->CLKCR &= ~SDIO_CLKCR_NEGEDGE;
   return ARM_DRIVER_OK;
+}
+
+/**
+  \brief Set the bus speed mode: high speed
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_HS(MCI_RESOURCES *mci) {
+  (void)mci;
+  /* Speed mode up to 50MHz */
+  /* Errata: configuration with the NEGEDGE bit set should not be used. */
+  return ARM_DRIVER_ERROR_UNSUPPORTED;
+}
+
+/**
+  \brief Set the bus speed mode: SDR12
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR12(MCI_RESOURCES *mci) {
+  (void)mci;
+  /* This peripheral doesn't have this functionality */
+  return ARM_DRIVER_ERROR_UNSUPPORTED;
+}
+
+/**
+  \brief Set the bus speed mode: SDR25
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR25(MCI_RESOURCES *mci) {
+  (void)mci;
+  /* This peripheral doesn't have this functionality */
+  return ARM_DRIVER_ERROR_UNSUPPORTED;
+}
+
+/**
+  \brief Set the bus speed mode: SDR50
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR50(MCI_RESOURCES *mci) {
+  (void)mci;
+  /* This peripheral doesn't have this functionality */
+  return ARM_DRIVER_ERROR_UNSUPPORTED;
+}
+
+/**
+  \brief Set the bus speed mode: SDR104
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_SDR104(MCI_RESOURCES *mci) {
+  (void)mci;
+  /* This peripheral doesn't have this functionality */
+  return ARM_DRIVER_ERROR_UNSUPPORTED;
+}
+
+/**
+  \brief Set the bus speed mode: DDR50
+*/
+__STATIC_INLINE int32_t MCI_Set_BusSpeedMode_DDR50(MCI_RESOURCES *mci) {
+  (void)mci;
+  /* This peripheral doesn't have this functionality */
+  return ARM_DRIVER_ERROR_UNSUPPORTED;
 }
 
 /**
@@ -347,11 +382,18 @@ __STATIC_INLINE void MCI_Set_DTimeout(MCI_RESOURCES *mci, uint32_t periods) {
 }
 
 /**
-  \brief Set the direction signals polarity
+  \brief Set the direction signals polarity to high
 */
-__STATIC_INLINE void MCI_Set_DirIOPolarity(MCI_RESOURCES *mci, uint32_t polarity) {
+__STATIC_INLINE void MCI_Set_DirIOPolarity_High(MCI_RESOURCES *mci) {
   (void)mci;
-  (void)polarity;
+  /* This peripheral doesn't have this functionality */
+}
+
+/**
+  \brief Set the direction signals polarity to low
+*/
+__STATIC_INLINE void MCI_Set_DirIOPolarity_Low(MCI_RESOURCES *mci) {
+  (void)mci;
   /* This peripheral doesn't have this functionality */
 }
 
