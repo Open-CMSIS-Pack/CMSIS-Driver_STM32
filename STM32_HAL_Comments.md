@@ -37,6 +37,12 @@
 6.  no way to disable VLAN filter
 7.  no support for Precision Time Protocol (PTP)
 
+## GPIO
+
+1.  no way to **retrieve pin configuration** only HAL_GPIO_Init function for setting the configuration exists
+2.  inconsistent callbacks across device series for edge detection: HAL_GPIO_EXTI_Callback or HAL_GPIO_EXTI_Rising_Callback and HAL_GPIO_EXTI_Falling_Callback
+3.  edge detection can only be disabled by HAL_GPIO_DeInit function
+
 ## I2C
 
 1.  **analog/digital filter not configurable with HAL_I2C_Init** but through HAL Ex HAL_I2CEx_ConfigAnalogFilter and HAL_I2CEx_ConfigDigitalFilter functions
