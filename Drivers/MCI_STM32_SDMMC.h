@@ -27,9 +27,8 @@
 
 #include "main.h"
 
-/* SDMMC peripheral version that requires external DMA streams (no dedicated DMA) */
-#if defined(MX_SDMMC1_RX_DMA_Instance) && defined(MX_SDMMC1_TX_DMA_Instance) || \
-    defined(MX_SDMMC2_RX_DMA_Instance) && defined(MX_SDMMC2_TX_DMA_Instance)
+/* SDMMC peripheral version without dedicated DMA requires external DMA streams */
+#if !defined(SDMMC_IDMA_IDMAEN)
   #define MCI_SDMMC_V1
   #define MCI_DMA_EXT
 #endif
