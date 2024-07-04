@@ -917,7 +917,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ./src/mainpage.md             \
-                         ./src/history.md              \
+                         ./src/history.txt             \
                          ./src/soft_arch.md            \
                          ./src/drivers.md              \
                          ../../Drivers/ETH_MAC_STM32.c \

@@ -96,7 +96,7 @@ function generate() {
 
   sed -e "s/{projectNumber}/${projectNumber}/" "$1.dxy.in" > "$1.dxy"
 
-  # git_changelog -f html -p "v" > src/history.txt
+  git_changelog -f html -p "v" > src/history.txt
 
   echo_log "\"${UTILITY_DOXYGEN}\" \"$1.dxy\""
   "${UTILITY_DOXYGEN}" "$1.dxy"
