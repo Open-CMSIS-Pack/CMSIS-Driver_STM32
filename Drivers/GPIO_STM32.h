@@ -32,18 +32,18 @@
 #include "MX_Device.h"
 
 // Pin mapping helper macros
-#define GPIO_PIN_ID_PORTA(n)    (           (n))
-#define GPIO_PIN_ID_PORTB(n)    (16U*1U)  + (n))
-#define GPIO_PIN_ID_PORTC(n)    (16U*2U)  + (n))
-#define GPIO_PIN_ID_PORTD(n)    (16U*3U)  + (n))
-#define GPIO_PIN_ID_PORTE(n)    (16U*4U)  + (n))
-#define GPIO_PIN_ID_PORTF(n)    (16U*5U)  + (n))
-#define GPIO_PIN_ID_PORTG(n)    (16U*6U)  + (n))
-#define GPIO_PIN_ID_PORTH(n)    (16U*7U)  + (n))
-#define GPIO_PIN_ID_PORTI(n)    (16U*8U)  + (n))
-#define GPIO_PIN_ID_PORTJ(n)    (16U*9U)  + (n))
-#define GPIO_PIN_ID_PORTK(n)    (16U*10U) + (n))
-#define GPIO_PIN_ID_PORTZ(n)    (16U*11U) + (n))
+#define GPIO_PIN_ID_PORTA(n)    (            (n))
+#define GPIO_PIN_ID_PORTB(n)    ((16U*1U)  + (n))
+#define GPIO_PIN_ID_PORTC(n)    ((16U*2U)  + (n))
+#define GPIO_PIN_ID_PORTD(n)    ((16U*3U)  + (n))
+#define GPIO_PIN_ID_PORTE(n)    ((16U*4U)  + (n))
+#define GPIO_PIN_ID_PORTF(n)    ((16U*5U)  + (n))
+#define GPIO_PIN_ID_PORTG(n)    ((16U*6U)  + (n))
+#define GPIO_PIN_ID_PORTH(n)    ((16U*7U)  + (n))
+#define GPIO_PIN_ID_PORTI(n)    ((16U*8U)  + (n))
+#define GPIO_PIN_ID_PORTJ(n)    ((16U*9U)  + (n))
+#define GPIO_PIN_ID_PORTK(n)    ((16U*10U) + (n))
+#define GPIO_PIN_ID_PORTZ(n)    ((16U*11U) + (n))
 
 #ifdef  __cplusplus
 extern  "C"
