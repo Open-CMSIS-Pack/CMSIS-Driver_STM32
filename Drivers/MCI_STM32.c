@@ -47,7 +47,7 @@ The driver instance is mapped to hardware as shown in the table below:
 This driver requires the following configuration in CubeMX:
 
   - When using SDMMC peripheral:
-    - **clock**: **SDMMC*** peripheral clock.
+    - **clock**: **SDMMC** peripheral clock.
     - **peripheral**: **SDMMC** peripheral configured in **SD** or **MMC** mode.
     - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionally **D4** - **D7**.
     - **interrupts**:
