@@ -70,16 +70,20 @@
 #if MCI1_ENABLE
 #define MCI1_REG_BLOCK                  SDIO
 #define MCI1_IRQ_HANDLER                SDIO_IRQHandler
-#if !defined(MemoryCard_MMC1)
+#if defined(MX_SDIO_MODE_SD)
 #define MCI1_HAL_MSPINIT                (HAL_MspFunc_t)HAL_SD_MspInit
 #define MCI1_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_SD_MspDeInit
+#define MCI1_HANDLE_TYPE                0U
 #define MCI1_HANDLE                     hsd
 extern SD_HandleTypeDef                 hsd;
-#else
+#elif defined(MX_SDIO_MODE_MMC)
 #define MCI1_HAL_MSPINIT                (HAL_MspFunc_t)HAL_MMC_MspInit
 #define MCI1_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_MMC_MspDeInit
+#define MCI1_HANDLE_TYPE                1U
 #define MCI1_HANDLE                     mmc
 extern MMC_HandleTypeDef                mmc;
+#else
+  #error "SDIO: peripheral mode (SD/MMC) unknown.
 #endif
 /* DMA handler prototypes */
 extern DMA_HandleTypeDef                hdma_sdio_rx;
