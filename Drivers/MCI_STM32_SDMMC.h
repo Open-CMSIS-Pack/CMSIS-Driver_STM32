@@ -166,32 +166,40 @@
 #if MCI1_ENABLE
 #define MCI1_REG_BLOCK                  SDMMC1
 #define MCI1_IRQ_HANDLER                SDMMC1_IRQHandler
-#if !defined(MemoryCard_1_MMC)
+#if defined(MX_SDMMC1_MODE_SD)
 #define MCI1_HAL_MSPINIT                (HAL_MspFunc_t)HAL_SD_MspInit
 #define MCI1_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_SD_MspDeInit
+#define MCI1_HANDLE_TYPE                0U
 #define MCI1_HANDLE                     hsd1
 extern SD_HandleTypeDef                 hsd1;
-#else
+#elif defined(MX_SDMMC1_MODE_MMC)
 #define MCI1_HAL_MSPINIT                (HAL_MspFunc_t)HAL_MMC_MspInit
 #define MCI1_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_MMC_MspDeInit
+#define MCI1_HANDLE_TYPE                1U
 #define MCI1_HANDLE                     hmmc1
 extern MMC_HandleTypeDef                hmmc1;
+#else
+  #error "SDMMC1: peripheral mode (SD/MMC) unknown.
 #endif
 #endif
 
 #if MCI2_ENABLE
 #define MCI2_REG_BLOCK                  SDMMC2
 #define MCI2_IRQ_HANDLER                SDMMC2_IRQHandler
-#if !defined(MemoryCard_2_MMC)
+#if defined(MX_SDMMC2_MODE_SD)
 #define MCI2_HAL_MSPINIT                (HAL_MspFunc_t)HAL_SD_MspInit
 #define MCI2_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_SD_MspDeInit
+#define MCI2_HANDLE_TYPE                0U
 #define MCI2_HANDLE                     hsd2
 extern SD_HandleTypeDef                 hsd2;
-#else
+#elif defined(MX_SDMMC2_MODE_MMC)
 #define MCI2_HAL_MSPINIT                (HAL_MspFunc_t)HAL_MMC_MspInit
 #define MCI2_HAL_MSPDEINIT              (HAL_MspFunc_t)HAL_MMC_MspDeInit
+#define MCI2_HANDLE_TYPE                1U
 #define MCI2_HANDLE                     hmmc2
 extern MMC_HandleTypeDef                hmmc2;
+#else
+  #error "SDMMC2: peripheral mode (SD/MMC) unknown.
 #endif
 #endif
 

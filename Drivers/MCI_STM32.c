@@ -80,11 +80,6 @@ This driver requires the following configuration in CubeMX:
 > - some DMA controllers can only access specific memories, so ensure that proper memory is used for the buffers
 >   according to the DMA requirement.
 
-When **peripheral is configured for MMC** in CubeMX (regardless of peripheral type):
-
-  - When using SDMMC1 or SDIO define **MemoryCard_1_MMC** in your project when compiling this module
-  - When using SDMMC2 define **MemoryCard_2_MMC** in your project when compiling this module
-
 ## Example
 
 ### Pinout & Configuration tab
@@ -179,24 +174,6 @@ When **peripheral is configured for MMC** in CubeMX (regardless of peripheral ty
 /* Driver Version */
 #define ARM_MCI_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,0)
 
-
-/**
-  \brief MCI1: Define MemoryCard_1_MMC if STM32CubeMX configures SDMMC1 for MMC device
-*/
-#if !defined(MemoryCard_1_MMC)
-  #define MCI1_HANDLE_TYPE              0U
-#else
-  #define MCI1_HANDLE_TYPE              1U
-#endif
-
-/**
-  \brief MCI2: Define MemoryCard_2_MMC if STM32CubeMX configures SDMMC2 for MMC device
-*/
-#if !defined(MemoryCard_2_MMC)
-  #define MCI2_HANDLE_TYPE              0U
-#else
-  #define MCI2_HANDLE_TYPE              1U
-#endif
 
 /**
   \brief MCI1: Define Card Detect pin active state
@@ -442,8 +419,8 @@ static void Assign_SDMMC_Instance (uint32_t set, MCI_RESOURCES *mci) {
     (MCI2_ENABLE && (MCI2_HANDLE_TYPE == 0))
   SD_HandleTypeDef *h_sd;
 #endif
-#if (MCI1_ENABLE && (MCI1_HANDLE_TYPE != 0)) || \
-    (MCI2_ENABLE && (MCI2_HANDLE_TYPE != 0))
+#if (MCI1_ENABLE && (MCI1_HANDLE_TYPE == 1)) || \
+    (MCI2_ENABLE && (MCI2_HANDLE_TYPE == 1))
   MMC_HandleTypeDef *h_mmc;
 #endif
 
