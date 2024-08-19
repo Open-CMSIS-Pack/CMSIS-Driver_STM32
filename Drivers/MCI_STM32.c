@@ -52,6 +52,7 @@ This driver requires the following configuration in CubeMX:
     - **pins**: **CMD**, **CK**, **D0** - **D3** and for 8-bit MMC optionally **D4** - **D7**.
     - **interrupts**:
       - enabled **SDMMC global interrupt** with **Generate Enable in Init** and without **Generate IRQ handler**
+    - **project manager**: enabled **Do Not Generate Function Call** in **Advanced Settings** for **MX_SDMMCx_SD_Init**
 
   - When using SDIO peripheral:
     - **clock**: **SDIO** peripheral clock.
@@ -61,6 +62,7 @@ This driver requires the following configuration in CubeMX:
     - **interrupts**:
       - enabled **SDIO global interrupt** with **Generate Enable in Init** and without **Generate IRQ handler**
       - enabled **SDIO_RX** and **SDIO_TX** DMA Requests that **Call HAL handlers**.
+    - **project manager**: enabled **Do Not Generate Function Call** in **Advanced Settings** for **MX_SDIO_SD_Init**
 
   - Optionally Card Detect or Write Protect pin may be configured:
     - Chose any general purpose pin as input and add **User Label**:
