@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
+ * $Date:       20. August 2024
  * $Revision:   V3.0
  *
  * Project:     USART Driver for STMicroelectronics STM32 devices
@@ -1004,20 +1004,29 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
   data_bits = 0U;
   switch (control & ARM_USART_DATA_BITS_Msk) {  // --- Mode Parameters: Data Bits
     case ARM_USART_DATA_BITS_6:                 // Data bits: 6
-      data_bits = 6;
+#ifdef UART_WORDLENGTH_7B
       if (parity_bits == 1U) {
+        data_bits = 6;
         ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_7B;
       } else {
         return ARM_USART_ERROR_DATA_BITS;
       }
+#else
+      return ARM_USART_ERROR_DATA_BITS;
+#endif
       break;
 
     case ARM_USART_DATA_BITS_7:                 // Data bits: 7
-      data_bits = 7;
       if (parity_bits == 1U) {
+        data_bits = 7;
         ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_8B;
       } else {
+#ifdef UART_WORDLENGTH_7B
+        data_bits = 7;
         ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_7B;
+#else
+        return ARM_USART_ERROR_DATA_BITS;
+#endif
       }
       break;
 
@@ -1031,8 +1040,8 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
       break;
 
     case ARM_USART_DATA_BITS_9:                 // Data bits: 9
-      data_bits = 9;
       if (parity_bits == 0U) {
+        data_bits = 9;
         ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_9B;
       } else {
         return ARM_USART_ERROR_DATA_BITS;
@@ -1069,13 +1078,17 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
       ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_2;
       break;
 
+#ifdef UART_STOPBITS_1_5
     case ARM_USART_STOP_BITS_1_5:               // Stop Bits: 1.5
       ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_1_5;
       break;
+#endif
 
+#ifdef UART_STOPBITS_0_5
     case ARM_USART_STOP_BITS_0_5:               // Stop Bits: 0.5
       ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_0_5;
       break;
+#endif
 
     default:
       return ARM_USART_ERROR_STOP_BITS;
