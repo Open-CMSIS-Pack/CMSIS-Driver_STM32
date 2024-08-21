@@ -233,6 +233,37 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 #define DRIVER_CONFIG_VALID     1
 #endif
 
+// Configuration depending on the local macros
+
+// Compile-time configuration (that can be externally overridden if necessary)
+// By default, we define non-existing RCC_PERIPHCLK_SPIn as invalid (0xFFFFFFFFFFFFFFFF)
+// so driver will work in mode that does not allow bus speed reconfiguration
+
+#if     defined(MX_SPI1) && !defined(RCC_PERIPHCLK_SPI1)
+#define RCC_PERIPHCLK_SPI1              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI2) && !defined(RCC_PERIPHCLK_SPI2)
+#define RCC_PERIPHCLK_SPI2              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI3) && !defined(RCC_PERIPHCLK_SPI3)
+#define RCC_PERIPHCLK_SPI3              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI4) && !defined(RCC_PERIPHCLK_SPI4)
+#define RCC_PERIPHCLK_SPI4              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI5) && !defined(RCC_PERIPHCLK_SPI5)
+#define RCC_PERIPHCLK_SPI5              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI6) && !defined(RCC_PERIPHCLK_SPI6)
+#define RCC_PERIPHCLK_SPI6              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI7) && !defined(RCC_PERIPHCLK_SPI7)
+#define RCC_PERIPHCLK_SPI7              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+#if     defined(MX_SPI8) && !defined(RCC_PERIPHCLK_SPI8)
+#define RCC_PERIPHCLK_SPI8              (0xFFFFFFFFFFFFFFFFULL)
+#endif
+
 // *****************************************************************************
 
 #ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
@@ -647,11 +678,18 @@ static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data,
   }
 
   // Start the send
+#ifdef  __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#endif
   if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {  // If DMA is used for Tx
     send_status = HAL_SPI_Transmit_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint16_t)num);
   } else {                                      // If DMA is not configured (IRQ mode)
     send_status = HAL_SPI_Transmit_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint16_t)num);
   }
+#ifdef  __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (send_status) {
@@ -727,12 +765,19 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
   }
 
   // Start the reception
+#ifdef  __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#endif
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
     receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
     receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   }
+#ifdef  __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (receive_status) {
@@ -780,12 +825,19 @@ static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *d
   }
 
   // Start the transfer
+#ifdef  __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#endif
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
     transfer_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
     transfer_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   }
+#ifdef  __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (transfer_status) {
@@ -1025,35 +1077,89 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
   }
 
   switch (control & ARM_SPI_DATA_BITS_Msk) {    // --- Mode Parameters: Data Bits
-    case ARM_SPI_DATA_BITS(4U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_4BIT;  break;
-    case ARM_SPI_DATA_BITS(5U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_5BIT;  break;
-    case ARM_SPI_DATA_BITS(6U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_6BIT;  break;
-    case ARM_SPI_DATA_BITS(7U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_7BIT;  break;
     case ARM_SPI_DATA_BITS(8U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_8BIT;  break;
-    case ARM_SPI_DATA_BITS(9U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_9BIT;  break;
-    case ARM_SPI_DATA_BITS(10U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_10BIT; break;
-    case ARM_SPI_DATA_BITS(11U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_11BIT; break;
-    case ARM_SPI_DATA_BITS(12U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_12BIT; break;
-    case ARM_SPI_DATA_BITS(13U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_13BIT; break;
-    case ARM_SPI_DATA_BITS(14U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_14BIT; break;
-    case ARM_SPI_DATA_BITS(15U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_15BIT; break;
     case ARM_SPI_DATA_BITS(16U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_16BIT; break;
+#ifdef SPI_DATASIZE_4BIT
+    case ARM_SPI_DATA_BITS(4U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_4BIT;  break;
+#endif
+#ifdef SPI_DATASIZE_5BIT
+    case ARM_SPI_DATA_BITS(5U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_5BIT;  break;
+#endif
+#ifdef SPI_DATASIZE_6BIT
+    case ARM_SPI_DATA_BITS(6U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_6BIT;  break;
+#endif
+#ifdef SPI_DATASIZE_7BIT
+    case ARM_SPI_DATA_BITS(7U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_7BIT;  break;
+#endif
+#ifdef SPI_DATASIZE_9BIT
+    case ARM_SPI_DATA_BITS(9U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_9BIT;  break;
+#endif
+#ifdef SPI_DATASIZE_10BIT
+    case ARM_SPI_DATA_BITS(10U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_10BIT; break;
+#endif
+#ifdef SPI_DATASIZE_11BIT
+    case ARM_SPI_DATA_BITS(11U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_11BIT; break;
+#endif
+#ifdef SPI_DATASIZE_12BIT
+    case ARM_SPI_DATA_BITS(12U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_12BIT; break;
+#endif
+#ifdef SPI_DATASIZE_13BIT
+    case ARM_SPI_DATA_BITS(13U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_13BIT; break;
+#endif
+#ifdef SPI_DATASIZE_14BIT
+    case ARM_SPI_DATA_BITS(14U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_14BIT; break;
+#endif
+#ifdef SPI_DATASIZE_15BIT
+    case ARM_SPI_DATA_BITS(15U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_15BIT; break;
+#endif
+#ifdef SPI_DATASIZE_17BIT
     case ARM_SPI_DATA_BITS(17U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_17BIT; break;
+#endif
+#ifdef SPI_DATASIZE_18BIT
     case ARM_SPI_DATA_BITS(18U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_18BIT; break;
+#endif
+#ifdef SPI_DATASIZE_19BIT
     case ARM_SPI_DATA_BITS(19U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_19BIT; break;
+#endif
+#ifdef SPI_DATASIZE_20BIT
     case ARM_SPI_DATA_BITS(20U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_20BIT; break;
+#endif
+#ifdef SPI_DATASIZE_21BIT
     case ARM_SPI_DATA_BITS(21U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_21BIT; break;
+#endif
+#ifdef SPI_DATASIZE_22BIT
     case ARM_SPI_DATA_BITS(22U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_22BIT; break;
+#endif
+#ifdef SPI_DATASIZE_23BIT
     case ARM_SPI_DATA_BITS(23U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_23BIT; break;
+#endif
+#ifdef SPI_DATASIZE_24BIT
     case ARM_SPI_DATA_BITS(24U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_24BIT; break;
+#endif
+#ifdef SPI_DATASIZE_25BIT
     case ARM_SPI_DATA_BITS(25U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_25BIT; break;
+#endif
+#ifdef SPI_DATASIZE_26BIT
     case ARM_SPI_DATA_BITS(26U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_26BIT; break;
+#endif
+#ifdef SPI_DATASIZE_27BIT
     case ARM_SPI_DATA_BITS(27U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_27BIT; break;
+#endif
+#ifdef SPI_DATASIZE_28BIT
     case ARM_SPI_DATA_BITS(28U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_28BIT; break;
+#endif
+#ifdef SPI_DATASIZE_29BIT
     case ARM_SPI_DATA_BITS(29U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_29BIT; break;
+#endif
+#ifdef SPI_DATASIZE_30BIT
     case ARM_SPI_DATA_BITS(30U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_30BIT; break;
+#endif
+#ifdef SPI_DATASIZE_31BIT
     case ARM_SPI_DATA_BITS(31U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_31BIT; break;
+#endif
+#ifdef SPI_DATASIZE_32BIT
     case ARM_SPI_DATA_BITS(32U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_32BIT; break;
+#endif
     default:
       return ARM_SPI_ERROR_DATA_BITS;
   }
