@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
+ * $Date:       28. August 2024
  * $Revision:   V3.0
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
@@ -678,18 +678,11 @@ static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data,
   }
 
   // Start the send
-#ifdef  __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
-#endif
   if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {  // If DMA is used for Tx
     send_status = HAL_SPI_Transmit_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint16_t)num);
   } else {                                      // If DMA is not configured (IRQ mode)
     send_status = HAL_SPI_Transmit_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint16_t)num);
   }
-#ifdef  __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (send_status) {
@@ -765,19 +758,12 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
   }
 
   // Start the reception
-#ifdef  __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
-#endif
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
     receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
     receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   }
-#ifdef  __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (receive_status) {
@@ -825,19 +811,12 @@ static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *d
   }
 
   // Start the transfer
-#ifdef  __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
-#endif
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
     transfer_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
     transfer_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   }
-#ifdef  __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (transfer_status) {
