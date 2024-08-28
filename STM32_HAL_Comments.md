@@ -72,6 +72,8 @@
 7.  no way to control internal Slave Select input level (SSI) value
 8.  Slave Select line operation is defined at compile-time and is not expected to change at run-time
 9.  no way of driving user selected GPIO as software Slave Select
+10. inconsistent API for **HAL_SPI_Transmit_DMA/IT** and **HAL_SPI_TransmitReceive_DMA/IT**, on some device families
+    the pointer to transmit data is specified with **const** qualifier and on some not (for example on STM32F7) (`defect`)
 
 ## USART (only for UART mode)
 
