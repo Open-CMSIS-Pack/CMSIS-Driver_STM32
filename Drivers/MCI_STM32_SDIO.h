@@ -83,7 +83,7 @@ extern SD_HandleTypeDef                 hsd;
 #define MCI1_HANDLE                     mmc
 extern MMC_HandleTypeDef                mmc;
 #else
-  #error "SDIO: peripheral mode (SD/MMC) unknown.
+  #error "SDIO: peripheral mode (SD/MMC) unknown."
 #endif
 /* DMA handler prototypes */
 extern DMA_HandleTypeDef                hdma_sdio_rx;

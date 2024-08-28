@@ -179,7 +179,7 @@ extern SD_HandleTypeDef                 hsd1;
 #define MCI1_HANDLE                     hmmc1
 extern MMC_HandleTypeDef                hmmc1;
 #else
-  #error "SDMMC1: peripheral mode (SD/MMC) unknown.
+  #error "SDMMC1: peripheral mode (SD/MMC) unknown."
 #endif
 #endif
 
@@ -199,7 +199,7 @@ extern SD_HandleTypeDef                 hsd2;
 #define MCI2_HANDLE                     hmmc2
 extern MMC_HandleTypeDef                hmmc2;
 #else
-  #error "SDMMC2: peripheral mode (SD/MMC) unknown.
+  #error "SDMMC2: peripheral mode (SD/MMC) unknown."
 #endif
 #endif
 
