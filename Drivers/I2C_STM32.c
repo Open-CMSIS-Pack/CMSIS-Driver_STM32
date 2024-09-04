@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       2. July 2024
+ * $Date:       4. September 2024
  * $Revision:   V3.0
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
@@ -228,6 +228,33 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #define MX_I2C_FILTER_EXISTS            1
 #endif
 
+// Define peripheral frequency macros if they are not provided in the MX_Device.h
+
+#if     defined(MX_I2C1) && !defined(MX_I2C1_PERIPH_CLOCK_FREQ)
+#define MX_I2C1_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C2) && !defined(MX_I2C2_PERIPH_CLOCK_FREQ)
+#define MX_I2C2_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C3) && !defined(MX_I2C3_PERIPH_CLOCK_FREQ)
+#define MX_I2C3_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C4) && !defined(MX_I2C4_PERIPH_CLOCK_FREQ)
+#define MX_I2C4_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C5) && !defined(MX_I2C5_PERIPH_CLOCK_FREQ)
+#define MX_I2C5_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C6) && !defined(MX_I2C6_PERIPH_CLOCK_FREQ)
+#define MX_I2C6_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C7) && !defined(MX_I2C7_PERIPH_CLOCK_FREQ)
+#define MX_I2C7_PERIPH_CLOCK_FREQ       0U
+#endif
+#if     defined(MX_I2C8) && !defined(MX_I2C8_PERIPH_CLOCK_FREQ)
+#define MX_I2C8_PERIPH_CLOCK_FREQ       0U
+#endif
+
 // Configuration depending on the local macros
 
 // Compile-time configuration (that can be externally overridden if necessary)
@@ -280,6 +307,7 @@ static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);               
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
                                                          RCC_PERIPHCLK_I2C##n,                                 \
+                                                         MX_I2C##n##_PERIPH_CLOCK_FREQ,                        \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
@@ -303,6 +331,7 @@ static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);               
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
                                                          RCC_PERIPHCLK_I2C##n,                                 \
+                                                         MX_I2C##n##_PERIPH_CLOCK_FREQ,                        \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
@@ -426,8 +455,8 @@ typedef struct {
   GPIO_TypeDef                 *ptr_port;               // Pointer to pin's port
   uint16_t                      pin;                    // Pin
   uint16_t                      af;                     // Pin's alternate function setting
-  uint32_t                      pull;                   // Pin's pull-up/pull-down setting
-  uint32_t                      speed;                  // Pin's speed setting
+  uint16_t                      pull;                   // Pin's pull-up/pull-down setting
+  uint16_t                      speed;                  // Pin's speed setting
 } PinConfig_t;
 
 // Driver status
@@ -461,11 +490,12 @@ typedef struct {
   I2C_HandleTypeDef            *ptr_hi2c;               // Pointer to I2C handle
   RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
   uint64_t                      peri_clock_id;          // Peripheral clock identifier
+  uint32_t                      peri_clock_freq;        // Peripheral clock frequency (in Hz)
   PinConfig_t                   scl_pin_config;         // SCL pin configuration structure
   PinConfig_t                   sda_pin_config;         // SDA pin configuration structure
 #ifdef MX_I2C_FILTER_EXISTS
-  uint32_t                      anf_en;                 // Analog noise filter enable
-  uint32_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
+  uint16_t                      anf_en;                 // Analog noise filter enable
+  uint16_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
 #endif
 } RO_Info_t;
 
@@ -643,7 +673,15 @@ static const RO_Info_t *I2C_GetInfo (const I2C_HandleTypeDef * const hi2c) {
   \return      frequency in Hz
 */
 static uint32_t I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
-  return HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
+  uint32_t periph_clock_freq = 0U;
+
+  if (ptr_ro_info->peri_clock_freq != 0U) {
+    periph_clock_freq = ptr_ro_info->peri_clock_freq;
+  } else {
+    periph_clock_freq = HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
+  }
+
+  return periph_clock_freq;
 }
 
 #ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
