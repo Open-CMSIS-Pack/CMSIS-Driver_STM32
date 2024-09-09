@@ -327,6 +327,17 @@ Project Manager tab</h3>
 </table>
 </li>
 </ol>
+<h1><a class="anchor" id="autotoc_md42"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md43"></a>
+Compilation errors</h2>
+<h3><a class="anchor" id="spi_periph_freq_unknown"></a>
+Error:    SPIn peripheral clock frequency is unknown!</h3>
+<ul>
+<li>Reason: peripheral clock frequency is not determinable from CubeMX configuration.</li>
+<li>Solution: add <b>User Constant</b> with Name <b>SPIn_PERIPH_CLOCK_FREQ</b> and Value of respective SPIn <b>peripheral clock frequency (in Hz)</b>.</li>
+<li>Example: in the <b>Pinout &amp; Configuration</b> tab, under <b>Categories</b>: <b>Connectivity</b> select <b>SPI1</b>, under <b>Configuration</b>: <b>User Constants</b> add <b>Constant</b> with Name <b>SPI1_PERIPH_CLOCK_FREQ</b> and Value of <b>peripheral clock frequency (in Hz)</b> as determined from the <b>Clock Configuration</b> or device documentation. </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

@@ -62,43 +62,48 @@ var driver =
           [ "Clock Configuration tab", "spi_stm32.html#autotoc_md40", null ],
           [ "Project Manager tab", "spi_stm32.html#autotoc_md41", null ]
         ] ]
+      ] ],
+      [ "Troubleshooting", "spi_stm32.html#autotoc_md42", [
+        [ "Compilation errors", "spi_stm32.html#autotoc_md43", [
+          [ "Error:    SPIn peripheral clock frequency is unknown!", "spi_stm32.html#spi_periph_freq_unknown", null ]
+        ] ]
       ] ]
     ] ],
     [ "USART", "usart_stm32.html", [
-      [ "Revision History", "usart_stm32.html#autotoc_md42", null ],
-      [ "Requirements", "usart_stm32.html#autotoc_md43", null ],
-      [ "Deviations", "usart_stm32.html#autotoc_md44", null ],
-      [ "CubeMX Configuration", "usart_stm32.html#autotoc_md45", [
-        [ "Example", "usart_stm32.html#autotoc_md46", [
-          [ "Pinout & Configuration tab", "usart_stm32.html#autotoc_md47", null ],
-          [ "Clock Configuration tab", "usart_stm32.html#autotoc_md48", null ],
-          [ "Project Manager tab", "usart_stm32.html#autotoc_md49", null ]
+      [ "Revision History", "usart_stm32.html#autotoc_md44", null ],
+      [ "Requirements", "usart_stm32.html#autotoc_md45", null ],
+      [ "Deviations", "usart_stm32.html#autotoc_md46", null ],
+      [ "CubeMX Configuration", "usart_stm32.html#autotoc_md47", [
+        [ "Example", "usart_stm32.html#autotoc_md48", [
+          [ "Pinout & Configuration tab", "usart_stm32.html#autotoc_md49", null ],
+          [ "Clock Configuration tab", "usart_stm32.html#autotoc_md50", null ],
+          [ "Project Manager tab", "usart_stm32.html#autotoc_md51", null ]
         ] ]
       ] ]
     ] ],
     [ "USB Device", "usbd_stm32.html", [
-      [ "Revision History", "usbd_stm32.html#autotoc_md50", null ],
-      [ "Requirements", "usbd_stm32.html#autotoc_md51", null ],
-      [ "Deviations", "usbd_stm32.html#autotoc_md52", null ],
-      [ "CubeMX Configuration", "usbd_stm32.html#autotoc_md53", [
-        [ "Example", "usbd_stm32.html#autotoc_md54", [
-          [ "Pinout & Configuration tab", "usbd_stm32.html#autotoc_md55", null ],
-          [ "Clock Configuration tab", "usbd_stm32.html#autotoc_md56", null ],
-          [ "Project Manager tab", "usbd_stm32.html#autotoc_md57", null ]
+      [ "Revision History", "usbd_stm32.html#autotoc_md52", null ],
+      [ "Requirements", "usbd_stm32.html#autotoc_md53", null ],
+      [ "Deviations", "usbd_stm32.html#autotoc_md54", null ],
+      [ "CubeMX Configuration", "usbd_stm32.html#autotoc_md55", [
+        [ "Example", "usbd_stm32.html#autotoc_md56", [
+          [ "Pinout & Configuration tab", "usbd_stm32.html#autotoc_md57", null ],
+          [ "Clock Configuration tab", "usbd_stm32.html#autotoc_md58", null ],
+          [ "Project Manager tab", "usbd_stm32.html#autotoc_md59", null ]
         ] ]
       ] ]
     ] ],
     [ "USB Host", "usbh_stm32.html", [
-      [ "Revision History", "usbh_stm32.html#autotoc_md58", null ],
-      [ "Requirements", "usbh_stm32.html#autotoc_md59", null ],
-      [ "Deviations", "usbh_stm32.html#autotoc_md60", null ],
-      [ "CubeMX Configuration", "usbh_stm32.html#autotoc_md61", [
-        [ "Example", "usbh_stm32.html#autotoc_md62", [
-          [ "Pinout & Configuration tab", "usbh_stm32.html#autotoc_md63", null ],
-          [ "Clock Configuration tab", "usbh_stm32.html#autotoc_md64", null ],
-          [ "Project Manager tab", "usbh_stm32.html#autotoc_md65", null ]
+      [ "Revision History", "usbh_stm32.html#autotoc_md60", null ],
+      [ "Requirements", "usbh_stm32.html#autotoc_md61", null ],
+      [ "Deviations", "usbh_stm32.html#autotoc_md62", null ],
+      [ "CubeMX Configuration", "usbh_stm32.html#autotoc_md63", [
+        [ "Example", "usbh_stm32.html#autotoc_md64", [
+          [ "Pinout & Configuration tab", "usbh_stm32.html#autotoc_md65", null ],
+          [ "Clock Configuration tab", "usbh_stm32.html#autotoc_md66", null ],
+          [ "Project Manager tab", "usbh_stm32.html#autotoc_md67", null ]
         ] ],
-        [ "Source Code", "usbh_stm32.html#autotoc_md66", null ]
+        [ "Source Code", "usbh_stm32.html#autotoc_md68", null ]
       ] ]
     ] ]
 ];
