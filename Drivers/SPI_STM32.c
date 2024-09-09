@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       4. September 2024
+ * $Date:       9. September 2024
  * $Revision:   V3.0
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
@@ -188,6 +188,18 @@ This driver requires the following configuration in CubeMX:
        Generate Code | Function Name               | Peripheral Inst..| Do not generate ..| Visibility (Static)
        :-------------|:---------------------------:|:----------------:|:-----------------:|:-------------------:
        checked       | MX_SPI5_Init                | SPI5             | unchecked         | checked
+
+# Troubleshooting
+
+## Compilation errors
+
+### Error:    SPIn peripheral clock frequency is unknown! {#spi_periph_freq_unknown}
+
+  - Reason:   peripheral clock frequency is not determinable from CubeMX configuration.
+  - Solution: add **User Constant** with Name **SPIn_PERIPH_CLOCK_FREQ** and Value of respective SPIn **peripheral clock frequency (in Hz)**.
+  - Example:  in the **Pinout & Configuration** tab, under **Categories**: **Connectivity** select **SPI1**, 
+              under **Configuration**: **User Constants** add **Constant** with Name **SPI1_PERIPH_CLOCK_FREQ** and Value
+              of **peripheral clock frequency (in Hz)** as determined from the **Clock Configuration** or device documentation.
 */
 
 /*! \cond */
@@ -233,62 +245,39 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 #define DRIVER_CONFIG_VALID     1
 #endif
 
-// Define peripheral frequency macros if they are not provided in the MX_Device.h
+// Ensure that peripheral clock frequency is defined
 
 #if     defined(MX_SPI1) && !defined(MX_SPI1_PERIPH_CLOCK_FREQ)
+#error "SPI1 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI1_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI2) && !defined(MX_SPI2_PERIPH_CLOCK_FREQ)
+#error "SPI2 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI2_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI3) && !defined(MX_SPI3_PERIPH_CLOCK_FREQ)
+#error "SPI3 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI3_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI4) && !defined(MX_SPI4_PERIPH_CLOCK_FREQ)
+#error "SPI4 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI4_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI5) && !defined(MX_SPI5_PERIPH_CLOCK_FREQ)
+#error "SPI5 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI5_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI6) && !defined(MX_SPI6_PERIPH_CLOCK_FREQ)
+#error "SPI6 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI6_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI7) && !defined(MX_SPI7_PERIPH_CLOCK_FREQ)
+#error "SPI7 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI7_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_SPI8) && !defined(MX_SPI8_PERIPH_CLOCK_FREQ)
+#error "SPI8 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
 #define MX_SPI8_PERIPH_CLOCK_FREQ       0U
-#endif
-
-// Configuration depending on the local macros
-
-// Compile-time configuration (that can be externally overridden if necessary)
-// By default, we define non-existing RCC_PERIPHCLK_SPIn as invalid (0xFFFFFFFFFFFFFFFF)
-// so driver will work in mode that does not allow bus speed reconfiguration
-
-#if     defined(MX_SPI1) && !defined(RCC_PERIPHCLK_SPI1)
-#define RCC_PERIPHCLK_SPI1              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI2) && !defined(RCC_PERIPHCLK_SPI2)
-#define RCC_PERIPHCLK_SPI2              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI3) && !defined(RCC_PERIPHCLK_SPI3)
-#define RCC_PERIPHCLK_SPI3              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI4) && !defined(RCC_PERIPHCLK_SPI4)
-#define RCC_PERIPHCLK_SPI4              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI5) && !defined(RCC_PERIPHCLK_SPI5)
-#define RCC_PERIPHCLK_SPI5              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI6) && !defined(RCC_PERIPHCLK_SPI6)
-#define RCC_PERIPHCLK_SPI6              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI7) && !defined(RCC_PERIPHCLK_SPI7)
-#define RCC_PERIPHCLK_SPI7              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_SPI8) && !defined(RCC_PERIPHCLK_SPI8)
-#define RCC_PERIPHCLK_SPI8              (0xFFFFFFFFFFFFFFFFULL)
 #endif
 
 // *****************************************************************************
@@ -316,7 +305,6 @@ static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx, 
 static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
                                                         &spi##n##_rw_info,                                     \
-                                                         RCC_PERIPHCLK_SPI##n,                                 \
                                                          MX_SPI##n##_PERIPH_CLOCK_FREQ,                        \
                                                         &spi##n##_nss_config                                   \
                                                       };
@@ -327,7 +315,6 @@ extern  SPI_HandleTypeDef       hspi##n;                                        
 static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
 static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
                                                         &spi##n##_rw_info,                                     \
-                                                         RCC_PERIPHCLK_SPI##n,                                 \
                                                          MX_SPI##n##_PERIPH_CLOCK_FREQ,                        \
                                                          NULL                                                  \
                                                       };
@@ -401,7 +388,6 @@ typedef struct {
 typedef struct {
         SPI_HandleTypeDef      *ptr_hspi;               // Pointer to SPI handle
         RW_Info_t              *ptr_rw_info;            // Pointer to run-time information (RW)
-        uint64_t                peri_clock_id;          // Peripheral clock identifier
         uint32_t                peri_clock_freq;        // Peripheral clock frequency (in Hz)
   const PinConfig_t            *ptr_nss_pin_config;     // Pointer to NSS pin configuration structure (NULL - if pin was not configured in STM32CubeMX)
 } RO_Info_t;
@@ -569,15 +555,7 @@ static const RO_Info_t *SPI_GetInfo (const SPI_HandleTypeDef * const hspi) {
   \return      frequency in Hz
 */
 static uint32_t SPIn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
-  uint32_t periph_clock_freq = 0U;
-
-  if (ptr_ro_info->peri_clock_freq != 0U) {
-    periph_clock_freq = ptr_ro_info->peri_clock_freq;
-  } else {
-    periph_clock_freq = HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
-  }
-
-  return periph_clock_freq;
+  return ptr_ro_info->peri_clock_freq;
 }
 
 // Driver functions ************************************************************
