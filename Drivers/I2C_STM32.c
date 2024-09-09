@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       4. September 2024
+ * $Date:       9. September 2024
  * $Revision:   V3.0
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
@@ -168,6 +168,18 @@ This driver requires the following configuration in CubeMX:
        Generate Code | Function Name               | Peripheral Inst..| Do not generate ..| Visibility (Static)
        :-------------|:---------------------------:|:----------------:|:-----------------:|:-------------------:
        checked       | MX_I2C1_Init                | I2C1             | unchecked         | checked
+
+# Troubleshooting
+
+## Compilation errors
+
+### Error:    I2Cn peripheral clock frequency is unknown! {#i2c_periph_freq_unknown}
+
+  - Reason:   peripheral clock frequency is not determinable from CubeMX configuration.
+  - Solution: add **User Constant** with Name **I2Cn_PERIPH_CLOCK_FREQ** and Value of respective I2Cn **peripheral clock frequency (in Hz)**.
+  - Example:  in the **Pinout & Configuration** tab, under **Categories**: **Connectivity** select **I2C1**, 
+              under **Configuration**: **User Constants** add **Constant** with Name **I2C1_PERIPH_CLOCK_FREQ** and Value
+              of **peripheral clock frequency (in Hz)** as determined from the **Clock Configuration** or device documentation.
 */
 
 /*! \cond */
@@ -228,62 +240,39 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #define MX_I2C_FILTER_EXISTS            1
 #endif
 
-// Define peripheral frequency macros if they are not provided in the MX_Device.h
+// Ensure that peripheral clock frequency is defined
 
 #if     defined(MX_I2C1) && !defined(MX_I2C1_PERIPH_CLOCK_FREQ)
+#error "I2C1 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C1_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C2) && !defined(MX_I2C2_PERIPH_CLOCK_FREQ)
+#error "I2C2 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C2_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C3) && !defined(MX_I2C3_PERIPH_CLOCK_FREQ)
+#error "I2C3 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C3_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C4) && !defined(MX_I2C4_PERIPH_CLOCK_FREQ)
+#error "I2C4 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C4_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C5) && !defined(MX_I2C5_PERIPH_CLOCK_FREQ)
+#error "I2C5 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C5_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C6) && !defined(MX_I2C6_PERIPH_CLOCK_FREQ)
+#error "I2C6 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C6_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C7) && !defined(MX_I2C7_PERIPH_CLOCK_FREQ)
+#error "I2C7 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C7_PERIPH_CLOCK_FREQ       0U
 #endif
 #if     defined(MX_I2C8) && !defined(MX_I2C8_PERIPH_CLOCK_FREQ)
+#error "I2C8 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
 #define MX_I2C8_PERIPH_CLOCK_FREQ       0U
-#endif
-
-// Configuration depending on the local macros
-
-// Compile-time configuration (that can be externally overridden if necessary)
-// By default, we define non-existing RCC_PERIPHCLK_I2Cn as invalid (0xFFFFFFFFFFFFFFFF)
-// so driver will work in mode that does not allow bus speed reconfiguration
-
-#if     defined(MX_I2C1) && !defined(RCC_PERIPHCLK_I2C1)
-#define RCC_PERIPHCLK_I2C1              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C2) && !defined(RCC_PERIPHCLK_I2C2)
-#define RCC_PERIPHCLK_I2C2              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C3) && !defined(RCC_PERIPHCLK_I2C3)
-#define RCC_PERIPHCLK_I2C3              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C4) && !defined(RCC_PERIPHCLK_I2C4)
-#define RCC_PERIPHCLK_I2C4              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C5) && !defined(RCC_PERIPHCLK_I2C5)
-#define RCC_PERIPHCLK_I2C5              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C6) && !defined(RCC_PERIPHCLK_I2C6)
-#define RCC_PERIPHCLK_I2C6              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C7) && !defined(RCC_PERIPHCLK_I2C7)
-#define RCC_PERIPHCLK_I2C7              (0xFFFFFFFFFFFFFFFFULL)
-#endif
-#if     defined(MX_I2C8) && !defined(RCC_PERIPHCLK_I2C8)
-#define RCC_PERIPHCLK_I2C8              (0xFFFFFFFFFFFFFFFFULL)
 #endif
 
 // *****************************************************************************
@@ -306,7 +295,6 @@ extern  I2C_HandleTypeDef       hi2c##n;                                        
 static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
-                                                         RCC_PERIPHCLK_I2C##n,                                 \
                                                          MX_I2C##n##_PERIPH_CLOCK_FREQ,                        \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
@@ -330,7 +318,6 @@ extern  I2C_HandleTypeDef       hi2c##n;                                        
 static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
-                                                         RCC_PERIPHCLK_I2C##n,                                 \
                                                          MX_I2C##n##_PERIPH_CLOCK_FREQ,                        \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
@@ -489,7 +476,6 @@ typedef struct {
 typedef struct {
   I2C_HandleTypeDef            *ptr_hi2c;               // Pointer to I2C handle
   RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
-  uint64_t                      peri_clock_id;          // Peripheral clock identifier
   uint32_t                      peri_clock_freq;        // Peripheral clock frequency (in Hz)
   PinConfig_t                   scl_pin_config;         // SCL pin configuration structure
   PinConfig_t                   sda_pin_config;         // SDA pin configuration structure
@@ -673,15 +659,7 @@ static const RO_Info_t *I2C_GetInfo (const I2C_HandleTypeDef * const hi2c) {
   \return      frequency in Hz
 */
 static uint32_t I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
-  uint32_t periph_clock_freq = 0U;
-
-  if (ptr_ro_info->peri_clock_freq != 0U) {
-    periph_clock_freq = ptr_ro_info->peri_clock_freq;
-  } else {
-    periph_clock_freq = HAL_RCCEx_GetPeriphCLKFreq(ptr_ro_info->peri_clock_id);
-  }
-
-  return periph_clock_freq;
+  return ptr_ro_info->peri_clock_freq;
 }
 
 #ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
