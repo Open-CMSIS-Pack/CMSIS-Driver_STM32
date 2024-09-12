@@ -432,7 +432,26 @@ __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
   (void)mci;
 
 #if defined(RCC_PERIPHCLK_SDMMC)
-  return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC);
+  #if defined(MX_SDMMC_PERIPH_CLOCK_FREQ)
+    return MX_SDMMC_PERIPH_CLOCK_FREQ;
+  #else
+    return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC);
+  #endif
+#elif defined(RCC_PERIPHCLK_SDMMC1) || defined(RCC_PERIPHCLK_SDMMC2)
+  if (mci->reg == SDMMC1) {
+    #if defined(MX_SDMMC1_PERIPH_CLOCK_FREQ)
+      return MX_SDMMC1_PERIPH_CLOCK_FREQ;
+    #else
+      return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC1);
+    #endif
+  }
+  if (mci->reg == SDMMC2) {
+    #if defined(MX_SDMMC2_PERIPH_CLOCK_FREQ)
+      return MX_SDMMC2_PERIPH_CLOCK_FREQ;
+    #else
+      return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC2);
+    #endif
+  }
 #else
   return HAL_RCC_GetHCLKFreq();
 #endif
@@ -442,15 +461,30 @@ __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
   \brief Set the clock divider that generates the output clock
 */
 __STATIC_INLINE void MCI_Set_ClockDivider (MCI_RESOURCES *mci, uint32_t divider) {
-  mci->reg->CLKCR &= ~SDMMC_CLKCR_CLKDIV;
-  mci->reg->CLKCR |= (divider) >> 1U;
+  #if defined(MCI_SDMMC_V1)
+    if (divider < 2U) { divider  = 0U; }
+    else              { divider -= 2U; }
+
+    if (divider > SDMMC_CLKCR_CLKDIV) {
+      divider = SDMMC_CLKCR_CLKDIV;
+    }
+    mci->reg->CLKCR &= ~SDMMC_CLKCR_CLKDIV;
+    mci->reg->CLKCR |= divider;
+  #else
+    mci->reg->CLKCR &= ~SDMMC_CLKCR_CLKDIV;
+    mci->reg->CLKCR |= (divider) >> 1U;
+  #endif
 }
 
 /**
   \brief Get the clock divider that generates the output clock
 */
 __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
-  return ((mci->reg->CLKCR & 0x3FFU) << 1U);
+  #if defined(MCI_SDMMC_V1)
+    return ((mci->reg->CLKCR & 0xFFU) + 2U);
+  #else
+    return ((mci->reg->CLKCR & 0x3FFU) << 1U);
+  #endif
 }
 
 /**
@@ -458,6 +492,9 @@ __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
 */
 __STATIC_INLINE void MCI_Enable_ClockOutput (MCI_RESOURCES *mci) {
   mci->reg->POWER |= SDMMC_POWER_PWRCTRL;
+  #if defined(MCI_SDMMC_V1)
+    mci->reg->CLKCR |= SDMMC_CLKCR_CLKEN;
+  #endif
 }
 
 /**
