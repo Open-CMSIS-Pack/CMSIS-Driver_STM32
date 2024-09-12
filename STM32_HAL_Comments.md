@@ -51,10 +51,8 @@
 4.  no way to **set bus speed**
 5.  no way to execute **bus clear** operation
 6.  no way to **get number of transferred bytes**
-7.  Transmit operation **clears error information relating to reception** (`defect`)
-    - [example on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_hal_i2c.c#L1127)
-8.  Slave transfer has to be started from HAL_I2C_AddrCallback
-9.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
+7.  Slave transfer has to be started from HAL_I2C_AddrCallback
+8.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
 
 ## MCI
 
@@ -66,13 +64,11 @@
 2.  no way to **set bus speed**
 3.  no support for **default transmit value during reception**
 4.  no way to **get number of transferred bytes**
-5.  Transmit operation **clears error information relating to reception** (`defect`)
-    - [example on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_hal_spi.c#L853)
-6.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
-7.  no way to control internal Slave Select input level (SSI) value
-8.  Slave Select line operation is defined at compile-time and is not expected to change at run-time
-9.  no way of driving user selected GPIO as software Slave Select
-10. inconsistent API for **HAL_SPI_Transmit_DMA/IT** and **HAL_SPI_TransmitReceive_DMA/IT**, on some device families
+5.  maximum transfers supported by Transmit and Receive functions is limited to 65535 bytes
+6.  no way to control internal Slave Select input level (SSI) value
+7.  Slave Select line operation is defined at compile-time and is not expected to change at run-time
+8.  no way of driving user selected GPIO as software Slave Select
+9.  inconsistent API for **HAL_SPI_Transmit_DMA/IT** and **HAL_SPI_TransmitReceive_DMA/IT**, on some device families
     the pointer to transmit data is specified with **const** qualifier and on some not (for example on STM32F7) (`defect`)
 
 ## USART (only for UART mode)
