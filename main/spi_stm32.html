@@ -189,8 +189,6 @@ Deviations</h1>
 </ul>
 </li>
 <li>Control:<ul>
-<li>for control code ARM_SPI_MODE_MASTER the functionality depends on HAL_RCCEx_GetPeriphCLKFreq function. If HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency then bus speed will not be reconfigured but it will be left unchanged (as configured in CubeMX) and the function will return ARM_DRIVER_OK status code.</li>
-<li>for control codes: ARM_SPI_SET_BUS_SPEED and ARM_SPI_GET_BUS_SPEED the functionality depends on HAL_RCCEx_GetPeriphCLKFreq function. If HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency then bus speed will not be reconfigured but it will be left unchanged (as configured in CubeMX) and the function will return ARM_DRIVER_ERROR_UNSUPPORTED error code.</li>
 <li>changes are not effective after this function but when data transfer operation is started (for example: changing Phase or Polarity will change clock line state when data operation is started and not after this function finishes).</li>
 </ul>
 </li>
