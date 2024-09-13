@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       9. September 2024
+ * $Date:       13. September 2024
  * $Revision:   V3.0
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
@@ -70,11 +70,6 @@ __Functional__ deviations:
     - maximum number of data bytes supported by HAL with a single transmit request is 65535.
   - MasterReceive and SlaveReceive:
     - maximum number of data bytes supported by HAL with a single receive request is 65535.
-  - Control:
-    - for control code ARM_I2C_BUS_SPEED the functionality depends on HAL_RCCEx_GetPeriphCLKFreq function.
-      If HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency
-      then bus speed will not be reconfigured but it will be left unchanged (as configured in CubeMX)
-      and the function will return ARM_DRIVER_ERROR_UNSUPPORTED error code.
 
 # CubeMX Configuration
 
@@ -1398,7 +1393,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
     case ARM_I2C_BUS_SPEED:                     // Set Bus Speed; arg = speed
       periph_clk = I2Cn_GetPeriphClock(ptr_ro_info);
       if (periph_clk == 0U) {
-        // If peripheral clock is not enabled or available with HAL_RCCEx_GetPeriphCLKFreq function
+        // If peripheral clock is unknown
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
 
