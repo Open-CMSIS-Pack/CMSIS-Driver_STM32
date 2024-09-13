@@ -683,9 +683,9 @@ static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data,
 
   // Start the send
   if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {  // If DMA is used for Tx
-    send_status = HAL_SPI_Transmit_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint16_t)num);
+    send_status = HAL_SPI_Transmit_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint16_t)num);
   } else {                                      // If DMA is not configured (IRQ mode)
-    send_status = HAL_SPI_Transmit_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint16_t)num);
+    send_status = HAL_SPI_Transmit_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint16_t)num);
   }
 
   // Convert HAL status code to CMSIS-Driver status code
@@ -764,9 +764,9 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
   // Start the reception
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
-    receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint8_t *)data, (uint16_t)num);
+    receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
-    receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data, (uint8_t *)data, (uint16_t)num);
+    receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   }
 
   // Convert HAL status code to CMSIS-Driver status code
@@ -817,9 +817,9 @@ static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *d
   // Start the transfer
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
-    transfer_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (const uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
+    transfer_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
-    transfer_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (const uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
+    transfer_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   }
 
   // Convert HAL status code to CMSIS-Driver status code
