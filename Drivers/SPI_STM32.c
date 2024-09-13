@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       9. September 2024
+ * $Date:       13. September 2024
  * $Revision:   V3.0
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
@@ -73,15 +73,6 @@ __Functional__ deviations:
   - Transfer:
     - maximum number of data items supported by HAL with a single transfer request is 65535.
   - Control:
-    - for control code ARM_SPI_MODE_MASTER the functionality depends on HAL_RCCEx_GetPeriphCLKFreq function.
-      If HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency
-      then bus speed will not be reconfigured but it will be left unchanged (as configured in CubeMX)
-      and the function will return ARM_DRIVER_OK status code.
-    - for control codes: ARM_SPI_SET_BUS_SPEED and ARM_SPI_GET_BUS_SPEED the functionality depends on
-      HAL_RCCEx_GetPeriphCLKFreq function.
-      If HAL_RCCEx_GetPeriphCLKFreq function does not provide particular peripheral instance clock frequency
-      then bus speed will not be reconfigured but it will be left unchanged (as configured in CubeMX)
-      and the function will return ARM_DRIVER_ERROR_UNSUPPORTED error code.
     - changes are not effective after this function but when data transfer operation is started
       (for example: changing Phase or Polarity will change clock line state when data operation is started
        and not after this function finishes).
@@ -953,7 +944,7 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
     case ARM_SPI_SET_BUS_SPEED:                 // Set Bus Speed in bps; arg = value
       periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
       if (periph_clk == 0U) {
-        // If peripheral clock is not enabled or not available from HAL_RCCEx_GetPeriphCLKFreq function
+        // If peripheral clock is unknown
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
       if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
@@ -969,7 +960,7 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
     case ARM_SPI_GET_BUS_SPEED:                 // Get Bus Speed in bps
       periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
       if (periph_clk == 0U) {
-        // If peripheral clock is not enabled or not available from HAL_RCCEx_GetPeriphCLKFreq function
+        // If peripheral clock is unknown
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
       switch (ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler) {
