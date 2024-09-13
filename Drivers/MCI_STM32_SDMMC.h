@@ -430,31 +430,36 @@ __STATIC_INLINE void MCI_Reset_Peripheral (MCI_RESOURCES *mci) {
 */
 __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
   (void)mci;
+  uint32_t freq = 0U;
 
 #if defined(RCC_PERIPHCLK_SDMMC)
   #if defined(MX_SDMMC_PERIPH_CLOCK_FREQ)
-    return MX_SDMMC_PERIPH_CLOCK_FREQ;
+    freq = MX_SDMMC_PERIPH_CLOCK_FREQ;
   #else
-    return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC);
+    freq = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC);
   #endif
 #elif defined(RCC_PERIPHCLK_SDMMC1) || defined(RCC_PERIPHCLK_SDMMC2)
   if (mci->reg == SDMMC1) {
     #if defined(MX_SDMMC1_PERIPH_CLOCK_FREQ)
-      return MX_SDMMC1_PERIPH_CLOCK_FREQ;
+      freq = MX_SDMMC1_PERIPH_CLOCK_FREQ;
     #else
-      return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC1);
+      freq = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC1);
     #endif
   }
-  if (mci->reg == SDMMC2) {
+  #if defined(SDMMC2)
+  else {
     #if defined(MX_SDMMC2_PERIPH_CLOCK_FREQ)
-      return MX_SDMMC2_PERIPH_CLOCK_FREQ;
+      freq = MX_SDMMC2_PERIPH_CLOCK_FREQ;
     #else
-      return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC2);
+      freq = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC2);
     #endif
   }
+  #endif
 #else
-  return HAL_RCC_GetHCLKFreq();
+  freq = HAL_RCC_GetHCLKFreq();
 #endif
+
+  return (freq);
 }
 
 /**
