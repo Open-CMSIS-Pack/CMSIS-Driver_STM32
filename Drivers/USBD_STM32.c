@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
+ * $Date:       19. September 2024
  * $Revision:   V3.0
  *
  * Project:     USB Device Driver for STMicroelectronics STM32 devices
@@ -222,14 +222,16 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define DRIVER_CONFIG_VALID             1
 #endif
 
-// Define the HAL_PCDEx_PMAConfig macro based on peripheral name
-// If MX_USBD_EP_PMAConfig == 1 then the function HAL_PCDEx_PMAConfig is used for Endpoint FIFO
-// if MX_USBD_EP_PMAConfig == 0 then functions HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo
+// Determine peripheral differences that driver needs to handle
+
+// Determine if peripheral uses PMA
+// If USBD_VARIANT_PMA == 1 then function HAL_PCDEx_PMAConfig is used for Endpoint FIFO
+// if USBD_VARIANT_PMA == 0 then functions HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo are used
 // HAL_PCDEx_PMAConfig is used on older devices that have older USB controller (not OTG)
 #ifdef  MX_USB
-#define MX_USBD_EP_PMAConfig            1
+#define USBD_VARIANT_PMA                1
 #else
-#define MX_USBD_EP_PMAConfig            0
+#define USBD_VARIANT_PMA                0
 #endif
 
 // Configuration depending on the local macros
@@ -479,7 +481,7 @@ static const RO_Info_t *USBD_GetInfo (const PCD_HandleTypeDef * const hpcd) {
 */
 static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size) {
 
-#if (MX_USBD_EP_PMAConfig == 0)         // If using HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo functions
+#if (USBD_VARIANT_PMA == 0)             // If using HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo functions
   uint16_t rx_fifo_size;
   uint16_t max_packet_size;
   uint8_t  ep_num;
