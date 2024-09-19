@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       13. September 2024
+ * $Date:       19. September 2024
  * $Revision:   V3.0
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
@@ -217,11 +217,39 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #elif  (!defined(MX_DEVICE_VERSION) || (MX_DEVICE_VERSION < 0x01000000U))
 #error  I2C driver requires new MX_Device.h configuration, please regenerate MX_Device.h file!
 
+// Check if peripheral clock frequency is defined
+#elif   defined(MX_I2C1) && !defined(MX_I2C1_PERIPH_CLOCK_FREQ)
+#error  I2C1 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C2) && !defined(MX_I2C2_PERIPH_CLOCK_FREQ)
+#error  I2C2 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C3) && !defined(MX_I2C3_PERIPH_CLOCK_FREQ)
+#error  I2C3 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C4) && !defined(MX_I2C4_PERIPH_CLOCK_FREQ)
+#error  I2C4 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C5) && !defined(MX_I2C5_PERIPH_CLOCK_FREQ)
+#error  I2C5 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C6) && !defined(MX_I2C6_PERIPH_CLOCK_FREQ)
+#error  I2C6 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C7) && !defined(MX_I2C7_PERIPH_CLOCK_FREQ)
+#error  I2C7 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
+#elif   defined(MX_I2C8) && !defined(MX_I2C8_PERIPH_CLOCK_FREQ)
+#error  I2C8 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown
+
 #else
 #define DRIVER_CONFIG_VALID             1
 #endif
 
-// If MX_I2Cn_ANF_ENABLE or MX_I2Cn_DNF is defined then I2C has additional filter capabilities
+// Determine peripheral differences that driver needs to handle
+
+// Determine if peripheral has filter features
+// If MX_I2Cn_ANF_ENABLE or MX_I2Cn_DNF is defined then I2C has additional filter features
 // configured by functions: HAL_I2CEx_ConfigAnalogFilter and HAL_I2CEx_ConfigDigitalFilter
 
 #if    (defined(MX_I2C1_ANF_ENABLE) || defined(MX_I2C1_DNF) || \
@@ -232,42 +260,13 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
         defined(MX_I2C6_ANF_ENABLE) || defined(MX_I2C6_DNF) || \
         defined(MX_I2C7_ANF_ENABLE) || defined(MX_I2C7_DNF) || \
         defined(MX_I2C8_ANF_ENABLE) || defined(MX_I2C8_DNF))
-#define MX_I2C_FILTER_EXISTS            1
+#define I2C_VARIANT_HAS_FILTER          1
 #endif
 
-// Ensure that peripheral clock frequency is defined
+// Determine if peripheral has TIMINGR register
 
-#if     defined(MX_I2C1) && !defined(MX_I2C1_PERIPH_CLOCK_FREQ)
-#error "I2C1 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C1_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C2) && !defined(MX_I2C2_PERIPH_CLOCK_FREQ)
-#error "I2C2 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C2_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C3) && !defined(MX_I2C3_PERIPH_CLOCK_FREQ)
-#error "I2C3 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C3_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C4) && !defined(MX_I2C4_PERIPH_CLOCK_FREQ)
-#error "I2C4 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C4_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C5) && !defined(MX_I2C5_PERIPH_CLOCK_FREQ)
-#error "I2C5 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C5_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C6) && !defined(MX_I2C6_PERIPH_CLOCK_FREQ)
-#error "I2C6 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C6_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C7) && !defined(MX_I2C7_PERIPH_CLOCK_FREQ)
-#error "I2C7 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C7_PERIPH_CLOCK_FREQ       0U
-#endif
-#if     defined(MX_I2C8) && !defined(MX_I2C8_PERIPH_CLOCK_FREQ)
-#error "I2C8 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/i2c_stm32.html#i2c_periph_freq_unknown"
-#define MX_I2C8_PERIPH_CLOCK_FREQ       0U
+#ifdef  I2C_TIMINGR_SCLL
+#define I2C_VARIANT_TIMINGR             1
 #endif
 
 // *****************************************************************************
@@ -283,14 +282,14 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #define I2Cn_SECTION(n)
 #endif
 
-#ifdef MX_I2C_FILTER_EXISTS     // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_HAS_FILTER  // If I2C peripheral has filters
 // Macro to create i2c_ro_info and i2c_rw_info (for instances), with filter settings
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
 static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
-                                                         MX_I2C##n##_PERIPH_CLOCK_FREQ,                        \
+                                                         (uint32_t)MX_I2C##n##_PERIPH_CLOCK_FREQ,              \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
@@ -313,7 +312,7 @@ extern  I2C_HandleTypeDef       hi2c##n;                                        
 static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
 static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
-                                                         MX_I2C##n##_PERIPH_CLOCK_FREQ,                        \
+                                                         (uint32_t)MX_I2C##n##_PERIPH_CLOCK_FREQ,              \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
                                                            MX_I2C##n##_SCL_GPIO_Pin,                           \
                                                            MX_I2C##n##_SCL_GPIO_AF,                            \
@@ -327,7 +326,7 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          }                                                     \
                                                       };
-#endif  // MX_I2C_FILTER_EXISTS
+#endif
 
 // Macro for declaring functions (for instances)
 #define FUNCS_DECLARE(n)                                                                                       \
@@ -382,7 +381,7 @@ ARM_DRIVER_I2C Driver_I2C##n = {        \
 #define I2C_BUS_CLEAR_CLOCK_PERIOD     (2U)             // I2C bus clock period (in ms)
 #endif
 
-#ifdef  MX_I2C_FILTER_EXISTS                            // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_TIMINGR                             // If TIMINGR register exists
 
 // TIMING register limit values
 #define I2C_TIMINGR_PRESC_MAX          (1UL << 4)
@@ -430,7 +429,7 @@ typedef struct {
   uint8_t                       scll;                   // Timing register value SCLL[7:0]
 } TimingReg_t;
 
-#endif // MX_I2C_FILTER_EXISTS
+#endif // I2C_VARIANT_TIMINGR
 
 // Pin configuration
 typedef struct {
@@ -474,7 +473,7 @@ typedef struct {
   uint32_t                      peri_clock_freq;        // Peripheral clock frequency (in Hz)
   PinConfig_t                   scl_pin_config;         // SCL pin configuration structure
   PinConfig_t                   sda_pin_config;         // SDA pin configuration structure
-#ifdef MX_I2C_FILTER_EXISTS
+#ifdef I2C_VARIANT_HAS_FILTER
   uint16_t                      anf_en;                 // Analog noise filter enable
   uint16_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
 #endif
@@ -506,7 +505,7 @@ INFO_DEFINE(7)
 INFO_DEFINE(8)
 #endif
 
-#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_TIMINGR             // If TIMINGR register exists
 
 // Common I2C standard timing specification
 static const StandardTiming_t i2c_spec_standard = {
@@ -542,7 +541,7 @@ static const StandardTiming_t i2c_spec_fast_plus = {
   260U,         // sclh_min
 };
 
-#endif // MX_I2C_FILTER_EXISTS
+#endif // I2C_VARIANT_TIMINGR
 
 // List of available I2C instance infos
 static const RO_Info_t * const i2c_ro_info_list[] = {
@@ -576,7 +575,7 @@ static const RO_Info_t * const i2c_ro_info_list[] = {
 // Local functions prototypes
 static const RO_Info_t         *I2C_GetInfo         (const I2C_HandleTypeDef * const hi2c);
 static uint32_t                 I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info);
-#ifdef  MX_I2C_FILTER_EXISTS    // If I2C peripheral has filters
+#ifdef I2C_VARIANT_TIMINGR      // If TIMINGR register exists
 static int32_t                  I2Cn_GetSCLRatio    (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg);
 static uint32_t                 I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec);
 #endif
@@ -657,7 +656,7 @@ static uint32_t I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
   return ptr_ro_info->peri_clock_freq;
 }
 
-#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_TIMINGR             // If TIMINGR register exists
 /**
   \fn          int32_t I2Cn_GetSCLRatio (ClockSetup_t *ptr_clock_setup, StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg)
   \brief       Evaluate SCL low/high ratio.
@@ -904,7 +903,7 @@ static int32_t I2Cn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER
         return ARM_DRIVER_ERROR;
       }
 
-#ifdef MX_I2C_FILTER_EXISTS             // If I2C peripheral has filters
+#ifdef I2C_VARIANT_HAS_FILTER           // If I2C peripheral has filters
       // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
       if (ptr_ro_info->anf_en != 0U) {
         if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
@@ -1275,7 +1274,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         GPIO_PinState       state;
         uint32_t            i;
         uint32_t            periph_clk;
-#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_TIMINGR             // If TIMINGR register exists
   const StandardTiming_t   *ptr_std_timing;
         ClockSetup_t        clock_setup;
         uint32_t            scl_freq;
@@ -1315,9 +1314,9 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 
       case HAL_I2C_MODE_SLAVE:          // I2C communication is in Slave Mode
         // Generate NACK when in Slave mode
-#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
+#ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
         __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
-#else                                   // If this is I2C peripheral without filter capabilities
+#else                                   // if this is I2C peripheral without TIMINGR register
         ptr_ro_info->ptr_hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
 #endif
         break;
@@ -1365,7 +1364,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
           return ARM_DRIVER_ERROR;
         }
 
-#ifdef  MX_I2C_FILTER_EXISTS                    // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_HAS_FILTER                  // If I2C peripheral has filters
         // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
         if (ptr_ro_info->anf_en != 0U) {
           if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
@@ -1397,7 +1396,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
 
-#ifdef  MX_I2C_FILTER_EXISTS                    // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_TIMINGR                     // If TIMINGR register exists
       switch (arg) {
         case ARM_I2C_BUS_SPEED_STANDARD:        // Standard Speed (100kHz)
           ptr_std_timing = &i2c_spec_standard;
@@ -1448,7 +1447,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         return ARM_DRIVER_ERROR;
       }
 
-#ifdef  MX_I2C_FILTER_EXISTS            // If I2C peripheral has filters
+#ifdef  I2C_VARIANT_HAS_FILTER          // If I2C peripheral has filters
       // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
       if (ptr_ro_info->anf_en != 0U) {
         if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
@@ -1708,10 +1707,10 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
   }
 
   if (event != 0U) {
-#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
+#ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
     __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
     __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
-#else                                   // If this is I2C peripheral without filter capabilities
+#else                                   // if this is I2C peripheral without TIMINGR register
     ptr_ro_info->ptr_hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
     __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 #endif
@@ -1743,9 +1742,9 @@ void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
   }
 
   // Re-enable interrupts
-#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
+#ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
-#else                                   // If this is I2C peripheral without filter capabilities
+#else                                   // if this is I2C peripheral without TIMINGR register
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 #endif
 }
@@ -1775,9 +1774,9 @@ void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
   }
 
   // Re-enable interrupts
-#ifdef  MX_I2C_FILTER_EXISTS            // If this is I2C peripheral with filter capabilities
+#ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
-#else                                   // If this is I2C peripheral without filter capabilities
+#else                                   // if this is I2C peripheral without TIMINGR register
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 #endif
 }
