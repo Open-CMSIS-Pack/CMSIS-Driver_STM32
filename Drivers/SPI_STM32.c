@@ -238,28 +238,28 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 
 // Check if peripheral clock frequency is defined
 #elif   defined(MX_SPI1) && !defined(MX_SPI1_PERIPH_CLOCK_FREQ)
-#error "SPI1 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI1 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI2) && !defined(MX_SPI2_PERIPH_CLOCK_FREQ)
-#error "SPI2 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI2 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI3) && !defined(MX_SPI3_PERIPH_CLOCK_FREQ)
-#error "SPI3 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI3 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI4) && !defined(MX_SPI4_PERIPH_CLOCK_FREQ)
-#error "SPI4 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI4 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI5) && !defined(MX_SPI5_PERIPH_CLOCK_FREQ)
-#error "SPI5 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI5 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI6) && !defined(MX_SPI6_PERIPH_CLOCK_FREQ)
-#error "SPI6 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI6 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI7) && !defined(MX_SPI7_PERIPH_CLOCK_FREQ)
-#error "SPI7 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI7 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #elif   defined(MX_SPI8) && !defined(MX_SPI8_PERIPH_CLOCK_FREQ)
-#error "SPI8 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown"
+#error  SPI8 peripheral clock frequency is unknown! Consult the driver documentation at https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/spi_stm32.html#spi_periph_freq_unknown
 
 #else
 #define DRIVER_CONFIG_VALID     1
