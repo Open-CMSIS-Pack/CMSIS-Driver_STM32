@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       20. August 2024
+ * $Date:       24. August 2024
  * $Revision:   V3.0
  *
  * Project:     USART Driver for STMicroelectronics STM32 devices
@@ -266,9 +266,9 @@ static  const RO_Info_t         usart##n##_ro_info = { &huart##n,               
 
 // Macro to create usart_ro_info and usart_rw_info (for LPUART instances)
 #define LP_INFO_DEFINE(n,lp_n)                                                                                 \
-extern  UART_HandleTypeDef      hlpuart##n;                                                                    \
+extern  UART_HandleTypeDef      hlpuart##lp_n;                                                                 \
 static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                          \
-static  const RO_Info_t         usart##n##_ro_info = { &hlpuart##n,                                            \
+static  const RO_Info_t         usart##n##_ro_info = { &hlpuart##lp_n,                                         \
                                                        &usart##n##_rw_info                                     \
                                                      };
 
