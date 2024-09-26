@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
+ * $Date:       26. September 2024
  * $Revision:   V3.0
  *
  * Project:     Ethernet MAC Driver for STMicroelectronics STM32 devices
@@ -883,7 +883,7 @@ static int32_t ETH_MAC_PHY_Write (uint8_t phy_addr, uint8_t reg_addr, uint16_t d
 void HAL_ETH_RxAllocateCallback(uint8_t **buff) {
 
   // Allocate one of the RX-DMA buffers sequentially
-  *buff = &eth_mac0_rx_buf[eth_mac0_rw_info.alloc_idx][ETH_MAX_PACKET_SIZE];
+  *buff = eth_mac0_rx_buf[eth_mac0_rw_info.alloc_idx];
   eth_mac0_rw_info.alloc_idx += 1U;
   if (eth_mac0_rw_info.alloc_idx >= ETH_RX_DESC_CNT) {
     eth_mac0_rw_info.alloc_idx = 0U;
