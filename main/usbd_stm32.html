@@ -184,9 +184,22 @@ CubeMX Configuration</h1>
 <ul>
 <li><b>clock</b>: <b>USB</b> peripheral clock at <b>48 MHz</b>.</li>
 <li><b>peripheral</b>:<ul>
-<li>for <b>USB</b> or <b>USB_OTG_FS</b> configured as <b>Device (FS)</b> or <b>Mode = Device_Only</b> and <b>Parameter Setting</b> configured as desired, except <b>Battery charging</b>, if it exists, should be set to <b>Disabled</b>.</li>
-<li>for <b>USB_OTG_HS</b> in <b>high-speed</b> mode: configured as <b>External Phy = Device_Only</b> if ULPI Phy is populated , and <b>Parameter Setting</b> configured as desired, except <b>Battery charging</b>, if it exists, should be set to <b>Disabled</b>.</li>
-<li>for <b>USB_OTG_HS</b> in <b>full-speed</b> mode: configured as <b>Internal FS Phy = Device_Only</b> if ULPI Phy is not populated , and <b>Parameter Setting</b> configured as desired, except <b>Battery charging</b>, if it exists, should be set to <b>Disabled</b>.</li>
+<li>for <b>USB</b> or <b>USB_OTG_FS</b> configured as <b>Device (FS)</b> or <b>Mode = Device_Only</b> , and configure the following <b>Parameter Settings</b>:<ul>
+<li><b>Enable internal IP DMA</b> set to <b>Disabled</b>.</li>
+<li><b>Battery charging</b>, if it exists, set to <b>Disabled</b>.</li>
+</ul>
+</li>
+<li>for <b>USB_OTG_HS</b> in <b>high-speed</b> mode: configured as <b>External Phy = Device_Only</b> if ULPI Phy is populated , and configure the following <b>Parameter Settings</b>:<ul>
+<li><b>Enable internal IP DMA</b> set to <b>Disabled</b>.</li>
+<li><b>Speed</b> set to speed required by the application: if the application is configured for full-speed operation set this setting to <b>Device Full Speed 12MBit/s</b>, if the application is configured for high-speed operation set this setting to <b>Device High Speed 480MBit/s</b>.</li>
+<li><b>Battery charging</b>, if it exists, set to <b>Disabled</b>.</li>
+</ul>
+</li>
+<li>for <b>USB_OTG_HS</b> in <b>full-speed</b> mode: configured as <b>Internal FS Phy = Device_Only</b> if ULPI Phy is not populated , and configure the following <b>Parameter Settings</b>:<ul>
+<li><b>Enable internal IP DMA</b> set to <b>Disabled</b>.</li>
+<li><b>Battery charging</b>, if it exists, set to <b>Disabled</b>.</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><b>pins</b>:<ul>
@@ -249,7 +262,11 @@ Pinout &amp; Configuration tab</h3>
 <li>Activate_SOF: unchecked</li>
 </ul>
 <p class="startli"><b>Configuration</b>:</p><ul>
-<li>Parameter Settings: as desired, except <b>Battery charging</b> which should be set to <b>Disabled</b></li>
+<li>Parameter Settings:<ul>
+<li>Enable internal IP DMA: <b>Disabled</b></li>
+<li>Battery charging: <b>Disabled</b></li>
+</ul>
+</li>
 <li>GPIO Settings: <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadLeft">Pin Name   </th><th class="markdownTableHeadCenter">Signal on Pin   </th><th class="markdownTableHeadCenter">Pin Context..   </th><th class="markdownTableHeadCenter">GPIO output..   </th><th class="markdownTableHeadCenter">GPIO mode   </th><th class="markdownTableHeadCenter">GPIO Pull-up/Pull..   </th><th class="markdownTableHeadCenter">Maximum out..   </th><th class="markdownTableHeadCenter">Fast Mode   </th><th class="markdownTableHeadCenter">User Label    </th></tr>
@@ -272,7 +289,12 @@ Pinout &amp; Configuration tab</h3>
 <li>Activate_VBUS: Disable</li>
 </ul>
 <p class="startli"><b>Configuration</b>:</p><ul>
-<li>Parameter Settings: as desired</li>
+<li>Parameter Settings:<ul>
+<li>Speed: set to <b>speed required by the application</b></li>
+<li>Enable internal IP DMA: <b>Disabled</b></li>
+<li>Battery charging: <b>Disabled</b></li>
+</ul>
+</li>
 <li>GPIO Settings: <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadLeft">Pin Name   </th><th class="markdownTableHeadCenter">Signal on Pin   </th><th class="markdownTableHeadCenter">Pin Context..   </th><th class="markdownTableHeadCenter">GPIO output..   </th><th class="markdownTableHeadCenter">GPIO mode   </th><th class="markdownTableHeadCenter">GPIO Pull-up/Pull..   </th><th class="markdownTableHeadCenter">Maximum out..   </th><th class="markdownTableHeadCenter">Fast Mode   </th><th class="markdownTableHeadCenter">User Label    </th></tr>
