@@ -74,12 +74,21 @@ This driver requires the following configuration in CubeMX:
 
   - **clock**: **USB** peripheral clock at **48 MHz**.
   - **peripheral**:
-    - for **USB** or **USB_OTG_FS** configured as **Device (FS)** or **Mode = Device_Only** and **Parameter Setting** configured
-      as desired, except **Battery charging**, if it exists, should be set to **Disabled**.
+    - for **USB** or **USB_OTG_FS** configured as **Device (FS)** or **Mode = Device_Only**
+      , and configure the following **Parameter Settings**:
+      - **Enable internal IP DMA** set to **Disabled**.
+      - **Battery charging**, if it exists, set to **Disabled**.
     - for **USB_OTG_HS** in **high-speed** mode: configured as **External Phy = Device_Only** if ULPI Phy is populated
-      , and **Parameter Setting** configured as desired, except **Battery charging**, if it exists, should be set to **Disabled**.
+      , and configure the following **Parameter Settings**:
+      - **Enable internal IP DMA** set to **Disabled**.
+      - **Speed** set to speed required by the application:
+        if the application is configured for full-speed operation set this setting to **Device Full Speed 12MBit/s**,
+        if the application is configured for high-speed operation set this setting to **Device High Speed 480MBit/s**.
+      - **Battery charging**, if it exists, set to **Disabled**.
     - for **USB_OTG_HS** in **full-speed** mode: configured as **Internal FS Phy = Device_Only** if ULPI Phy is not populated
-      , and **Parameter Setting** configured as desired, except **Battery charging**, if it exists, should be set to **Disabled**.
+      , and configure the following **Parameter Settings**:
+      - **Enable internal IP DMA** set to **Disabled**.
+      - **Battery charging**, if it exists, set to **Disabled**.
   - **pins**:
     - for **USB** or **USB_OTG_FS** in **full-speed** mode: **USB_OTG_FS_VBUS**, **USB_OTG_FS_DM** and **USB_OTG_FS_DP pins**.
     - for **USB_OTG_HS** in **high-speed** mode: **USB_OTG_HS_ULPI_CK**, **USB_OTG_HS_ULPI_D0**, **USB_OTG_HS_ULPI_D1**
@@ -123,7 +132,9 @@ This driver requires the following configuration in CubeMX:
        - Activate_SOF: unchecked
 
      __Configuration__:
-       - Parameter Settings: as desired, except **Battery charging** which should be set to **Disabled**
+       - Parameter Settings:
+         - Enable internal IP DMA: **Disabled**
+         - Battery charging: **Disabled**
        - GPIO Settings:
            Pin Name | Signal on Pin       | Pin Context..| GPIO output..| GPIO mode                     | GPIO Pull-up/Pull..| Maximum out..| Fast Mode | User Label
            :--------|:-------------------:|:------------:|:------------:|:-----------------------------:|:------------------:|:------------:|:---------:|:----------:
@@ -141,7 +152,10 @@ This driver requires the following configuration in CubeMX:
        - Activate_VBUS: Disable
 
      __Configuration__:
-       - Parameter Settings: as desired
+       - Parameter Settings:
+         - Speed: set to **speed required by the application**
+         - Enable internal IP DMA: **Disabled**
+         - Battery charging: **Disabled**
        - GPIO Settings:
            Pin Name | Signal on Pin       | Pin Context..| GPIO output..| GPIO mode                     | GPIO Pull-up/Pull..| Maximum out..| Fast Mode | User Label
            :--------|:-------------------:|:------------:|:------------:|:-----------------------------:|:------------------:|:------------:|:---------:|:----------:
