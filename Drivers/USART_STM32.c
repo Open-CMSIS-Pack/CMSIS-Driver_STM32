@@ -103,7 +103,7 @@ This driver requires the following configuration in CubeMX:
 
   - **clock**: **UART/USART** peripheral clock.
   - **peripheral**: **UART/USART** peripheral configured as **Asynchronous** with optional **Hardware Flow Control**
-    and **Parameter Setting** configured as desired, except **Advanced Parameters: Fifo Mode**, if it exists, should be
+    and **Parameter Settings** configured as desired, except **Advanced Parameters: Fifo Mode**, if it exists, should be
     set to **Disable**.
   - **pins**: **UART/USART TX** and **UART/USART RX pins**, and optional **Hardware flow Control pins**.
   - **DMA**: optional **DMA** configuration for transfers.

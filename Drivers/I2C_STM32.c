@@ -76,7 +76,7 @@ __Functional__ deviations:
 This driver requires the following configuration in CubeMX:
 
   - **clock**: **I2C** peripheral clock.
-  - **peripheral**: **I2C** peripheral configured as **I2C** and **Parameter Setting** configured as desired.
+  - **peripheral**: **I2C** peripheral configured as **I2C** and **Parameter Settings** configured as desired.
   - **pins**: **I2C SCL** and **SDA pins**.
   - **DMA**: optional **DMA** configuration for transfers.
   - **interrupts**: enabled **I2C event** and **I2C error interrupts** and **IRQ handlers** that **Call HAL handlers** and

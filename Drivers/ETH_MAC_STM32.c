@@ -79,7 +79,7 @@ This driver requires the following configuration in CubeMX:
 
   - **clock**: appropriate **AHB clock** on which Ethernet MAC controller is connected.
   - **peripheral**: **ETH** peripheral configured as **MII** or **RMII** mode
-    and **Parameter Setting** configured as desired.
+    and **Parameter Settings** configured as desired.
   - **pins**:
     - for **RMII** mode: **ETH_CRS_DV**, **ETH_MDC**, **ETH_MDIO**, **ETH_REF_CLK**, **ETH_RXD0**
       , **ETH_RXD1**, **ETH_TXD0**, **ETH_TXD1** and **ETH_TX_EN pins**.

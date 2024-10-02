@@ -87,7 +87,7 @@ This driver requires the following configuration in CubeMX:
 
   - **clock**: **SPI** peripheral clock.
   - **peripheral**: **SPI** peripheral configured as **Full-Duplex Master/Slave**
-    and **Parameter Setting** configured as desired.
+    and **Parameter Settings** configured as desired.
   - **pins**: **SPI MISO**, **MOSI**, **SCK** and **NSS pins**.
   - **DMA**: optional **DMA** configuration for transfers.
   - **interrupts**: enabled **SPI interrupts** and **IRQ handlers** that **Call HAL handlers** and

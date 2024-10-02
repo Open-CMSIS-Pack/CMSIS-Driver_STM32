@@ -76,9 +76,9 @@ This driver requires the following configuration in CubeMX:
   - **peripheral**:
     - for **USB** or **USB_OTG_FS** configured as **Host_Only** or **Mode = Host_Only**.
     - for **USB_OTG_HS** in **high-speed** mode: configured as **External Phy = Host_Only** if ULPI Phy is populated
-      , and **Parameter Setting** configured as desired.
+      , and **Parameter Settings** configured as desired.
     - for **USB_OTG_HS** in **full-speed** mode: configured as **Internal FS Phy = Host_Only** if ULPI Phy is not populated
-      , and **Parameter Setting** configured as desired.
+      , and **Parameter Settings** configured as desired.
   - **pins**:
     - for **USB** or **USB_OTG_FS** in **full-speed** mode: **USB_OTG_FS_DM**, **USB_OTG_FS_DP pins** and pin
       for VBUS control (usually GPIO or via Multi Function eXpander (MFX))
