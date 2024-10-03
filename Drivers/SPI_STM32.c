@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       19. September 2024
+ * $Date:       3. October 2024
  * $Revision:   V3.0
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
@@ -263,6 +263,18 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 
 #else
 #define DRIVER_CONFIG_VALID     1
+#endif
+
+// Determine peripheral/HAL differences that driver needs to handle
+
+// Determine if HAL does not have extended module
+
+#if  (((defined(__STM32F1xx_HAL_H) || defined(STM32F1xx_HAL_H)) && !defined(STM32F1xx_HAL_SPI_EX_H)) || \
+      ((defined(__STM32F2xx_HAL_H) || defined(STM32F2xx_HAL_H)) && !defined(STM32F2xx_HAL_SPI_EX_H)) || \
+      ((defined(__STM32F4xx_HAL_H) || defined(STM32F4xx_HAL_H)) && !defined(STM32F4xx_HAL_SPI_EX_H)) || \
+      ((defined(__STM32L0xx_HAL_H) || defined(STM32L0xx_HAL_H)) && !defined(STM32L0xx_HAL_SPI_EX_H)) || \
+      ((defined(__STM32L1xx_HAL_H) || defined(STM32L1xx_HAL_H)) && !defined(STM32L1xx_HAL_SPI_EX_H)))
+#define SPI_VARIANT_NO_HAL_EX           1
 #endif
 
 // *****************************************************************************
@@ -1153,7 +1165,9 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
     switch (control & ARM_SPI_SS_MASTER_MODE_Msk) {             // --- Mode Parameters: Slave Select Mode
       case ARM_SPI_SS_MASTER_UNUSED:                            // SPI Slave Select when Master: Not used (default)
         ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_SOFT;
+#ifdef  SPI_NSS_PULSE_DISABLE
         ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+#endif
         if (ptr_ro_info->ptr_nss_pin_config != NULL) {
           // Unconfigure NSS pin
           HAL_GPIO_DeInit(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin);
@@ -1167,7 +1181,9 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         }
 
         ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_SOFT;
+#ifdef  SPI_NSS_PULSE_DISABLE
         ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+#endif
 
         // Prepare NSS pin configuration for GPIO output mode
         GPIO_InitStruct.Mode     = GPIO_MODE_OUTPUT_PP;
@@ -1181,7 +1197,9 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         }
 
         ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_HARD_OUTPUT;
+#ifdef  SPI_NSS_PULSE_DISABLE
         ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+#endif
 
         // Prepare NSS pin configuration for alternate function mode
         GPIO_InitStruct.Mode     = GPIO_MODE_AF_PP;
@@ -1195,7 +1213,9 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         }
 
         ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_HARD_INPUT;
+#ifdef  SPI_NSS_PULSE_DISABLE
         ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+#endif
 
         // Prepare NSS pin configuration for alternate function mode
         GPIO_InitStruct.Mode     = GPIO_MODE_AF_PP;
@@ -1214,7 +1234,9 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         }
 
         ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_HARD_INPUT;
+#ifdef  SPI_NSS_PULSE_DISABLE
         ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+#endif
 
         // Prepare NSS pin configuration for alternate function mode
         GPIO_InitStruct.Mode     = GPIO_MODE_AF_PP;
@@ -1223,7 +1245,9 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 
       case ARM_SPI_SS_SLAVE_SW:                                 // SPI Slave Select when Slave: Software controlled
         ptr_ro_info->ptr_hspi->Init.NSS       = SPI_NSS_SOFT;
+#ifdef  SPI_NSS_PULSE_DISABLE
         ptr_ro_info->ptr_hspi->Init.NSSPMode  = SPI_NSS_PULSE_DISABLE;
+#endif
         if (ptr_ro_info->ptr_nss_pin_config != NULL) {
           // Unconfigure NSS pin
           HAL_GPIO_DeInit(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin);
@@ -1401,10 +1425,12 @@ void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi) {
     return;
   }
 
+#ifndef SPI_VARIANT_NO_HAL_EX
   if ((ptr_ro_info->ptr_hspi->pRxBuffPtr != NULL) && (ptr_ro_info->ptr_hspi->RxXferSize != 0U) && (ptr_ro_info->ptr_hspi->hdmarx == NULL)) {
     // If DMA is not used for Rx during Tx, flush Rx after transmission
     (void)HAL_SPIEx_FlushRxFifo(ptr_ro_info->ptr_hspi);
   }
+#endif
 
   if (ptr_ro_info->ptr_rw_info == NULL) {
     return;
