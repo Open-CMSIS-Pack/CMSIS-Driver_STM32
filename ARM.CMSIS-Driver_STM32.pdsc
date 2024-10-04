@@ -14,7 +14,15 @@
   <releases>
     <release version="1.0.0-dev0">
       Active development ...
-      Initial release.
+      Initial release of pack containing drivers for the following peripherals:
+       - Ethernet MAC
+       - GPIO
+       - I2C
+       - MCI
+       - SPI
+       - USART
+       - USB Device
+       - USB Host
     </release>
   </releases>
 
