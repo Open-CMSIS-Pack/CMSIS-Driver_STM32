@@ -51,10 +51,10 @@ Add the following packs and components to your project.
     - component: CMSIS Driver:USART           # Add Driver API shim interface
 ```
 
-The drivers require configuration with [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html). The configuration settings are exemplified in the [Driver API Shim Source](#available-cmsis-drivers), but depend on the actual device that is used.
+The drivers require configuration with [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html). The configuration settings are exemplified in the [Driver API Shim Source](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/Drivers), but depend on the actual device that is used.
 
 For additional information refer to:
 
 - [CMSIS-Toolbox - Configure STM32 Devices with CubeMX](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/CubeMX.md) for usage information of STM32CubeMX with CMSIS projects. In µVision start CubeMX in dialog [Manage Run-Time Environment](https://developer.arm.com/documentation/101407/0540/Creating-Applications/Software-Components/Managing-Run-Time-Environment) from the component `Device:CubeMX`.
 
-- [CMSIS-Driver - Theory of Operation](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html) describes the usage of CMSIS-Drivers in your application code via an [access struct](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html#AccessStruct). The driver instances available depend on the CubeMX device configuration as explained in the [Driver API Shim Source](#available-cmsis-drivers).
+- [CMSIS-Driver - Theory of Operation](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html) describes the usage of CMSIS-Drivers in your application code via an [access struct](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html#AccessStruct). The driver instances available depend on the CubeMX device configuration as explained in the [Driver API Shim Source](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/Drivers).

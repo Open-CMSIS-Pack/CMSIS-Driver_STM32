@@ -36,15 +36,11 @@ Driver API Shim Source     | Description
 
 ### Supported STM32 Device Families
 
-The Driver API Shim implementations are using the STM32Cube HAL interface and therefore support a wide range of STM32 device families. Refer to the following STM32 Device Family Packs for further details as some STM32Cube HAL implementations have inconsistencies.
-
-- [STMicroelectronics STM32H7 Series](https://www.keil.arm.com/packs/stm32h7xx_dfp-keil)
-- [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u5xx_dfp-keil)
-- :
+The Driver API Shim implementations are using the STM32Cube HAL interface and therefore support a wide range of STM32 device families. Refer to the STM32 Device Family Packs for further details as some STM32Cube HAL implementations have inconsistencies.
 
 ### Driver Validation
 
-The [Driver API Shim implementations](#available-cmsis-drivers) are validated using the [CMSIS-Driver_Validation](https://github.com/ARM-software/CMSIS-Driver_Validation) tests.
+The Driver API Shim implementations are validated using the [CMSIS-Driver_Validation](https://github.com/ARM-software/CMSIS-Driver_Validation) tests.
 
 ## Usage
 
@@ -52,8 +48,8 @@ Add the following packs and components to your project.
 
 ```yml
   packs:
-    - pack: Keil::STM32U5xx_DFP@>=3.0.0       # choose the DFP that matches your device
-    - pack: ARM::CMSIS@>=6.0.0
+    - pack: Keil::STM32U5xx_DFP@^3.0.0        # choose the DFP that matches your device
+    - pack: ARM::CMSIS@^6.0.0
     - pack: ARM::CMSIS-Driver_STM32
 
   components:
