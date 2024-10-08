@@ -25,13 +25,15 @@ The diagram below outlines the software architecture that is used for example by
 
 ### Supported STM32 Device Families
 
-- [STMicroelectronics STM32H7 Series](https://www.keil.arm.com/packs/stm32h7xx_dfp-keil)
-- [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u5xx_dfp-keil)
-- :
+The Driver API Shim implementations are using the STM32Cube HAL interface and therefore support a wide range of STM32 device families. Refer to the STM32 Device Family Packs for further details as some STM32Cube HAL implementations have inconsistencies.
+
+Please feel free to raise an [issue on GitHub](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/issues)
+to report misbehavior (i.e. bugs) or start discussions about enhancements. This
+is your best way to interact directly with the maintenance team and the community.
 
 ### Driver Validation
 
-The [Driver API Shim implementations](#available-cmsis-drivers) are validated using the [CMSIS-Driver_Validation](https://github.com/ARM-software/CMSIS-Driver_Validation) tests.
+The Driver API Shim implementations are validated using the [CMSIS-Driver_Validation](https://github.com/ARM-software/CMSIS-Driver_Validation) tests.
 
 ## Usage
 

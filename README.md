@@ -36,6 +36,8 @@ Driver API Shim Source     | Description
 
 ### Supported STM32 Device Families
 
+The Driver API Shim implementations are using the STM32Cube HAL interface and therefore support a wide range of STM32 device families. Refer to the following STM32 Device Family Packs for further details as some STM32Cube HAL implementations have inconsistencies.
+
 - [STMicroelectronics STM32H7 Series](https://www.keil.arm.com/packs/stm32h7xx_dfp-keil)
 - [STMicroelectronics STM32U5 Series](https://www.keil.arm.com/packs/stm32u5xx_dfp-keil)
 - :
@@ -122,7 +124,7 @@ Please feel free to raise an [issue on GitHub](https://github.com/Open-CMSIS-Pac
 to report misbehavior (i.e. bugs) or start discussions about enhancements. This
 is your best way to interact directly with the maintenance team and the community.
 We encourage you to append implementation suggestions as this helps to decrease the
-workload of the very limited maintenance team.
+workload of the maintenance team.
 
 We will be monitoring and responding to issues as best we can.
 Please attempt to avoid filing duplicates of open or closed items when possible.
