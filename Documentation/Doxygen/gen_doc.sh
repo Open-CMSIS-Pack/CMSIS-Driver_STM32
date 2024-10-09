@@ -5,8 +5,8 @@
 #
 # Pre-requisites:
 # - bash shell (for Windows: install git for Windows)
+# - curl
 # - doxygen 1.9.6
-# - mscgen 0.20
 # - linkchecker (can be skipped with -s)
 
 set -o pipefail
@@ -14,21 +14,18 @@ set -o pipefail
 # Set version of gen pack library
 # For available versions see https://github.com/Open-CMSIS-Pack/gen-pack/tags.
 # Use the tag name without the prefix "v", e.g., 0.7.0
-REQUIRED_GEN_PACK_LIB="0.9.0"
+REQUIRED_GEN_PACK_LIB="0.11.1"
 
 DIRNAME=$(dirname "$(readlink -f "$0")")
 GENDIR=../html
 REQ_DXY_VERSION="1.9.6"
-REQ_MSCGEN_VERSION="0.20"
 
 RUN_LINKCHECKER=1
-COMPONENTS=()
 
 function usage() {
   echo "Usage: $(basename "$0") [-h] [-s] [-c <comp>]"
   echo " -h,--help               Show usage"
   echo " -s,--no-linkcheck       Skip linkcheck"
-  echo " -c,--component <comp>   Select component <comp> to generate documentation for. "
   echo "                         Can be given multiple times. Defaults to all components."
 }
 
@@ -40,10 +37,6 @@ while [[ $# -gt 0 ]]; do
     ;;
     '-s'|'--no-linkcheck')
       RUN_LINKCHECKER=0
-    ;;
-    '-c'|'--component')
-      shift
-      COMPONENTS+=("$1")
     ;;
     *)
       echo "Invalid command line argument: $1" >&2
@@ -66,7 +59,6 @@ fi
 
 find_git
 find_doxygen "${REQ_DXY_VERSION}"
-find_utility "mscgen" "-l | grep 'Mscgen version' | sed -r -e 's/Mscgen version ([^,]+),.*/\1/'" "${REQ_MSCGEN_VERSION}"
 [[ ${RUN_LINKCHECKER} != 0 ]] && find_linkchecker
 
 if [ -z "${VERSION_FULL}" ]; then
@@ -77,47 +69,33 @@ pushd "${DIRNAME}" > /dev/null || exit 1
 
 echo_log "Generating documentation ..."
 
-function generate() {
-  if [[ ! (${#COMPONENTS[@]} == 0 || ${COMPONENTS[*]} =~ $1) ]]; then
-    return
-  fi
+projectName=$(grep -E "PROJECT_NAME\s+=" driver.dxy.in | sed -r -e 's/[^"]*"([^"]+)".*/\1/')
+projectNumberFull="${VERSION_FULL}"
+projectNumber="${projectNumberFull%+*}"
+datetime=$(date -u +'%a %b %e %Y %H:%M:%S')
+year=$(date -u +'%Y')
 
-  projectName=$(grep -E "PROJECT_NAME\s+=" "$1.dxy.in" | sed -r -e 's/[^"]*"([^"]+)".*/\1/')
-  projectNumberFull="$2"
-  if [ -z "${projectNumberFull}" ]; then
-    projectNumberFull=$(grep -E "PROJECT_NUMBER\s+=" "$1.dxy.in" | sed -r -e 's/[^"]*"[^0-9]*(([0-9]+\.[0-9]+(\.[0-9]+)?(-.+)?)?)".*/\1/')
-  fi
-  if [ -z "${projectNumberFull}" ]; then
-    projectNumberFull="$(git rev-parse --short HEAD)"
-  fi
-  projectNumber="${projectNumberFull%+*}"
-  datetime=$(date -u +'%a %b %e %Y %H:%M:%S')
-  year=$(date -u +'%Y')
+sed -e "s/{projectNumber}/${projectNumber}/" driver.dxy.in > driver.dxy
 
-  sed -e "s/{projectNumber}/${projectNumber}/" "$1.dxy.in" > "$1.dxy"
+git_changelog -f html -p "v" > src/history.txt
 
-  git_changelog -f html -p "v" > src/history.txt
+echo_log "\"${UTILITY_DOXYGEN}\" driver.dxy"
+"${UTILITY_DOXYGEN}" driver.dxy
 
-  echo_log "\"${UTILITY_DOXYGEN}\" \"$1.dxy\""
-  "${UTILITY_DOXYGEN}" "$1.dxy"
+mkdir -p "${DIRNAME}/${GENDIR}/search/"
+cp -f "${DIRNAME}/style_template/search.css" "${DIRNAME}/${GENDIR}/search/"
+cp -f "${DIRNAME}/style_template/navtree.js" "${DIRNAME}/${GENDIR}/"
+cp -f "${DIRNAME}/style_template/resize.js" "${DIRNAME}/${GENDIR}/"
 
-  mkdir -p "${DIRNAME}/${GENDIR}/search/"
-  cp -f "${DIRNAME}/style_template/search.css" "${DIRNAME}/${GENDIR}/search/"
-  cp -f "${DIRNAME}/style_template/navtree.js" "${DIRNAME}/${GENDIR}/"
-  cp -f "${DIRNAME}/style_template/resize.js" "${DIRNAME}/${GENDIR}/"
-
-  sed -e "s/{datetime}/${datetime}/" "${DIRNAME}/style_template/footer.js.in" \
-    | sed -e "s/{year}/${year}/" \
-    | sed -e "s/{projectName}/${projectName}/" \
-    | sed -e "s/{projectNumber}/${projectNumber}/" \
-    | sed -e "s/{projectNumberFull}/${projectNumberFull}/" \
-    > "${DIRNAME}/${GENDIR}/footer.js"
-}
-
-generate "Docu" "${VERSION_FULL}"
-
-[[ ${RUN_LINKCHECKER} != 0 ]] && check_links --timeout 120 "${DIRNAME}/../html/index.html" "${DIRNAME}"
+sed -e "s/{datetime}/${datetime}/" "${DIRNAME}/style_template/footer.js.in" \
+  | sed -e "s/{year}/${year}/" \
+  | sed -e "s/{projectName}/${projectName}/" \
+  | sed -e "s/{projectNumber}/${projectNumber}/" \
+  | sed -e "s/{projectNumberFull}/${projectNumberFull}/" \
+  > "${DIRNAME}/${GENDIR}/footer.js"
 
 popd > /dev/null || exit 1
+
+[[ ${RUN_LINKCHECKER} != 0 ]] && check_links --timeout 120 "${DIRNAME}/../html/index.html" "${DIRNAME}"
 
 exit 0
