@@ -4,8 +4,6 @@
 
 This is the development repository of the **CMSIS-Driver interface to STM32Cube HAL** (called Driver API Shim Interface below).
 
-> **Note:** This is currently Work in Progress. Final release is expected in Q3'2024.
-
 User applications and middleware components use [CMSIS-Driver](https://arm-software.github.io/CMSIS_6/latest/Driver/index.html) to achieve better code reuse and simplify integration in various ecosystems. CMSIS-Driver are generic and independent of a specific RTOS making it reusable across a wide range of supported microcontroller devices.
 
 STM32 microcontrollers already provide powerful drivers, however with a different API interface, call STM32Cube HAL. With this **Driver API Shim Interface** the CMSIS standards can be used by the software ecosystem and application developers.
@@ -58,13 +56,13 @@ Add the following packs and components to your project.
     - component: CMSIS Driver:USART           # Add Driver API shim interface
 ```
 
-The drivers require configuration with [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html). The configuration settings are exemplified in the [Driver API Shim Source](#available-cmsis-drivers), but depend on the actual device that is used.
+The drivers require configuration with [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html). The configuration settings are exemplified in the [Driver API Shim Documentation](https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/driver.html), but depend on the actual device that is used.
 
 For additional information refer to:
 
 - [CMSIS-Toolbox - Configure STM32 Devices with CubeMX](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/CubeMX.md) for usage information of STM32CubeMX with CMSIS projects. In µVision start CubeMX in dialog [Manage Run-Time Environment](https://developer.arm.com/documentation/101407/0540/Creating-Applications/Software-Components/Managing-Run-Time-Environment) from the component `Device:CubeMX`.
 
-- [CMSIS-Driver - Theory of Operation](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html) describes the usage of CMSIS-Drivers in your application code via an [access struct](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html#AccessStruct). The driver instances available depend on the CubeMX device configuration as explained in the [Driver API Shim Source](#available-cmsis-drivers).
+- [CMSIS-Driver - Theory of Operation](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html) describes the usage of CMSIS-Drivers in your application code via an [access struct](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html#AccessStruct). The driver instances available depend on the CubeMX device configuration as explained in the [Driver API Shim Documentation](https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/driver.html).
 
 ## Software Pack
 
