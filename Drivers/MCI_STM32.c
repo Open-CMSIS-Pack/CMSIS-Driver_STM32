@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       20. June 2024
- * $Revision:   V3.0
+ * $Date:       14. October 2024
+ * $Revision:   V3.1
  *
  * Project:     MCI Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.1
+  - Corrected CLKCR register write access handling
 - Version 3.0
   - Initial release
 
@@ -174,7 +176,7 @@ This driver requires the following configuration in CubeMX:
 #endif
 
 /* Driver Version */
-#define ARM_MCI_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,0)
+#define ARM_MCI_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,1)
 
 
 /**
@@ -634,7 +636,7 @@ static ARM_MCI_CAPABILITIES GetCapabilities (MCI_RESOURCES *mci) {
     cap.vccq_1v8 = 1U;
   }
   /* Set controller specific capabilities */
-  cap.high_speed     = 1U;
+  cap.high_speed     = MCI_BUS_MODE_HS;
   cap.sdio_interrupt = 1U;
   cap.read_wait      = 1U;
 

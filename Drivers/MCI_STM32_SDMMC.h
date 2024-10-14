@@ -203,6 +203,13 @@ extern MMC_HandleTypeDef                hmmc2;
 #endif
 #endif
 
+/* Enable/Disable High Speed bus mode */
+#if defined(MemoryCard_Bus_Mode_HS)
+  #define MCI_BUS_MODE_HS               MemoryCard_Bus_Mode_HS
+#else
+  #define MCI_BUS_MODE_HS               1U
+#endif
+
 /* Driver configuration flag definitions */
 #define MCI_CFG_PIN_CD         (1UL << 0) /* Card Detect pin presence      */
 #define MCI_CFG_PIN_WP         (1UL << 1) /* Write Protect pin presence    */
@@ -434,14 +441,14 @@ __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
 
 #if defined(RCC_PERIPHCLK_SDMMC)
   #if defined(MX_SDMMC_PERIPH_CLOCK_FREQ)
-    freq = MX_SDMMC_PERIPH_CLOCK_FREQ;
+    freq = (uint32_t)MX_SDMMC_PERIPH_CLOCK_FREQ;
   #else
     freq = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC);
   #endif
 #elif defined(RCC_PERIPHCLK_SDMMC1) || defined(RCC_PERIPHCLK_SDMMC2)
   if (mci->reg == SDMMC1) {
     #if defined(MX_SDMMC1_PERIPH_CLOCK_FREQ)
-      freq = MX_SDMMC1_PERIPH_CLOCK_FREQ;
+      freq = (uint32_t)MX_SDMMC1_PERIPH_CLOCK_FREQ;
     #else
       freq = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC1);
     #endif
@@ -449,7 +456,7 @@ __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
   #if defined(SDMMC2)
   else {
     #if defined(MX_SDMMC2_PERIPH_CLOCK_FREQ)
-      freq = MX_SDMMC2_PERIPH_CLOCK_FREQ;
+      freq = (uint32_t)MX_SDMMC2_PERIPH_CLOCK_FREQ;
     #else
       freq = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SDMMC2);
     #endif
@@ -467,17 +474,17 @@ __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
 */
 __STATIC_INLINE void MCI_Set_ClockDivider (MCI_RESOURCES *mci, uint32_t divider) {
   #if defined(MCI_SDMMC_V1)
-    if (divider < 2U) { divider  = 0U; }
-    else              { divider -= 2U; }
+    uint32_t bypass;
+
+    if (divider < 2U) { divider  = 0U; bypass = SDMMC_CLKCR_BYPASS; }
+    else              { divider -= 2U; bypass = 0U;                 }
 
     if (divider > SDMMC_CLKCR_CLKDIV) {
       divider = SDMMC_CLKCR_CLKDIV;
     }
-    mci->reg->CLKCR &= ~SDMMC_CLKCR_CLKDIV;
-    mci->reg->CLKCR |= divider;
+    mci->reg->CLKCR = (mci->reg->CLKCR & ~(SDMMC_CLKCR_BYPASS | SDMMC_CLKCR_CLKDIV)) | bypass | divider;
   #else
-    mci->reg->CLKCR &= ~SDMMC_CLKCR_CLKDIV;
-    mci->reg->CLKCR |= (divider) >> 1U;
+    mci->reg->CLKCR = (mci->reg->CLKCR & ~SDMMC_CLKCR_CLKDIV) | ((divider) >> 1U);
   #endif
 }
 
@@ -485,11 +492,20 @@ __STATIC_INLINE void MCI_Set_ClockDivider (MCI_RESOURCES *mci, uint32_t divider)
   \brief Get the clock divider that generates the output clock
 */
 __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
+  uint32_t divider;
+
   #if defined(MCI_SDMMC_V1)
-    return ((mci->reg->CLKCR & 0xFFU) + 2U);
+    uint32_t clkcr = mci->reg->CLKCR;
+
+    if (clkcr & SDMMC_CLKCR_BYPASS) {
+      divider = 1U;
+    } else {
+      divider = ((clkcr & SDMMC_CLKCR_CLKDIV) + 2U);
+    }
   #else
-    return ((mci->reg->CLKCR & 0x3FFU) << 1U);
+    divider = (mci->reg->CLKCR & 0x3FFU) << 1U;
   #endif
+  return (divider);
 }
 
 /**
@@ -506,7 +522,7 @@ __STATIC_INLINE void MCI_Enable_ClockOutput (MCI_RESOURCES *mci) {
   \brief Enable MCI peripheral output clock power save
 */
 __STATIC_INLINE void MCI_Enable_ClockPowerSave (MCI_RESOURCES *mci) {
-  mci->reg->CLKCR |=  SDMMC_CLKCR_PWRSAV;
+  mci->reg->CLKCR |= SDMMC_CLKCR_PWRSAV;
 }
 
 /**
@@ -622,8 +638,7 @@ __STATIC_INLINE int32_t MCI_Set_BusSpeedMode_DDR50(MCI_RESOURCES *mci) {
   \param[in]  width  bus width (MCI_BUSW_1 | MCI_BUSW_4, MCI_BUSW_8)
 */
 __STATIC_INLINE void MCI_Set_BusWidth(MCI_RESOURCES *mci, uint32_t bus_width) {
-  mci->reg->CLKCR &= ~SDMMC_CLKCR_WIDBUS_Msk;
-  mci->reg->CLKCR |= bus_width;
+  mci->reg->CLKCR = (mci->reg->CLKCR & ~SDMMC_CLKCR_WIDBUS_Msk) | bus_width;
 }
 
 /**

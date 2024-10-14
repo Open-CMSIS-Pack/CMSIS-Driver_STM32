@@ -90,6 +90,13 @@ extern DMA_HandleTypeDef                hdma_sdio_rx;
 extern DMA_HandleTypeDef                hdma_sdio_tx;
 #endif
 
+/* Enable/Disable High Speed bus mode */
+#if defined(MemoryCard_Bus_Mode_HS)
+  #define MCI_BUS_MODE_HS               MemoryCard_Bus_Mode_HS
+#else
+  #define MCI_BUS_MODE_HS               0U
+#endif
+
 /* Driver configuration flag definitions */
 #define MCI_CFG_PIN_CD         (1UL << 0) /* Card Detect pin presence      */
 #define MCI_CFG_PIN_WP         (1UL << 1) /* Write Protect pin presence    */
@@ -274,15 +281,31 @@ __STATIC_INLINE uint32_t MCI_Get_PeriphCLKFreq(MCI_RESOURCES *mci) {
   \brief Set the clock divider that generates the output clock
 */
 __STATIC_INLINE void MCI_Set_ClockDivider (MCI_RESOURCES *mci, uint32_t divider) {
-  mci->reg->CLKCR &= ~SDIO_CLKCR_CLKDIV;
-  mci->reg->CLKCR |= (divider) >> 1U;
+  uint32_t bypass;
+
+  if (divider < 2U) { divider  = 0U; bypass = SDIO_CLKCR_BYPASS; }
+  else              { divider -= 2U; bypass = 0U;                }
+
+  if (divider > SDIO_CLKCR_CLKDIV) {
+    divider = SDIO_CLKCR_CLKDIV;
+  }
+
+  mci->reg->CLKCR = (mci->reg->CLKCR & ~(SDIO_CLKCR_BYPASS | SDIO_CLKCR_CLKDIV)) | bypass | divider;
 }
 
 /**
   \brief Get the clock divider that generates the output clock
 */
 __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
-  return ((mci->reg->CLKCR & 0x3FFU) << 1U);
+  uint32_t divider;
+  uint32_t clkcr = mci->reg->CLKCR;
+
+  if (clkcr & SDIO_CLKCR_BYPASS) {
+    divider = 1U;
+  } else {
+    divider = ((clkcr & SDIO_CLKCR_CLKDIV) + 2U);
+  }
+  return (divider);
 }
 
 /**
@@ -290,6 +313,7 @@ __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
 */
 __STATIC_INLINE void MCI_Enable_ClockOutput (MCI_RESOURCES *mci) {
   mci->reg->POWER |= SDIO_POWER_PWRCTRL;
+  mci->reg->CLKCR |= SDIO_CLKCR_CLKEN;
 }
 
 /**
@@ -321,7 +345,11 @@ __STATIC_INLINE int32_t MCI_Set_BusSpeedMode_HS(MCI_RESOURCES *mci) {
   (void)mci;
   /* Speed mode up to 50MHz */
   /* Errata: configuration with the NEGEDGE bit set should not be used. */
-  return ARM_DRIVER_ERROR_UNSUPPORTED;
+  #if (MCI_BUS_MODE_HS == 0U)
+    return ARM_DRIVER_ERROR_UNSUPPORTED;
+  #else
+    return ARM_DRIVER_OK;
+  #endif
 }
 
 /**
@@ -374,8 +402,7 @@ __STATIC_INLINE int32_t MCI_Set_BusSpeedMode_DDR50(MCI_RESOURCES *mci) {
   \param[in]  bus_width  bus width (see MCI_BUS_WIDTH_*)
 */
 __STATIC_INLINE void MCI_Set_BusWidth(MCI_RESOURCES *mci, uint32_t bus_width) {
-  mci->reg->CLKCR &= ~SDIO_CLKCR_WIDBUS_Msk;
-  mci->reg->CLKCR |= bus_width;
+  mci->reg->CLKCR = (mci->reg->CLKCR & ~SDIO_CLKCR_WIDBUS_Msk) | bus_width;
 }
 
 /**
