@@ -16,6 +16,8 @@
       Active development ...
       MCI driver:
       - Corrected CLKCR register write access handling
+      USB driver:
+      - Corrected compilation on device without USB OTG
     </release>
   </releases>
 

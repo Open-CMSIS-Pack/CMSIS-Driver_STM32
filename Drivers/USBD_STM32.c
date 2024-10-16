@@ -597,9 +597,13 @@ static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t * const ptr_
   vbus_detection = 0U;
   if (ptr_ro_info->ptr_hpcd->Init.phy_itface == PCD_PHY_EMBEDDED) {
     // If embedded PHY (FS) is configured
+#if defined (USB_OTG_FS)
     if (ptr_ro_info->ptr_hpcd->Init.vbus_sensing_enable == ENABLE) {
       vbus_detection = 1U;
     }
+#else
+    vbus_detection = 0U;
+#endif
   }
 #ifdef USB_OTG_ULPI_PHY
   else if (ptr_ro_info->ptr_hpcd->Init.phy_itface == USB_OTG_ULPI_PHY) {
@@ -1143,8 +1147,12 @@ static uint16_t USBDn_GetFrameNumber (const RO_Info_t * const ptr_ro_info) {
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return 0U;
   }
-
+  
+#if defined (USB_OTG_FS)
   return ((uint16_t)USB_GetCurrentFrame(ptr_ro_info->ptr_hpcd->Instance));
+#else
+  return (ptr_ro_info->ptr_hpcd->Instance->FNR & 0x07FFU);
+#endif
 }
 
 // HAL callback functions ******************************************************
