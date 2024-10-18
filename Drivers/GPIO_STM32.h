@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       9. July 2024
- * $Revision:   V1.0
+ * $Date:       10. October 2024
+ * $Revision:   V1.1
  *
  * Project:     GPIO Driver header for STMicroelectronics STM32 devices
  *
@@ -43,7 +43,11 @@
 #define GPIO_PIN_ID_PORTI(n)    ((16U*8U)  + (n))
 #define GPIO_PIN_ID_PORTJ(n)    ((16U*9U)  + (n))
 #define GPIO_PIN_ID_PORTK(n)    ((16U*10U) + (n))
-#define GPIO_PIN_ID_PORTZ(n)    ((16U*11U) + (n))
+#define GPIO_PIN_ID_PORTM(n)    ((16U*11U) + (n))
+#define GPIO_PIN_ID_PORTN(n)    ((16U*12U) + (n))
+#define GPIO_PIN_ID_PORTO(n)    ((16U*13U) + (n))
+#define GPIO_PIN_ID_PORTP(n)    ((16U*14U) + (n))
+#define GPIO_PIN_ID_PORTZ(n)    ((16U*15U) + (n))
 
 #ifdef  __cplusplus
 extern  "C"
