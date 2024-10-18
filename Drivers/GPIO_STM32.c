@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
- * $Revision:   V1.0
+ * $Date:       10. October 2024
+ * $Revision:   V1.1
  *
  * Project:     GPIO Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 1.1
+  - Added support for GPIO ports M, N, O and P
 - Version 1.0
   - Initial release
 
@@ -56,7 +58,11 @@ The driver instance is mapped to hardware as shown in the table below:
   128 .. 143      | PORTI 0..15
   144 .. 159      | PORTJ 0..15
   160 .. 175      | PORTK 0..15
-  176 .. 191      | PORTZ 0..15
+  176 .. 191      | PORTM 0..15
+  192 .. 207      | PORTN 0..15
+  208 .. 223      | PORTO 0..15
+  224 .. 239      | PORTP 0..15
+  240 .. 255      | PORTZ 0..15
 
 # Deviations
 
@@ -145,7 +151,7 @@ extern void HAL_GPIO_EXTI_Falling_Callback (uint16_t GPIO_Pin);
 // Compile-time configuration (that can be externally overridden if necessary)
 // Maximum number of ports
 #ifndef GPIO_MAX_PORTS_NUM
-#define GPIO_MAX_PORTS_NUM      (12U)
+#define GPIO_MAX_PORTS_NUM      (16U)
 #endif
 
 // Maximum number of pins
@@ -238,6 +244,26 @@ static GPIO_TypeDef * const gpio_addr[GPIO_MAX_PORTS_NUM] = {
 #endif
 #ifdef GPIOK
 , GPIOK
+#else
+, NULL
+#endif
+#ifdef GPIOM
+, GPIOM
+#else
+, NULL
+#endif
+#ifdef GPION
+, GPION
+#else
+, NULL
+#endif
+#ifdef GPIOO
+, GPIOO
+#else
+, NULL
+#endif
+#ifdef GPIOP
+, GPIOP
 #else
 , NULL
 #endif
