@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       19. September 2024
- * $Revision:   V3.0
+ * $Date:       18. October 2024
+ * $Revision:   V3.1
  *
  * Project:     USB Device Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,9 @@
 
 # Revision History
 
+- Version 3.1
+  - Added support for devices without Vbus sensing capability
+  - Updated GetFrameNumber function to always return 0 because of missing HAL support
 - Version 3.0
   - Initial release
 
@@ -216,7 +219,7 @@ This driver requires the following configuration in CubeMX:
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -246,6 +249,11 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define USBD_VARIANT_PMA                1
 #else
 #define USBD_VARIANT_PMA                0
+#endif
+
+// Determine if HAL supports Vbus sensing
+#if   ((defined(USB_DRD_FS) || defined(USB_OTG_FS) || defined(USB_OTG_HS)) && !defined(STM32U0xx_HAL_H))
+#define USBD_VARIANT_VBUS_SENSING       1
 #endif
 
 // Configuration depending on the local macros
@@ -597,9 +605,11 @@ static ARM_USBD_CAPABILITIES USBDn_GetCapabilities (const RO_Info_t * const ptr_
   vbus_detection = 0U;
   if (ptr_ro_info->ptr_hpcd->Init.phy_itface == PCD_PHY_EMBEDDED) {
     // If embedded PHY (FS) is configured
+#ifdef USBD_VARIANT_VBUS_SENSING
     if (ptr_ro_info->ptr_hpcd->Init.vbus_sensing_enable == ENABLE) {
       vbus_detection = 1U;
     }
+#endif
   }
 #ifdef USB_OTG_ULPI_PHY
   else if (ptr_ro_info->ptr_hpcd->Init.phy_itface == USB_OTG_ULPI_PHY) {
@@ -1139,12 +1149,9 @@ static int32_t USBDn_EndpointTransferAbort (const RO_Info_t * const ptr_ro_info,
   \return      Frame Number
 */
 static uint16_t USBDn_GetFrameNumber (const RO_Info_t * const ptr_ro_info) {
+  (void)ptr_ro_info;
 
-  if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
-    return 0U;
-  }
-
-  return ((uint16_t)USB_GetCurrentFrame(ptr_ro_info->ptr_hpcd->Instance));
+  return 0U;
 }
 
 // HAL callback functions ******************************************************

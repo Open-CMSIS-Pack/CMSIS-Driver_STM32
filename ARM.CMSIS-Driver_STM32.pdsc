@@ -15,7 +15,10 @@
     <release version="1.0.1-dev0">
       Active development ...
       MCI driver:
-      - Corrected CLKCR register write access handling
+       - Corrected CLKCR register write access handling
+      USB Device driver:
+       - Added support for devices without Vbus sensing capability
+       - Updated GetFrameNumber function to always return 0 because of missing HAL support
     </release>
   </releases>
 
@@ -153,7 +156,7 @@
         <file category="source"  name="Drivers/USART_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"   Capiversion="2.3.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"   Capiversion="2.3.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
       <description>USB Device Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBD0               /* Driver USBD0 */

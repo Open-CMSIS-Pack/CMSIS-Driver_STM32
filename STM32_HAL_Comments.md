@@ -89,6 +89,7 @@
     - [example of Interrupt OUT endpoint abort timing-out on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/2266e33c0b1ed9ebc9485f6a4c9862023e0e5b82/Src/stm32h7xx_ll_usb.c#L958)
 5.  some drivers do not call **HAL_PCD_DataOutStageCallback** when **zero-length packet is received**
     - [example on STM32H5](https://github.com/STMicroelectronics/stm32h5xx_hal_driver/blob/afcafe6d4f21a18d898400705addd9c94fba8660/Src/stm32h5xx_hal_pcd.c#L1793)
+6.  no support to get current USB frame number
 
 ## USB Host
 
