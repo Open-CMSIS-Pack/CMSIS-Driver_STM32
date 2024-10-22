@@ -1,9 +1,13 @@
 name: Bug Report
 description: File a bug report.
 title: "[Bug]: "
-labels: ["bug", "triage"]
-projects: "STM32-Tracking"
-assignees: "jkrech"
+labels:
+  - bug
+  - triage
+projects: 
+  - STM32-Tracking
+assignees:
+  - jkrech
 body:
   - type: checkboxes
     attributes:
