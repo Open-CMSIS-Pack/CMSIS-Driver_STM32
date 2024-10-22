@@ -5,7 +5,7 @@ labels:
   - bug
   - triage
 projects: 
-  - STM32-Tracking
+  - Open-CMSIS-Pack/16
 assignees:
   - jkrech
 body:
