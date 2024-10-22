@@ -1,0 +1,44 @@
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+projects: "STM32-Tracking"
+assignees: "jkrech"
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
+  - type: textarea
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the bug. You may want to attach a reproducer.
+      placeholder: |
+        1. In this environment...
+        1. With this config...
+        1. Run '...'
+        1. See error...
+    validations:
+      required: false
+  - type: checkboxes
+    attributes:
+      label: Blocker
+      description: Indicate that this bug is blocking the use and there is no viable workaround available?
+      options:
+        - label: blocker
+          required: false
