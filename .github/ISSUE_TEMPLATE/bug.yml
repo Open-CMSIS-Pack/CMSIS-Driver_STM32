@@ -7,7 +7,7 @@ labels:
 projects: 
   - Open-CMSIS-Pack/16
 assignees:
-  - jkrech
+  - andbararm
 body:
   - type: checkboxes
     attributes:
