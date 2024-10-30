@@ -8,6 +8,7 @@ projects:
   - Open-CMSIS-Pack/16
 assignees:
   - andbararm
+  - HansSchneebauer
 body:
   - type: checkboxes
     attributes:
