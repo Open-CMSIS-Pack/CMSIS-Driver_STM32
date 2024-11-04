@@ -40,6 +40,15 @@ body:
         1. See error...
     validations:
       required: false
+  - type: textarea
+    attributes:
+      label: Version
+      description: Version of the pack and component you are using.
+      placeholder: |
+        1. Pack Version <major>.<minor>.<patch>
+        1. Component Version <major>.<minor>.<patch>
+    validations:
+      required: false
   - type: checkboxes
     attributes:
       label: Blocker
