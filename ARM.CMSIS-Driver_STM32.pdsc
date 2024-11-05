@@ -19,6 +19,7 @@
       MCI driver:
        - Corrected CLKCR register write access handling
       USB Device driver:
+       - Corrected PMA configuration
        - Added support for devices without Vbus sensing capability
        - Updated GetFrameNumber function to always return 0 because of missing HAL support
     </release>

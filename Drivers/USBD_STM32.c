@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       18. October 2024
+ * $Date:       5. November 2024
  * $Revision:   V3.1
  *
  * Project:     USB Device Driver for STMicroelectronics STM32 devices
@@ -30,6 +30,7 @@
 # Revision History
 
 - Version 3.1
+  - Corrected PMA configuration
   - Added support for devices without Vbus sensing capability
   - Updated GetFrameNumber function to always return 0 because of missing HAL support
 - Version 3.0
@@ -385,7 +386,8 @@ typedef struct {
 
 // Endpoint information
 typedef struct {
-           uint32_t             max_packet_size;        // Maximum packet size (in bytes)
+  volatile uint16_t             configured;             // Endpoint configuration status
+           uint16_t             max_packet_size;        // Maximum packet size (in bytes)
   volatile uint32_t             num_transferred_total;  // Number of totally transferred bytes
   volatile uint32_t             num_transferring;       // Number of transferred bytes in last transfer
 } EP_Info_t;
@@ -544,11 +546,12 @@ static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_inf
 #else                                   // If using HAL_PCDEx_PMAConfig function
   uint32_t pcd_addr;
   uint16_t max_packet_size;
-  uint8_t  ep_num;
+  uint8_t  ep_num, req_ep;
 
   (void)ep_type;
 
   // Reconfigure endpoint buffers
+  req_ep   = 0U;
   pcd_addr = ptr_ro_info->ptr_hpcd->Init.dev_endpoints * 8U;    // Offset start address for BTABLE
   for (ep_num = 0U; ep_num < ptr_ro_info->ptr_hpcd->Init.dev_endpoints; ep_num++) {
     // IN Endpoint
@@ -556,22 +559,34 @@ static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_inf
       return ARM_DRIVER_ERROR_PARAMETER;
     }
     if (ep_addr == (0x80U | ep_num)) {  // If this is the requested endpoint (max_packet_size is not in the structure yet)
+      req_ep = 1U;
       max_packet_size = ep_max_packet_size;
     } else {                            // If this is not the requested endpoint (max_packet_size is in the structure)
       max_packet_size = ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_IN_INDEX].max_packet_size;
     }
     pcd_addr += ((max_packet_size + 3U) / 4U) * 4U;
 
+    // To refresh the PMA configuration the endpoint has to be opened
+    if ((req_ep != 0U) && (ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_IN_INDEX].configured != 0U)) {
+      (void)HAL_PCD_EP_Open(ptr_ro_info->ptr_hpcd, ep_num | 0x80U, ep_max_packet_size, ep_type);
+    }
+
     // OUT Endpoint
     if (HAL_PCDEx_PMAConfig(ptr_ro_info->ptr_hpcd, ep_num, PCD_SNG_BUF, pcd_addr) != HAL_OK) {
       return ARM_DRIVER_ERROR_PARAMETER;
     }
     if (ep_addr == ep_num) {            // If this is the requested endpoint (max_packet_size is not in the structure yet)
+      req_ep = 1U;
       max_packet_size = ep_max_packet_size;
     } else {                            // If this is not the requested endpoint (max_packet_size is in the structure)
       max_packet_size = ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_OUT_INDEX].max_packet_size;
     }
     pcd_addr += ((max_packet_size + 3U) / 4U) * 4U;
+
+    // To refresh the PMA configuration the endpoint has to be opened
+    if ((req_ep != 0U) && (ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_OUT_INDEX].configured != 0U)) {
+      (void)HAL_PCD_EP_Open(ptr_ro_info->ptr_hpcd, ep_num, ep_max_packet_size, ep_type);
+    }
   }
 #endif
 
@@ -955,6 +970,9 @@ static int32_t USBDn_EndpointConfigure (const RO_Info_t * const ptr_ro_info,
   if (HAL_PCD_EP_Open(ptr_ro_info->ptr_hpcd, ep_addr, ep_max_packet_size, ep_type) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
+
+  // Update endpoint configured status
+  ptr_ep->configured = 1U;
 
   return ARM_DRIVER_OK;
 }
