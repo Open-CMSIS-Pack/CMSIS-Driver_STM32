@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       21. June 2024
- * $Revision:   V2.0
+ * $Date:       13. November 2024
+ * $Revision:   V2.1
  *
  * Project:     USB Host Driver header for STMicroelectronics STM32 devices
  *
