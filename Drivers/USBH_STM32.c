@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       21. June 2024
- * $Revision:   V2.0
+ * $Date:       13. November 2024
+ * $Revision:   V2.1
  *
  * Project:     USB Host Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 2.1
+  - MX_USB_OTG_HS_Host_FS also enables MX_USBH1 in USBH_STM32.h
 - Version 2.0
   - Initial release
 
@@ -226,7 +228,7 @@ int32_t USBH_HW_VbusOnOff (HCD_HandleTypeDef *ptr_hhcd, bool vbus) {
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,1) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
