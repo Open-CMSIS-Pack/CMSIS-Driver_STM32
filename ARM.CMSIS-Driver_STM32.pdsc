@@ -22,6 +22,8 @@
        - Corrected PMA configuration
        - Added support for devices without Vbus sensing capability
        - Updated GetFrameNumber function to always return 0 because of missing HAL support
+      USB Host driver:
+       - MX_USB_OTG_HS_Host_FS also enables MX_USBH1 in USBH_STM32.h
     </release>
   </releases>
 
@@ -171,7 +173,7 @@
         <file category="source"  name="Drivers/USBD_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.0.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.1.0" condition="CMSIS Driver requirements">
       <description>USB Host Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBH0               /* Driver USBH0 */
