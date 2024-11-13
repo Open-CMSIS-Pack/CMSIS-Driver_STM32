@@ -52,7 +52,8 @@ extern  "C"
 #endif
 
 #if    (defined(MX_USB_OTG_HS) && (defined(MX_USB_OTG_HS_Host_Only_FS) || \
-                                   defined(MX_USB_OTG_HS_Host_HS)))
+                                   defined(MX_USB_OTG_HS_Host_HS) || \
+                                   defined(MX_USB_OTG_HS_Host_FS)))
 #define MX_USBH1                        1
 #define MX_USBH1_HANDLE                 MX_USB_OTG_HS_HANDLE
 #endif
