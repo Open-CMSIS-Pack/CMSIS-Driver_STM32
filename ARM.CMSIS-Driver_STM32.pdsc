@@ -23,7 +23,7 @@
        - Added support for devices without Vbus sensing capability
        - Updated GetFrameNumber function to always return 0 because of missing HAL support
       USB Host driver:
-       - Added support for USB HS in FS mode
+       - Added support for USB HS in FS mode (when using the internal PHY)
     </release>
   </releases>
 
