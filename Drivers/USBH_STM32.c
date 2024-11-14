@@ -30,7 +30,7 @@
 # Revision History
 
 - Version 2.1
-  - MX_USB_OTG_HS_Host_FS also enables MX_USBH1 in USBH_STM32.h
+  - Added support for USB HS in FS mode
 - Version 2.0
   - Initial release
 
