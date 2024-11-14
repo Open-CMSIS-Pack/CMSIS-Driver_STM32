@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       21. June 2024
- * $Revision:   V2.0
+ * $Date:       13. November 2024
+ * $Revision:   V2.1
  *
  * Project:     USB Host Driver header for STMicroelectronics STM32 devices
  *
@@ -52,6 +52,7 @@ extern  "C"
 #endif
 
 #if    (defined(MX_USB_OTG_HS) && (defined(MX_USB_OTG_HS_Host_Only_FS) || \
+                                   defined(MX_USB_OTG_HS_Host_FS)      || \
                                    defined(MX_USB_OTG_HS_Host_HS)))
 #define MX_USBH1                        1
 #define MX_USBH1_HANDLE                 MX_USB_OTG_HS_HANDLE
