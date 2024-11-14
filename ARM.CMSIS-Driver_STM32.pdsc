@@ -23,7 +23,7 @@
        - Added support for devices without Vbus sensing capability
        - Updated GetFrameNumber function to always return 0 because of missing HAL support
       USB Host driver:
-       - MX_USB_OTG_HS_Host_FS also enables MX_USBH1 in USBH_STM32.h
+       - Added support for USB HS in FS mode
     </release>
   </releases>
 
