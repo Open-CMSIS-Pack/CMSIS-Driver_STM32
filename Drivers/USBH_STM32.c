@@ -30,7 +30,7 @@
 # Revision History
 
 - Version 2.1
-  - Added support for USB HS in FS mode
+  - Added support for USB HS in FS mode (when using the internal PHY)  
 - Version 2.0
   - Initial release
 
