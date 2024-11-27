@@ -128,6 +128,22 @@ $(document).ready(function(){initNavTree('rev_hist.html',''); initResizable(); }
 <tr>
 <th>Version </th><th>Description  </th></tr>
 <tr>
+<td>v1.1.0 </td><td><p class="starttd">GPIO driver:</p><ul>
+<li>Added support for GPIO ports M, N, O and P</li>
+</ul>
+<p class="intertd">MCI driver:</p><ul>
+<li>Corrected CLKCR register write access handling</li>
+</ul>
+<p class="intertd">USB Device driver:</p><ul>
+<li>Corrected PMA configuration</li>
+<li>Added support for devices without Vbus sensing capability</li>
+<li>Updated GetFrameNumber function to always return 0 because of missing HAL support</li>
+</ul>
+<p class="endtd">USB Host driver:</p><ul>
+<li>Added support for USB HS in FS mode (when using the internal PHY)   </li>
+</ul>
+</td></tr>
+<tr>
 <td>v1.0.0 </td><td>Initial release of pack containing drivers for the following peripherals:<ul>
 <li>Ethernet MAC</li>
 <li>GPIO</li>
