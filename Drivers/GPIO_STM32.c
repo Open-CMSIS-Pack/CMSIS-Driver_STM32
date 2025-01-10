@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       10. October 2024
- * $Revision:   V1.1
+ * $Date:       10. January 2025
+ * $Revision:   V1.2
  *
  * Project:     GPIO Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 1.2
+  - Replaced POSITION_VAL macro with CMSIS implementation
 - Version 1.1
   - Added support for GPIO ports M, N, O and P
 - Version 1.0
@@ -138,6 +140,7 @@ This driver requires the following configuration in CubeMX:
 
 #include "RTE_Components.h"
 #include  CMSIS_device_header
+#include "cmsis_compiler.h"
 
 // HAL Callback prototypes
 extern void HAL_GPIO_EXTI_Callback         (uint16_t GPIO_Pin);
@@ -633,7 +636,7 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin) {
   uint32_t pin_pos;
   uint32_t pin;
 
-  pin_pos = POSITION_VAL(GPIO_Pin);
+  pin_pos = __CLZ(__RBIT(GPIO_Pin));
   pin     = gpio0_rw_info.cb_event_pin[pin_pos];
 
   switch (gpio0_rw_info.pin_config[pin].trigger) {
@@ -659,7 +662,7 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin) {
 void HAL_GPIO_EXTI_Rising_Callback (uint16_t GPIO_Pin) {
   uint32_t pin_pos;
 
-  pin_pos = POSITION_VAL(GPIO_Pin);
+  pin_pos = __CLZ(__RBIT(GPIO_Pin));
 
   if (gpio0_rw_info.cb_event[pin_pos] != NULL) {
     gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_RISING_EDGE);
@@ -674,7 +677,7 @@ void HAL_GPIO_EXTI_Rising_Callback (uint16_t GPIO_Pin) {
 void HAL_GPIO_EXTI_Falling_Callback (uint16_t GPIO_Pin) {
   uint32_t pin_pos;
 
-  pin_pos = POSITION_VAL(GPIO_Pin);
+  pin_pos = __CLZ(__RBIT(GPIO_Pin));
 
   if (gpio0_rw_info.cb_event[pin_pos] != NULL) {
     gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_TRIGGER_FALLING_EDGE);
