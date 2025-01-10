@@ -24,6 +24,7 @@
    - for example such functions for USB Device are: **HAL_PCDEx_SetTxFiFo**, **HAL_PCDEx_SetRxFiFo** or **HAL_PCDEx_PMAConfig**
 8. retrieval of **peripheral clock** is inconsistently implemented across device series (`defect`)
    - [example for missing clock information for RCC_PERIPHCLK_I2C1 on STM32H7](https://github.com/STMicroelectronics/stm32h7xx_hal_driver/blob/fec141ce999da655a48e1a15db83a72d564a1312/Src/stm32h7xx_hal_rcc_ex.c#L1881)
+9. **POSITION_VAL** macro not available on some device series
 
 # Peripheral specific comments
 
