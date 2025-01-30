@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       26. September 2024
- * $Revision:   V3.0
+ * $Date:       30. January 2025
+ * $Revision:   V3.1
  *
  * Project:     Ethernet MAC Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.1
+  - Added VLAN and multicast address hash filtering
 - Version 3.0
   - Initial release
 
@@ -261,7 +263,7 @@ RW_ETH_TX_BUF  0x30041900 0x00001800 {
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -273,6 +275,12 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #error  Ethernet MAC driver requires ETH peripheral configuration in STM32CubeMX!
 #else
 #define DRIVER_CONFIG_VALID             1
+#endif
+
+// Check if Ethernet MAC supports VLAN and multicast address hash filtering
+#ifdef ETH_MACPFR_VTFE
+#define MAC_VLAN_FILTERING
+#define MAC_MCAST_HASH_FILTERING
 #endif
 
 // *****************************************************************************
@@ -300,7 +308,8 @@ typedef struct {
   ARM_ETH_MAC_SignalEvent_t     cb_event;               // Event callback
   DriverStatus_t                drv_status;             // Driver status
   uint8_t                       alloc_idx;              // Buffer allocation index
-  uint16_t                      reserved;               // Reserved (for padding)
+  uint8_t                       vlan_filter;            // VLAN filter enabled
+  uint8_t                       reserved;               // Reserved (for padding)
   ETH_BufferTypeDef             tx_buf;                 // Transmit buffer pointers
   ETH_BufferTypeDef             rx_buf;                 // Receive buffer pointers
   ETH_MACConfigTypeDef          mac_config;             // ETH MAC configuration structure
@@ -446,6 +455,10 @@ static int32_t ETH_MAC_PowerControl (ARM_POWER_STATE state) {
         return ARM_DRIVER_ERROR;
       }
 
+      if (eth_mac0_rw_info.drv_status.powered == 1U) {
+        return ARM_DRIVER_OK;
+      }
+
       // Initialize pins, clocks, interrupts and peripheral
       if (HAL_ETH_Init(eth_mac0_ro_info.ptr_heth) != HAL_OK) {
         return ARM_DRIVER_ERROR;
@@ -523,6 +536,47 @@ static int32_t ETH_MAC_SetMacAddress (const ARM_ETH_MAC_ADDR *ptr_addr) {
   return ARM_DRIVER_OK;
 }
 
+#ifdef MAC_MCAST_HASH_FILTERING
+/**
+  \fn          uint32_t crc32_8bit_rev (uint32_t crc32, uint8_t val)
+  \brief       Calculate 32-bit CRC (Polynomial: 0x04C11DB7, data bit-reversed).
+  \param[in]   crc32  CRC initial value
+  \param[in]   val    Input value
+  \return      Calculated CRC value
+*/
+static uint32_t crc32_8bit_rev (uint32_t crc32, uint8_t val) {
+  uint32_t n;
+
+  crc32 ^= __RBIT (val);
+  for (n = 8; n; n--) {
+    if (crc32 & 0x80000000U) {
+      crc32 <<= 1;
+      crc32  ^= 0x04C11DB7U;
+    } else {
+      crc32 <<= 1;
+    }
+  }
+  return (crc32);
+}
+
+/**
+  \fn          uint32_t crc32_data (const uint8_t *data, uint32_t len)
+  \brief       Calculate standard 32-bit Ethernet CRC.
+  \param[in]   data  Pointer to buffer containing the data
+  \param[in]   len   Data length in bytes
+  \return      Calculated CRC value
+*/
+static uint32_t crc32_data (const uint8_t *data, uint32_t len) {
+  uint32_t cnt, crc;
+
+  crc = 0xFFFFFFFFU;
+  for (cnt = len; cnt; cnt--) {
+    crc = crc32_8bit_rev (crc, *data++);
+  }
+  return (crc ^ 0xFFFFFFFFU);
+}
+#endif
+
 /**
   \fn          int32_t ETH_MAC_SetAddressFilter (const ARM_ETH_MAC_ADDR *ptr_addr,
                                                        uint32_t          num_addr)
@@ -532,11 +586,50 @@ static int32_t ETH_MAC_SetMacAddress (const ARM_ETH_MAC_ADDR *ptr_addr) {
   \return      \ref execution_status
 */
 static int32_t ETH_MAC_SetAddressFilter (const ARM_ETH_MAC_ADDR *ptr_addr, uint32_t num_addr) {
+#ifdef MAC_MCAST_HASH_FILTERING
+  uint32_t crc,hash_table[2] = {0};
+
+  if ((ptr_addr == NULL) && (num_addr != 0)) {
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+
+  if (eth_mac0_rw_info.drv_status.powered == 0U) {
+    return ARM_DRIVER_ERROR;
+  }
+
+  // Calculate 64-bit Hash table for multicast MAC filtering
+  for ( ; num_addr; ptr_addr++, num_addr--) {
+    crc = crc32_data (&ptr_addr->b[0], 6U) >> 26;
+    if (crc & 0x20U) {
+      hash_table[1] |= (1U << (crc & 0x1FU));
+    }
+    else {
+      hash_table[0] |= (1U << crc);
+    }
+  }
+
+  HAL_ETH_SetHashTable(eth_mac0_ro_info.ptr_heth, hash_table);
+
+  if (HAL_ETH_GetMACFilterConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_filter) != HAL_OK) {
+    return ARM_DRIVER_ERROR;
+  }
+
+  eth_mac0_rw_info.mac_filter.HashMulticast = ENABLE;
+
+  if (HAL_ETH_SetMACFilterConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_filter) != HAL_OK) {
+    return ARM_DRIVER_ERROR;
+  }
+  if (eth_mac0_rw_info.vlan_filter == ENABLE) {
+    HAL_ETHEx_EnableVLANProcessing(eth_mac0_ro_info.ptr_heth);
+  }
+  return ARM_DRIVER_OK;
+#else
   (void)ptr_addr;
   (void)num_addr;
 
   // Not supported by HAL
   return ARM_DRIVER_ERROR_UNSUPPORTED;
+#endif
 }
 
 /**
@@ -566,7 +659,7 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
     tx_desc  = (ETH_DMADescTypeDef *)eth_mac0_ro_info.ptr_heth->TxDescList.TxDesc[tx_index];
 
 #ifdef ETH_DMATXDESC_OWN
-    if ((*((volatile uint32_t *)tx_desc) & ETH_DMATXDESC_OWN) != 0U) {
+    if ((tx_desc->DESC0 & ETH_DMATXDESC_OWN) != 0U) {
 #else
     if ((tx_desc->DESC3 & ETH_DMATXNDESCWBF_OWN) != 0U) {
 #endif
@@ -712,11 +805,12 @@ static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
       return ARM_DRIVER_OK;
 
     case ARM_ETH_MAC_FLUSH:                     // Flush a buffer
-      // Not supported by HAL, return OK anyways
+      // Not supported by HAL, return OK anyway
       return ARM_DRIVER_OK;
 
     case ARM_ETH_MAC_VLAN_FILTER:               // Configure VLAN Filter for received frames
       // Configure VLAN filter
+#ifdef MAC_VLAN_FILTERING
       if (arg != 0) {
         // arg bits [0-15] are VLAN tag value
         if ((arg & ARM_ETH_MAC_VLAN_FILTER_ID_ONLY) != 0U) {
@@ -726,9 +820,17 @@ static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
           // Compare the complete 16-bit VLAN tag value
           HAL_ETH_SetRxVLANIdentifier(eth_mac0_ro_info.ptr_heth, ETH_VLANTAGCOMPARISON_16BIT, (arg & 0xFFFF));
         }
+        HAL_ETHEx_EnableVLANProcessing(eth_mac0_ro_info.ptr_heth);
+        eth_mac0_rw_info.vlan_filter = ENABLE;
+      } else {
+        HAL_ETHEx_DisableVLANProcessing(eth_mac0_ro_info.ptr_heth);
+        eth_mac0_rw_info.vlan_filter = DISABLE;
       }
-      // Disable VLAN filter is not supported by HAL
       return ARM_DRIVER_OK;
+#else
+      // VLAN filtering is not supported
+      return ARM_DRIVER_ERROR_UNSUPPORTED;
+#endif
 
     case ARM_ETH_MAC_SLEEP:
       return ARM_DRIVER_ERROR_UNSUPPORTED;
@@ -817,7 +919,11 @@ static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
   if (HAL_ETH_SetMACFilterConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_filter) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
-
+#ifdef MAC_VLAN_FILTERING
+  if (eth_mac0_rw_info.vlan_filter == ENABLE) {
+    HAL_ETHEx_EnableVLANProcessing(eth_mac0_ro_info.ptr_heth);
+  }
+#endif
   return ARM_DRIVER_OK;
 }
 
