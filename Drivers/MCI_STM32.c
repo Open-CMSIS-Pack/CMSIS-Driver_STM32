@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Corrected bus clock divider return value when divider equals 1
 - Version 3.1
   - Corrected CLKCR register write access handling
 - Version 3.0
