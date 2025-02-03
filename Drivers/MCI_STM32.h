@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       20. June 2024
- * $Revision:   3.0
+ * $Date:       3. February 2025
+ * $Revision:   3.2
  *
  * Project:     MCI Driver for STMicroelectronics STM32 devices
  *
