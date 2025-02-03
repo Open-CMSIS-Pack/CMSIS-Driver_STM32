@@ -14,7 +14,7 @@
   <releases>
     <release version="1.2.0-dev">
       Active development ...
-      Ethernet MAC Driver:
+      Ethernet MAC driver:
        - Added VLAN and multicast address hash filtering
       GPIO driver:
        - Replaced POSITION_VAL macro with CMSIS implementation

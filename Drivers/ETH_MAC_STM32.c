@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -278,7 +278,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #endif
 
 // Check if Ethernet MAC supports VLAN and multicast address hash filtering
-#ifdef ETH_MACPFR_VTFE
+#ifdef  ETH_MACPFR_VTFE
 #define MAC_VLAN_FILTERING
 #define MAC_MCAST_HASH_FILTERING
 #endif
@@ -659,7 +659,7 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
     tx_desc  = (ETH_DMADescTypeDef *)eth_mac0_ro_info.ptr_heth->TxDescList.TxDesc[tx_index];
 
 #ifdef ETH_DMATXDESC_OWN
-    if ((tx_desc->DESC0 & ETH_DMATXDESC_OWN) != 0U) {
+    if ((*((volatile uint32_t *)tx_desc) & ETH_DMATXDESC_OWN) != 0U) {
 #else
     if ((tx_desc->DESC3 & ETH_DMATXNDESCWBF_OWN) != 0U) {
 #endif
