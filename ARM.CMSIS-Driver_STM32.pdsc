@@ -18,6 +18,8 @@
        - Added VLAN and multicast address hash filtering
       GPIO driver:
        - Replaced POSITION_VAL macro with CMSIS implementation
+      MCI driver:
+       - Corrected bus clock divider return value when divider equals 1
     </release>
   </releases>
 
@@ -96,7 +98,7 @@
         <file category="source"  name="Drivers/I2C_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="MCI"          Capiversion="2.4.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="MCI"          Capiversion="2.4.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
       <description>MCI Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_MCI1                /* Driver MCI1 */

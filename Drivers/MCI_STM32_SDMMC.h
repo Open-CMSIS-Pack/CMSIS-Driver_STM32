@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -504,6 +504,10 @@ __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
     }
   #else
     divider = (mci->reg->CLKCR & 0x3FFU) << 1U;
+
+    if (divider == 0U) {
+      divider = 1U;
+    }
   #endif
   return (divider);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       14. October 2024
- * $Revision:   V3.1
+ * $Date:       3. February 2025
+ * $Revision:   V3.2
  *
  * Project:     MCI Driver for STMicroelectronics STM32 devices
  *
@@ -176,7 +176,7 @@ This driver requires the following configuration in CubeMX:
 #endif
 
 /* Driver Version */
-#define ARM_MCI_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,1)
+#define ARM_MCI_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,2)
 
 
 /**
@@ -1051,18 +1051,24 @@ static int32_t Control (uint32_t control, uint32_t arg, MCI_RESOURCES *mci) {
 
   switch (control) {
     case ARM_MCI_BUS_SPEED:
-      /* Determine clock divider and set bus speed */
-      clkdiv = ((mci->info->ker_clk - 1U) / arg) + 1U;
-      clkdiv = clkdiv & 0x3FFU;
+      if (arg == 0U) {
+        /* Invalid argument, bus speed not configured */
+        bps = 0U;
+      }
+      else {
+        /* Determine clock divider and set bus speed */
+        clkdiv = ((mci->info->ker_clk - 1U) / arg) + 1U;
+        clkdiv = clkdiv & 0x3FFU;
 
-      /* Set new clock divider */
-      MCI_Set_ClockDivider(mci, clkdiv);
+        /* Set new clock divider */
+        MCI_Set_ClockDivider(mci, clkdiv);
 
-      /* Calculate actual clock (in bps) */
-      bps = mci->info->ker_clk / MCI_Get_ClockDivider(mci);
+        /* Calculate actual clock (in bps) */
+        bps = mci->info->ker_clk / MCI_Get_ClockDivider(mci);
 
-      /* Bus speed configured */
-      mci->info->flags |= MCI_SETUP;
+        /* Bus speed configured */
+        mci->info->flags |= MCI_SETUP;
+      }
       return ((int32_t)bps);
 
     case ARM_MCI_BUS_SPEED_MODE:
