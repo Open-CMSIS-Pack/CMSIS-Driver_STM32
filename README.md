@@ -8,7 +8,7 @@ User applications and middleware components use [CMSIS-Driver](https://arm-softw
 
 STM32 microcontrollers already provide powerful drivers, however with a different API interface, call STM32Cube HAL. With this **Driver API Shim Interface** the CMSIS standards can be used by the software ecosystem and application developers.
 
-The diagram below outlines the software architecture that is used for example by [Reference Applications](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/ReferenceApplications.md) and the [MDK middleware examples](https://github.com/ARM-software/MDK-Middleware/tree/main/Examples). Refer to the [CMSIS-Toolbox](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/README.md) documentation [Reference Applications - Header File Structure](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/ReferenceApplications.md#header-file-structure) for a description of the various components in this diagram. The Driver API Shim Interface is configured using [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) (CubeMX) that generates via the CMSIS tool integration the file `MX_Device.h`.
+The diagram below outlines the software architecture that is used for example by [Reference Applications](https://open-cmsis-pack.github.io/cmsis-toolbox/ReferenceApplications/) and the [MDK middleware examples](https://github.com/ARM-software/MDK-Middleware/tree/main/Examples). Refer to the [CMSIS-Toolbox](https://open-cmsis-pack.github.io/cmsis-toolbox/) documentation [Reference Applications - Header File Structure](https://open-cmsis-pack.github.io/cmsis-toolbox/ReferenceApplications/#header-file-structure) for a description of the various components in this diagram. The Driver API Shim Interface is configured using [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) (CubeMX) that generates via the CMSIS tool integration the file `MX_Device.h`.
 
 ![Software Architecture](./Documentation/SW-Architecture.png "Software Architecture")
 
@@ -60,7 +60,7 @@ The drivers require configuration with [STM32CubeMX](https://www.st.com/en/devel
 
 For additional information refer to:
 
-- [CMSIS-Toolbox - Configure STM32 Devices with CubeMX](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/CubeMX.md) for usage information of STM32CubeMX with CMSIS projects. In µVision start CubeMX in dialog [Manage Run-Time Environment](https://developer.arm.com/documentation/101407/0540/Creating-Applications/Software-Components/Managing-Run-Time-Environment) from the component `Device:CubeMX`.
+- [CMSIS-Toolbox - Configure STM32 Devices with CubeMX](https://open-cmsis-pack.github.io/cmsis-toolbox/CubeMX/) for usage information of STM32CubeMX with CMSIS projects. In µVision start CubeMX in dialog [Manage Run-Time Environment](https://developer.arm.com/documentation/101407/0540/Creating-Applications/Software-Components/Managing-Run-Time-Environment) from the component `Device:CubeMX`.
 
 - [CMSIS-Driver - Theory of Operation](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html) describes the usage of CMSIS-Drivers in your application code via an [access struct](https://arm-software.github.io/CMSIS_6/latest/Driver/theoryOperation.html#AccessStruct). The driver instances available depend on the CubeMX device configuration as explained in the [Driver API Shim Documentation](https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/driver.html).
 
@@ -70,7 +70,7 @@ The Driver API Shim Interface is released as [CMSIS software pack](https://www.k
 
 ### Using the development repository
 
-This development repository can be used in a local directory and [mapped as software pack](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/build-tools.md#install-a-repository) using for example `cpackget` with:
+This development repository can be used in a local directory and [mapped as software pack](https://open-cmsis-pack.github.io/cmsis-toolbox/build-tools#install-a-repository) using for example `cpackget` with:
 
     cpackget add <path>/ARM.CMSIS-Driver_STM32.pdsc
 
