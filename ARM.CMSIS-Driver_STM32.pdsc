@@ -20,6 +20,8 @@
        - Replaced POSITION_VAL macro with CMSIS implementation
       MCI driver:
        - Corrected bus clock divider return value when divider equals 1
+      USB Host driver:
+       - Added support for USB DRD controller
     </release>
   </releases>
 
@@ -169,7 +171,7 @@
         <file category="source"  name="Drivers/USBD_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.1.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.2.0" condition="CMSIS Driver requirements">
       <description>USB Host Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBH0               /* Driver USBH0 */

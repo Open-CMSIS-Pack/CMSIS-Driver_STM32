@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       13. November 2024
- * $Revision:   V2.1
+ * $Date:       28. February 2025
+ * $Revision:   V2.2
  *
  * Project:     USB Host Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 2.2
+  - Added support for USB DRD controller
 - Version 2.1
   - Added support for USB HS in FS mode (when using the internal PHY)  
 - Version 2.0
@@ -257,6 +259,15 @@ static const ARM_USBH_CAPABILITIES driver_capabilities = {
 
 #else
 #define DRIVER_CONFIG_VALID     1
+#endif
+
+// Determine peripheral differences that driver needs to handle
+
+// Determine if peripheral is DRD or OTG
+#ifdef  MX_USB
+#define USBH_VARIANT_DRD        1
+#else
+#define USBH_VARIANT_DRD        0
 #endif
 
 // Configuration depending on the local macros
@@ -815,11 +826,15 @@ static int32_t USBHn_PortVbusOnOff (const RO_Info_t * const ptr_ro_info, uint8_t
     if (HAL_HCD_Start(ptr_ro_info->ptr_hhcd) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
-  } else {
+  }
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
+  else {
+    // Turn VBUS off
     if (USB_DriveVbus(ptr_ro_info->ptr_hhcd->Instance, 0U) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
   }
+#endif
 
   // Allow hardware-specific VBUS control
   if (USBH_HW_VbusOnOff(ptr_ro_info->ptr_hhcd, vbus) != 0) {
@@ -991,7 +1006,11 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
   }
 
   // Reset internal structure toggle values because HAL does not support resetting toggle bits
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
   if (ptr_ro_info->ptr_hhcd->hc[ch].ep_is_in != 0U) {
+#else                                   // If it is DRD controller
+  if (ptr_ro_info->ptr_hhcd->hc[ch].ch_dir == CH_IN_DIR) {
+#endif
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_in  = 0U;
   } else {
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_out = 0U;
@@ -1185,7 +1204,11 @@ static int32_t USBHn_PipeReset (const RO_Info_t * const ptr_ro_info, ARM_USBH_PI
   }
 
   // Change internal structure toggle values because HAL does not support resetting toggle bits
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
   if (ptr_ro_info->ptr_hhcd->hc[ch].ep_is_in != 0U) {
+#else                                   // If it is DRD controller
+  if (ptr_ro_info->ptr_hhcd->hc[ch].ch_dir == CH_IN_DIR) {
+#endif
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_in  = 0U;
   } else {
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_out = 0U;
@@ -1252,10 +1275,12 @@ static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
   }
   ep_type = ptr_ro_info->ptr_rw_info->ch_info[ch].ep_type;
 
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
   // Clear do_ping value as it gets automatically set on OUT transfer on reception of NYET packet
   // In general, when NYET is received the pipe should report ARM_USBH_EVENT_HANDSHAKE_NYET, however
   // HAL does not generate special event on NYET reception but it only sets do_ping to 1.
   ptr_ro_info->ptr_hhcd->hc[ch].do_ping = 0U;
+#endif
 
   // Register transfer request
   ptr_ro_info->ptr_rw_info->ch_info[ch].hal_direction         = dir;
