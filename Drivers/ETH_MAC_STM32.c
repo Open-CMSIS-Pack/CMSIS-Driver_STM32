@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       30. January 2025
- * $Revision:   V3.1
+ * $Date:       21. March 2025
+ * $Revision:   V3.2
  *
  * Project:     Ethernet MAC Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Added support for changed broadcast address filtering in HAL
 - Version 3.1
   - Added VLAN and multicast address hash filtering
 - Version 3.0
@@ -309,7 +311,7 @@ typedef struct {
   DriverStatus_t                drv_status;             // Driver status
   uint8_t                       alloc_idx;              // Buffer allocation index
   uint8_t                       vlan_filter;            // VLAN filter enabled
-  uint8_t                       reserved;               // Reserved (for padding)
+  uint8_t                       bcast_enable;           // Enable HAL reception of broadcast frames
   ETH_BufferTypeDef             tx_buf;                 // Transmit buffer pointers
   ETH_BufferTypeDef             rx_buf;                 // Receive buffer pointers
   ETH_MACConfigTypeDef          mac_config;             // ETH MAC configuration structure
@@ -463,6 +465,11 @@ static int32_t ETH_MAC_PowerControl (ARM_POWER_STATE state) {
       if (HAL_ETH_Init(eth_mac0_ro_info.ptr_heth) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
+      if (HAL_ETH_GetMACFilterConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_filter) != HAL_OK) {
+        return ARM_DRIVER_ERROR;
+      }
+      // Retrieve HAL value that enables the reception of broadcast frames
+      eth_mac0_rw_info.bcast_enable = eth_mac0_rw_info.mac_filter.BroadcastFilter;
 
       eth_mac0_rw_info.tx_buf.len = 0;
 
@@ -609,10 +616,6 @@ static int32_t ETH_MAC_SetAddressFilter (const ARM_ETH_MAC_ADDR *ptr_addr, uint3
   }
 
   HAL_ETH_SetHashTable(eth_mac0_ro_info.ptr_heth, hash_table);
-
-  if (HAL_ETH_GetMACFilterConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_filter) != HAL_OK) {
-    return ARM_DRIVER_ERROR;
-  }
 
   eth_mac0_rw_info.mac_filter.HashMulticast = ENABLE;
 
@@ -845,9 +848,6 @@ static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
   if (HAL_ETH_GetMACConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_config) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
-  if (HAL_ETH_GetMACFilterConfig(eth_mac0_ro_info.ptr_heth, &eth_mac0_rw_info.mac_filter) != HAL_OK) {
-    return ARM_DRIVER_ERROR;
-  }
 
   switch (arg & ARM_ETH_MAC_SPEED_Msk) {                        // --- Link Speed
     case ARM_ETH_MAC_SPEED_10M:
@@ -889,9 +889,9 @@ static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
   }
 
   if ((arg & ARM_ETH_MAC_ADDRESS_BROADCAST) != 0U) {            // --- Broadcast Frame address
-    eth_mac0_rw_info.mac_filter.BroadcastFilter = ENABLE;
+    eth_mac0_rw_info.mac_filter.BroadcastFilter =  eth_mac0_rw_info.bcast_enable;
   } else {
-    eth_mac0_rw_info.mac_filter.BroadcastFilter = DISABLE;
+    eth_mac0_rw_info.mac_filter.BroadcastFilter = !eth_mac0_rw_info.bcast_enable;
   }
 
   if ((arg & ARM_ETH_MAC_ADDRESS_MULTICAST) != 0U) {            // --- Multicast Frame address
