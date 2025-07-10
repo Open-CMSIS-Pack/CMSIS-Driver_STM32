@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       13. November 2024
- * $Revision:   V2.1
+ * $Date:       10. July 2025
+ * $Revision:   V2.2
  *
  * Project:     USB Host Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,10 @@
 
 # Revision History
 
+- Version 2.2
+  - Added support for USB DRD controller
+  - Updated high-speed support
+  - Updated detection and signaling of ARM_USBH_EVENT_RESET event
 - Version 2.1
   - Added support for USB HS in FS mode (when using the internal PHY)  
 - Version 2.0
@@ -228,7 +232,7 @@ int32_t USBH_HW_VbusOnOff (HCD_HandleTypeDef *ptr_hhcd, bool vbus) {
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,2) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -258,6 +262,23 @@ static const ARM_USBH_CAPABILITIES driver_capabilities = {
 #else
 #define DRIVER_CONFIG_VALID     1
 #endif
+
+// Determine peripheral differences that driver needs to handle
+
+// Determine if peripheral is DRD or OTG
+#ifdef  MX_USB
+#define USBH_VARIANT_DRD        1
+#else
+#define USBH_VARIANT_DRD        0
+#endif
+
+// Determine if peripheral and HAL driver support high-speed
+#ifdef  HCD_SPEED_HIGH
+#define USBH_HS_SUPPORT         1
+#else
+#define USBH_HS_SUPPORT         0
+#endif
+
 
 // Configuration depending on the local macros
 
@@ -395,6 +416,8 @@ typedef struct {
 typedef struct {
            uint8_t              ch_used;                // Channel used
            uint8_t              periodic;               // Periodic transfers used on this channel
+           uint8_t              dev_addr;               // Device address
+           uint8_t              dev_speed_hal;          // Device speed (HAL value)
            uint8_t              ep_addr;                // Endpoint address
            uint8_t              ep_type;                // Endpoint type
            uint16_t             ep_max_packet_size;     // Endpoint maximum packet size
@@ -402,6 +425,7 @@ typedef struct {
            uint16_t             cd_time;                // Countdown time value until next transfer
            uint8_t              hal_direction;          // Transfer direction
            uint8_t              hal_token;              // Transfer token
+           uint16_t             padding;                // Padding for alignment
   volatile uint32_t             transfer_registered;    // Transfer registered information
            uint8_t             *data;                   // Pointer to buffer, containing data to send or where data will be received
            uint32_t             num;                    // Number of bytes to transfer
@@ -416,8 +440,10 @@ typedef struct {
   ARM_USBH_SignalPipeEvent_t    cb_pipe_event;          // Pipe event callback
   DriverStatus_t                drv_status;             // Driver status
   volatile uint8_t              port_connected;         // Host Port connected state
+  volatile uint8_t              port_reset_active;      // Host Port reset active flag
   volatile uint8_t              periodic_pipes_exist;   // Periodic pipes existence
            uint8_t              max_channels;           // Maximum number of Host Channels
+           uint8_t              padding[3];             // Padding for alignment
   CH_Info_t                     ch_info[USBH_MAX_PIPE_NUM];     // Host Controller channel information
 } RW_Info_t;
 
@@ -518,7 +544,11 @@ __STATIC_INLINE void USBH_Transfer_UpdateInfo (const RO_Info_t * const ptr_ro_in
   if (ptr_ro_info->ptr_rw_info->ch_info[ch].hal_direction == 0U) {
     // For OUT transfer, xfer_count is number of bytes left to transfer, so
     // after transfer successfully finishes it contains value 0.
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
     num_last_transferred = ptr_ro_info->ptr_hhcd->hc[ch].xfer_len - xfer_count;
+#else                                   // If it is DRD controller
+    num_last_transferred = xfer_count;
+#endif
   } else {
     num_last_transferred = xfer_count;
   }
@@ -815,11 +845,15 @@ static int32_t USBHn_PortVbusOnOff (const RO_Info_t * const ptr_ro_info, uint8_t
     if (HAL_HCD_Start(ptr_ro_info->ptr_hhcd) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
-  } else {
+  }
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
+  else {
+    // Turn VBUS off
     if (USB_DriveVbus(ptr_ro_info->ptr_hhcd->Instance, 0U) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
   }
+#endif
 
   // Allow hardware-specific VBUS control
   if (USBH_HW_VbusOnOff(ptr_ro_info->ptr_hhcd, vbus) != 0) {
@@ -844,7 +878,9 @@ static int32_t USBHn_PortReset (const RO_Info_t * const ptr_ro_info, uint8_t por
     return ARM_DRIVER_ERROR;
   }
 
+  ptr_ro_info->ptr_rw_info->port_reset_active = 1U;
   if (HAL_HCD_ResetPort(ptr_ro_info->ptr_hhcd) != HAL_OK) {
+    ptr_ro_info->ptr_rw_info->port_reset_active = 0U;
     return ARM_DRIVER_ERROR;
   }
 
@@ -902,9 +938,11 @@ static ARM_USBH_PORT_STATE USBHn_PortGetState (const RO_Info_t * const ptr_ro_in
     case HCD_SPEED_FULL:
       port_state.speed = ARM_USB_SPEED_FULL;
       break;
+#if (USBH_HS_SUPPORT == 1)              // If high-speed is supported
     case HCD_SPEED_HIGH:
       port_state.speed = ARM_USB_SPEED_HIGH;
       break;
+#endif
     default:
       break;
   }
@@ -991,13 +1029,19 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
   }
 
   // Reset internal structure toggle values because HAL does not support resetting toggle bits
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
   if (ptr_ro_info->ptr_hhcd->hc[ch].ep_is_in != 0U) {
+#else                                   // If it is DRD controller
+  if (ptr_ro_info->ptr_hhcd->hc[ch].ch_dir == CH_IN_DIR) {
+#endif
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_in  = 0U;
   } else {
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_out = 0U;
   }
 
   // Update channel info
+  ptr_ro_info->ptr_rw_info->ch_info[ch].dev_addr           = dev_addr;
+  ptr_ro_info->ptr_rw_info->ch_info[ch].dev_speed_hal      = dev_speed_hal;
   ptr_ro_info->ptr_rw_info->ch_info[ch].ep_addr            = ep_addr;
   ptr_ro_info->ptr_rw_info->ch_info[ch].ep_type            = ep_type;
   ptr_ro_info->ptr_rw_info->ch_info[ch].ep_max_packet_size = ep_max_packet_size;
@@ -1100,12 +1144,21 @@ static int32_t USBHn_PipeModify (const RO_Info_t * const    ptr_ro_info,
 
   ep_type = ptr_ro_info->ptr_rw_info->ch_info[ch].ep_type;
 
+#if (USBH_VARIANT_DRD == 1)             // If it is DRD controller
+  // Close channel so it can be re-initialized
+  if (HAL_HCD_HC_Close(ptr_ro_info->ptr_hhcd, ch) != HAL_OK) {
+    return ARM_DRIVER_ERROR;
+  }
+#endif
+
   // Re-initialize channel with new parameters
   if (HAL_HCD_HC_Init(ptr_ro_info->ptr_hhcd, ch, ep_addr, dev_addr, dev_speed_hal, ep_type, ep_max_packet_size) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
 
   // Update channel info
+  ptr_ro_info->ptr_rw_info->ch_info[ch].dev_addr           = dev_addr;
+  ptr_ro_info->ptr_rw_info->ch_info[ch].dev_speed_hal      = dev_speed_hal;
   ptr_ro_info->ptr_rw_info->ch_info[ch].ep_max_packet_size = ep_max_packet_size;
 
   return ARM_DRIVER_OK;
@@ -1185,7 +1238,11 @@ static int32_t USBHn_PipeReset (const RO_Info_t * const ptr_ro_info, ARM_USBH_PI
   }
 
   // Change internal structure toggle values because HAL does not support resetting toggle bits
+#if (USBH_VARIANT_DRD == 0)             // If it is OTG controller
   if (ptr_ro_info->ptr_hhcd->hc[ch].ep_is_in != 0U) {
+#else                                   // If it is DRD controller
+  if (ptr_ro_info->ptr_hhcd->hc[ch].ch_dir == CH_IN_DIR) {
+#endif
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_in  = 0U;
   } else {
     ptr_ro_info->ptr_hhcd->hc[ch].toggle_out = 0U;
@@ -1252,10 +1309,12 @@ static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
   }
   ep_type = ptr_ro_info->ptr_rw_info->ch_info[ch].ep_type;
 
+#if (USBH_HS_SUPPORT == 1)              // If high-speed is supported
   // Clear do_ping value as it gets automatically set on OUT transfer on reception of NYET packet
   // In general, when NYET is received the pipe should report ARM_USBH_EVENT_HANDSHAKE_NYET, however
   // HAL does not generate special event on NYET reception but it only sets do_ping to 1.
   ptr_ro_info->ptr_hhcd->hc[ch].do_ping = 0U;
+#endif
 
   // Register transfer request
   ptr_ro_info->ptr_rw_info->ch_info[ch].hal_direction         = dir;
@@ -1267,7 +1326,7 @@ static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
   ptr_ro_info->ptr_rw_info->ch_info[ch].num_last_transferred  = 0U;
 
   do_transfer = 1U;
-  if ((ep_type == ARM_USB_ENDPOINT_INTERRUPT) || (ep_type == ARM_USB_ENDPOINT_INTERRUPT)) {
+  if ((ep_type == ARM_USB_ENDPOINT_INTERRUPT) || (ep_type == ARM_USB_ENDPOINT_ISOCHRONOUS)) {
     // For Interrupt and Isochronous transfers
     if (ptr_ro_info->ptr_rw_info->ch_info[ch].cd_time != 0U) {
       // If countdown time (cd_time) is active then just register transfer request, but transfer
@@ -1282,6 +1341,21 @@ static int32_t USBHn_PipeTransfer (const RO_Info_t * const    ptr_ro_info,
 
   // Set transfer registered flag
   ptr_ro_info->ptr_rw_info->ch_info[ch].transfer_registered = 1U;
+
+#if (USBH_VARIANT_DRD == 1)             // If it is DRD controller
+  if (ptr_ro_info->ptr_rw_info->ch_info[ch].ep_addr == 0U) {
+    // If it is Default Pipe reconfigure direction according to packet (SETUP/OUT or IN)
+    if (HAL_HCD_HC_Init(ptr_ro_info->ptr_hhcd,
+                        ch,
+                        ptr_ro_info->ptr_rw_info->ch_info[ch].ep_addr | (ptr_ro_info->ptr_rw_info->ch_info[ch].hal_direction << 7),
+                        ptr_ro_info->ptr_rw_info->ch_info[ch].dev_addr,
+                        ptr_ro_info->ptr_rw_info->ch_info[ch].dev_speed_hal,
+                        ptr_ro_info->ptr_rw_info->ch_info[ch].ep_type,
+                        ptr_ro_info->ptr_rw_info->ch_info[ch].ep_max_packet_size) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+#endif
 
   if (do_transfer != 0U) {
     if (USBH_Transfer_Packet(ptr_ro_info, ch) != 0) {
@@ -1359,6 +1433,12 @@ void HAL_HCD_SOF_Callback (HCD_HandleTypeDef *hhcd) {
   }
   if (ptr_ro_info->ptr_rw_info == NULL) {
     return;
+  }
+
+  // Signal RESET finished on first generated SOF after reset
+  if (ptr_ro_info->ptr_rw_info->port_reset_active == 1U) {
+    ptr_ro_info->ptr_rw_info->port_reset_active = 0U;
+    ptr_ro_info->ptr_rw_info->cb_port_event(0U, ARM_USBH_EVENT_RESET);
   }
 
   if (ptr_ro_info->ptr_rw_info->periodic_pipes_exist != 0U) {
@@ -1439,20 +1519,7 @@ void HAL_HCD_Disconnect_Callback (HCD_HandleTypeDef *hhcd) {
   \param[in]   hhcd     HCD handle
   */
 void HAL_HCD_PortEnabled_Callback (HCD_HandleTypeDef *hhcd) {
-  const RO_Info_t *ptr_ro_info;
-
-  ptr_ro_info = USBH_GetInfo(hhcd);
-
-  if (ptr_ro_info == NULL) {
-    return;
-  }
-  if (ptr_ro_info->ptr_rw_info == NULL) {
-    return;
-  }
-
-  if (ptr_ro_info->ptr_rw_info->cb_port_event != NULL) {
-    ptr_ro_info->ptr_rw_info->cb_port_event(0U, ARM_USBH_EVENT_RESET);
-  }
+  (void)hhcd;
 }
 
 /**
