@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       19. September 2024
- * $Revision:   V3.0
+ * $Date:       20. August 2025
+ * $Revision:   V3.1
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.1
+  - Corrected Control function behavior for devices without filter features
 - Version 3.0
   - Initial release
 
@@ -188,7 +190,7 @@ This driver requires the following configuration in CubeMX:
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -1424,6 +1426,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       // Determine digital filter delay (in ns)
       clock_setup.dfd = clock_setup.i2cclk * ((ptr_ro_info->ptr_hi2c->Instance->CR1 & I2C_CR1_DNF) >> 8);
 
+#ifdef  I2C_VARIANT_HAS_FILTER                  // If I2C peripheral has filters
       // Set analog filter delay (in ns)
       if (ptr_ro_info->anf_en != 0U) {
         clock_setup.afd_min = I2C_ANALOG_FILTER_DELAY_MIN;
@@ -1432,6 +1435,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         clock_setup.afd_min = 0U;
         clock_setup.afd_max = 0U;
       }
+#endif
 
       // Set max iteration error
       clock_setup.error = 0xFFFF;

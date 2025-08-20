@@ -20,6 +20,8 @@
        - Added support for USB DRD controller
        - Updated high-speed support
        - Updated detection and signaling of ARM_USBH_EVENT_RESET event
+      I2C driver:
+       - Corrected Control function behavior for devices without filter features
     </release>
   </releases>
 
@@ -80,7 +82,7 @@
         <file category="source"  name="Drivers/GPIO_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
       <description>I2C Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_I2C1                /* Driver I2C1 */
