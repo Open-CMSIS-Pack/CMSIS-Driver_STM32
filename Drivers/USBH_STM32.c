@@ -17,7 +17,7 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       10. July 2025
+ * $Date:       21. August 2025
  * $Revision:   V2.2
  *
  * Project:     USB Host Driver for STMicroelectronics STM32 devices
@@ -273,7 +273,7 @@ static const ARM_USBH_CAPABILITIES driver_capabilities = {
 #endif
 
 // Determine if peripheral and HAL driver support high-speed
-#ifdef  HCD_SPEED_HIGH
+#if     defined(HCD_SPEED_HIGH) && (defined(USB_OTG_FS) || defined(USB_OTG_HS) || defined(USB1_OTG_HS) || defined(USB2_OTG_HS))
 #define USBH_HS_SUPPORT         1
 #else
 #define USBH_HS_SUPPORT         0
