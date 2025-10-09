@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       3. October 2024
- * $Revision:   V3.0
+ * $Date:       9. October 2025
+ * $Revision:   V3.1
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.1
+  - Corrected baud rate prescaler calculation in Control function
 - Version 3.0
   - Initial release
 
@@ -204,7 +206,7 @@ This driver requires the following configuration in CubeMX:
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -959,7 +961,8 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       else if ((periph_clk >> 4) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;  }
       else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
       else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
-      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
+      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128; }
+      else if ((periph_clk >> 8) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
       else                               { return ARM_DRIVER_ERROR;                                                   }
       return ARM_DRIVER_OK;
 
@@ -1270,7 +1273,8 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       else if ((periph_clk >> 4) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;  }
       else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
       else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
-      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
+      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128; }
+      else if ((periph_clk >> 8) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
       else                               { return ARM_DRIVER_ERROR;                                                   }
     }
   }
