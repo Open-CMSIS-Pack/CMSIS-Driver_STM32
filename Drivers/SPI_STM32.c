@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       9. October 2025
- * $Revision:   V3.1
+ * $Date:       7. January 2026
+ * $Revision:   V3.2
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
  *
