@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Added support for 3-wire SPI (Simplex Master/Slave)
 - Version 3.1
   - Corrected baud rate prescaler calculation in Control function
 - Version 3.0
@@ -88,7 +90,7 @@ __Functional__ deviations:
 This driver requires the following configuration in CubeMX:
 
   - **clock**: **SPI** peripheral clock.
-  - **peripheral**: **SPI** peripheral configured as **Full-Duplex Master/Slave**
+  - **peripheral**: **SPI** peripheral configured as **Full-Duplex Master/Slave** or **Half-Duplex Master/Slave**
     and **Parameter Settings** configured as desired.
   - **pins**: **SPI MISO**, **MOSI**, **SCK** and **NSS pins**.
   - **DMA**: optional **DMA** configuration for transfers.
@@ -138,7 +140,8 @@ This driver requires the following configuration in CubeMX:
          \n
 
   3. Under **Categories**: **System Core** select **DMA**
-     (might be different on other device series, or for some peripherals might be BDMA):
+     (might be different on other device series, or for some peripherals might be BDMA).
+     For **3-wire (Half-Duplex)** mode, configure DMA for both **RX** and **TX** requests if both send and receive operations are intended (though only one active at a time).
 
      __Configuration__:
        - DMA1, DMA2:
@@ -211,7 +214,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 // Driver Capabilities *********************************************************
 static const ARM_SPI_CAPABILITIES driver_capabilities = {
-  0U,                           // Simplex Mode not supported
+  1U,                           // Simplex Mode supported
   1U,                           // TI Synchronous Serial Interface supported
   0U,                           // Microwire Interface not supported
   1U,                           // Signal Mode Fault event: \ref ARM_SPI_EVENT_MODE_FAULT
@@ -744,37 +747,47 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
     return ARM_DRIVER_ERROR;
   }
 
-  // Since HAL does not support default value for Transmission during Reception,
-  // this is emulated by loading receive buffer with default values and providing it
-  // to TransmitReceive function as transmit buffer also
-
-  // Fill buffer with default transmit value
-  if (ptr_ro_info->ptr_hspi->Init.DataSize <= SPI_DATASIZE_8BIT) {
-    ptr_u8 = (uint8_t *)data;
-    for (i = 0U; i < num; i++) {
-      *ptr_u8 = (uint8_t)ptr_ro_info->ptr_rw_info->default_tx_value;
-      ptr_u8++;
-    }
-  } else if (ptr_ro_info->ptr_hspi->Init.DataSize <= SPI_DATASIZE_16BIT) {
-    ptr_u16 = (uint16_t *)data;
-    for (i = 0U; i < num; i++) {
-      *ptr_u16 = (uint16_t)ptr_ro_info->ptr_rw_info->default_tx_value;
-      ptr_u16++;
+  if (ptr_ro_info->ptr_hspi->Init.Direction == SPI_DIRECTION_1LINE) {
+    // 3-wire mode: just Receive
+    if (ptr_ro_info->ptr_hspi->hdmarx != NULL) {      // If DMA is used for Rx
+      receive_status = HAL_SPI_Receive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint16_t)num);
+    } else {                                          // If DMA is not configured (IRQ mode)
+      receive_status = HAL_SPI_Receive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint16_t)num);
     }
   } else {
-    ptr_u32 = (uint32_t *)data;
-    for (i = 0U; i < num; i++) {
-      *ptr_u32 = ptr_ro_info->ptr_rw_info->default_tx_value;
-      ptr_u32++;
-    }
-  }
+    // Full-Duplex mode: Transmit default value while Receiving
+    // Since HAL does not support default value for Transmission during Reception,
+    // this is emulated by loading receive buffer with default values and providing it
+    // to TransmitReceive function as transmit buffer also
 
-  // Start the reception
-  if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
-      (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
-    receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
-  } else {                                          // If DMA is not configured (IRQ mode)
-    receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
+    // Fill buffer with default transmit value
+    if (ptr_ro_info->ptr_hspi->Init.DataSize <= SPI_DATASIZE_8BIT) {
+      ptr_u8 = (uint8_t *)data;
+      for (i = 0U; i < num; i++) {
+        *ptr_u8 = (uint8_t)ptr_ro_info->ptr_rw_info->default_tx_value;
+        ptr_u8++;
+      }
+    } else if (ptr_ro_info->ptr_hspi->Init.DataSize <= SPI_DATASIZE_16BIT) {
+      ptr_u16 = (uint16_t *)data;
+      for (i = 0U; i < num; i++) {
+        *ptr_u16 = (uint16_t)ptr_ro_info->ptr_rw_info->default_tx_value;
+        ptr_u16++;
+      }
+    } else {
+      ptr_u32 = (uint32_t *)data;
+      for (i = 0U; i < num; i++) {
+        *ptr_u32 = ptr_ro_info->ptr_rw_info->default_tx_value;
+        ptr_u32++;
+      }
+    }
+
+    // Start the reception
+    if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
+        (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
+      receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
+    } else {                                          // If DMA is not configured (IRQ mode)
+      receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
+    }
   }
 
   // Convert HAL status code to CMSIS-Driver status code
@@ -819,6 +832,11 @@ static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *d
   }
 
   if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
+    return ARM_DRIVER_ERROR;
+  }
+
+  // Simultaneous Transfer is not supported in 3-wire (Unidirectional/Bidirectional 1-line) mode
+  if (ptr_ro_info->ptr_hspi->Init.Direction == SPI_DIRECTION_1LINE) {
     return ARM_DRIVER_ERROR;
   }
 
@@ -943,9 +961,19 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       ptr_ro_info->ptr_hspi->Init.Direction = SPI_DIRECTION_2LINES;
       break;                                    // Continue configuring parameters after this switch block
 
+    case ARM_SPI_MODE_MASTER_SIMPLEX:           // Mode: SPI Master Simplex
+      ptr_ro_info->ptr_hspi->Init.Mode      = SPI_MODE_MASTER;
+      ptr_ro_info->ptr_hspi->Init.Direction = SPI_DIRECTION_1LINE;
+      break;                                    // Continue configuring parameters after this switch block
+
     case ARM_SPI_MODE_SLAVE:                    // Mode: SPI Slave
       ptr_ro_info->ptr_hspi->Init.Mode      = SPI_MODE_SLAVE;
       ptr_ro_info->ptr_hspi->Init.Direction = SPI_DIRECTION_2LINES;
+      break;                                    // Continue configuring parameters after this switch block
+
+    case ARM_SPI_MODE_SLAVE_SIMPLEX:            // Mode: SPI Slave Simplex
+      ptr_ro_info->ptr_hspi->Init.Mode      = SPI_MODE_SLAVE;
+      ptr_ro_info->ptr_hspi->Init.Direction = SPI_DIRECTION_1LINE;
       break;                                    // Continue configuring parameters after this switch block
 
                                                 // --- Control Miscellaneous
