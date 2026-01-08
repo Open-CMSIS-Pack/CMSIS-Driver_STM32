@@ -837,7 +837,7 @@ static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *d
 
   // Simultaneous Transfer is not supported in 3-wire (Unidirectional/Bidirectional 1-line) mode
   if (ptr_ro_info->ptr_hspi->Init.Direction == SPI_DIRECTION_1LINE) {
-    return ARM_DRIVER_ERROR;
+    return ARM_DRIVER_ERROR_UNSUPPORTED;
   }
 
   // Start the transfer
