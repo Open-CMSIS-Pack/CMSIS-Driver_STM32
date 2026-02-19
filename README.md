@@ -1,4 +1,5 @@
-[![Version](https://img.shields.io/github/v/release/Open-CMSIS-Pack/CMSIS-Driver_STM32)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/releases/latest)
+[![Version](https://img.shields.io/github/v/release/Open-CMSIS-Pack/CMSIS-Driver_STM32?label=Release)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/releases/latest)
+[![Pack build](https://img.shields.io/github/actions/workflow/status/Open-CMSIS-Pack/CMSIS-Driver_STM32/pack.yml?logo=arm&logoColor=0091bd&label=Build%20pack)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/.github/workflows/pack.yml)
 
 # CMSIS-Driver Interface to STM32 HAL
 
