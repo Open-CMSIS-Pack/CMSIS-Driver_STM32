@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024,2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. November 2024
- * $Revision:   V3.1
+ * $Date:       11. March 2026
+ * $Revision:   V3.2
  *
  * Project:     USB Device Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Added support for devices with two high-speed controllers (STM32N6)
 - Version 3.1
   - Corrected PMA configuration
   - Added support for devices without Vbus sensing capability
@@ -220,7 +222,7 @@ This driver requires the following configuration in CubeMX:
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,2) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -253,7 +255,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #endif
 
 // Determine if HAL supports Vbus sensing
-#if   ((defined(USB_DRD_FS) || defined(USB_OTG_FS) || defined(USB_OTG_HS)) && !defined(STM32U0xx_HAL_H))
+#if   ((defined(USB_DRD_FS) || defined(USB_OTG_FS) || defined(USB_OTG_HS) || defined(USB1_OTG_HS) || defined(USB2_OTG_HS)) && !defined(STM32U0xx_HAL_H))
 #define USBD_VARIANT_VBUS_SENSING       1
 #endif
 
