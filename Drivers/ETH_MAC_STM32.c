@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       21. March 2025
- * $Revision:   V3.2
+ * $Date:       8. May 2026
+ * $Revision:   V3.3
  *
  * Project:     Ethernet MAC Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.3
+  - Added support for MX_ETH1 interface naming
 - Version 3.2
   - Added support for changed broadcast address filtering in HAL
 - Version 3.1
@@ -265,7 +267,7 @@ RW_ETH_TX_BUF  0x30041900 0x00001800 {
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,3) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -273,7 +275,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 // Configuration depending on MX_Device.h
 
 // Check if Ethernet MAC peripheral instance is configured in STM32CubeMX
-#ifndef MX_ETH
+#if !defined(MX_ETH) && !defined(MX_ETH1)
 #error  Ethernet MAC driver requires ETH peripheral configuration in STM32CubeMX!
 #else
 #define DRIVER_CONFIG_VALID             1

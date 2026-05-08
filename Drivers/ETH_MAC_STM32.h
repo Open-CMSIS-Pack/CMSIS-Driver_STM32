@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
- * $Revision:   V3.0
+ * $Date:       8. May 2026
+ * $Revision:   V3.1
  *
  * Project:     Ethernet MAC Driver header for STMicroelectronics STM32 devices
  *
@@ -39,6 +39,7 @@ extern  "C"
 // Global driver structures ****************************************************
 
 #ifdef  MX_ETH
+#if defined(MX_ETH) || defined(MX_ETH1)
 extern  ARM_DRIVER_ETH_MAC Driver_ETH_MAC0;
 #endif
 
