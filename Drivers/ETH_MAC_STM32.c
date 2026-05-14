@@ -351,10 +351,16 @@ static FrameBuf_t               eth_mac0_rx_buf[EMAC_RX_BUF_CNT] __attribute__((
 static FrameBuf_t               eth_mac0_tx_buf[EMAC_TX_BUF_CNT] __attribute__((section(".driver.eth_mac0_tx_buf")));
 
 // Information definitions
-extern ETH_HandleTypeDef        heth;
+#ifdef MX_ETH
+#define HETH                    heth
+#endif
+#ifdef MX_ETH1
+#define HETH                    heth1
+#endif
+extern ETH_HandleTypeDef        HETH;
 extern ETH_TxPacketConfig       TxConfig;
 static       RW_Info_t          eth_mac0_rw_info ETH_MACn_SECTION(0);
-static const RO_Info_t          eth_mac0_ro_info = { &heth,
+static const RO_Info_t          eth_mac0_ro_info = { &HETH,
                                                      &TxConfig,
                                                      &eth_mac0_rw_info
                                                    };
@@ -739,6 +745,9 @@ static int32_t ETH_MAC_ReadFrame (uint8_t *frame, uint32_t len) {
   }
 
   if (frame != NULL) {
+    if (len > eth_mac0_rw_info.rx.frame->length) {
+      len = eth_mac0_rw_info.rx.frame->length;
+    }
     memcpy(frame, eth_mac0_rw_info.rx.frame->data, len);
   }
   return ((int32_t)len);

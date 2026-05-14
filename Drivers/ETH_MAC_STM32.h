@@ -18,7 +18,7 @@
  * -----------------------------------------------------------------------------
  *
  * $Date:       14. May 2026
- * $Revision:   V3.1
+ * $Revision:   V3.3
  *
  * Project:     Ethernet MAC Driver header for STMicroelectronics STM32 devices
  *
