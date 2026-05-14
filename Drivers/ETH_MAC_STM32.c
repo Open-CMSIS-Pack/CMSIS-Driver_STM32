@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       21. March 2025
- * $Revision:   V3.2
+ * $Date:       14. May 2026
+ * $Revision:   V3.3
  *
  * Project:     Ethernet MAC Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,9 @@
 
 # Revision History
 
+- Version 3.3
+  - Removed dependency on HAL internal DMA descriptor structures
+  - Added support for MX_ETH1 interface naming
 - Version 3.2
   - Added support for changed broadcast address filtering in HAL
 - Version 3.1
@@ -265,7 +268,7 @@ RW_ETH_TX_BUF  0x30041900 0x00001800 {
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,2), ARM_DRIVER_VERSION_MAJOR_MINOR(3,3) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -273,7 +276,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 // Configuration depending on MX_Device.h
 
 // Check if Ethernet MAC peripheral instance is configured in STM32CubeMX
-#ifndef MX_ETH
+#if     !defined(MX_ETH) && !defined(MX_ETH1)
 #error  Ethernet MAC driver requires ETH peripheral configuration in STM32CubeMX!
 #else
 #define DRIVER_CONFIG_VALID             1
@@ -284,6 +287,11 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define MAC_VLAN_FILTERING
 #define MAC_MCAST_HASH_FILTERING
 #endif
+
+// EMAC Memory Buffer configuration 
+#define EMAC_BUF_SIZE           (ETH_MAX_PACKET_SIZE)
+#define EMAC_RX_BUF_CNT         (ETH_RX_DESC_CNT + 1)
+#define EMAC_TX_BUF_CNT         (ETH_TX_DESC_CNT)
 
 // *****************************************************************************
 
@@ -305,17 +313,29 @@ typedef struct {
   uint8_t                       reserved     : 6;       // Reserved (for padding)
 } DriverStatus_t;
 
+// Frame buffer structure
+typedef struct {
+  uint8_t                       data[EMAC_BUF_SIZE];    // Ethernet frame payload buffer
+  uint32_t                      length;                 // Number of valid bytes in data[]
+} FrameBuf_t;
+
 // Run-time information (RW)
 typedef struct {
-  ARM_ETH_MAC_SignalEvent_t     cb_event;               // Event callback
-  DriverStatus_t                drv_status;             // Driver status
-  uint8_t                       alloc_idx;              // Buffer allocation index
-  uint8_t                       vlan_filter;            // VLAN filter enabled
-  uint8_t                       bcast_enable;           // Enable HAL reception of broadcast frames
-  ETH_BufferTypeDef             tx_buf;                 // Transmit buffer pointers
-  ETH_BufferTypeDef             rx_buf;                 // Receive buffer pointers
-  ETH_MACConfigTypeDef          mac_config;             // ETH MAC configuration structure
-  ETH_MACFilterConfigTypeDef    mac_filter;             // ETH MAC filter structure
+  ARM_ETH_MAC_SignalEvent_t     cb_event;               // Driver event callback
+  DriverStatus_t                drv_status;             // Driver runtime status
+  struct {
+    uint8_t                     alloc_idx;              // Rx buffer allocation index
+    FrameBuf_t                 *frame;                  // Pointer to received frame
+  } rx;
+  struct {
+    uint8_t                     write_idx;              // Tx producer index
+    uint8_t                     consume_idx;            // Tx consumer index
+    uint16_t                    length;                 // Tx data length in bytes
+  } tx;
+  uint8_t                       vlan_filter;            // VLAN filtering enabled
+  uint8_t                       bcast_enable;           // Broadcast frame reception enabled
+  ETH_MACConfigTypeDef          mac_config;             // MAC configuration
+  ETH_MACFilterConfigTypeDef    mac_filter;             // MAC filter configuration
 } RW_Info_t;
 
 // Compile-time Information (RO)
@@ -327,8 +347,8 @@ typedef struct {
 } RO_Info_t;
 
 // Ethernet communication data buffers that need to be positioned in non-cacheable and non-shareable normal memory
-static uint8_t                  eth_mac0_rx_buf[ETH_RX_DESC_CNT][ETH_MAX_PACKET_SIZE] __attribute__((section(".driver.eth_mac0_rx_buf")));
-static uint8_t                  eth_mac0_tx_buf[ETH_TX_DESC_CNT][ETH_MAX_PACKET_SIZE] __attribute__((section(".driver.eth_mac0_tx_buf")));
+static FrameBuf_t               eth_mac0_rx_buf[EMAC_RX_BUF_CNT] __attribute__((section(".driver.eth_mac0_rx_buf")));
+static FrameBuf_t               eth_mac0_tx_buf[EMAC_TX_BUF_CNT] __attribute__((section(".driver.eth_mac0_tx_buf")));
 
 // Information definitions
 extern ETH_HandleTypeDef        heth;
@@ -471,7 +491,9 @@ static int32_t ETH_MAC_PowerControl (ARM_POWER_STATE state) {
       // Retrieve HAL value that enables the reception of broadcast frames
       eth_mac0_rw_info.bcast_enable = eth_mac0_rw_info.mac_filter.BroadcastFilter;
 
-      eth_mac0_rw_info.tx_buf.len = 0;
+      eth_mac0_rw_info.tx.length      = 0U;
+      eth_mac0_rw_info.tx.write_idx   = 0U;
+      eth_mac0_rw_info.tx.consume_idx = 0U;
 
       // Set driver status to powered
       eth_mac0_rw_info.drv_status.powered = 1U;
@@ -644,8 +666,7 @@ static int32_t ETH_MAC_SetAddressFilter (const ARM_ETH_MAC_ADDR *ptr_addr, uint3
   \return      \ref execution_status
 */
 static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t flags) {
-  ETH_DMADescTypeDef *tx_desc;
-  uint32_t            tx_index;
+  ETH_BufferTypeDef tx_buf;
 
   if ((frame == NULL) || (len == 0U)) {
     // If any parameter is invalid
@@ -656,42 +677,43 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
     return ARM_DRIVER_ERROR;
   }
 
-  if (eth_mac0_rw_info.tx_buf.len == 0) {
+  if (eth_mac0_rw_info.tx.length == 0U) {
     // Start of a new transmit frame
-    tx_index = eth_mac0_ro_info.ptr_heth->TxDescList.CurTxDesc;
-    tx_desc  = (ETH_DMADescTypeDef *)eth_mac0_ro_info.ptr_heth->TxDescList.TxDesc[tx_index];
-
-#ifdef ETH_DMATXDESC_OWN
-    if ((*((volatile uint32_t *)tx_desc) & ETH_DMATXDESC_OWN) != 0U) {
-#else
-    if ((tx_desc->DESC3 & ETH_DMATXNDESCWBF_OWN) != 0U) {
-#endif
-      // If Transmitter is busy
+    if (eth_mac0_tx_buf[eth_mac0_rw_info.tx.write_idx].length != 0U) {
+      // Transmitter is busy, wait
       return ARM_DRIVER_ERROR_BUSY;
     }
-
-    eth_mac0_rw_info.tx_buf.buffer = eth_mac0_tx_buf[tx_index];
-    eth_mac0_rw_info.tx_buf.next   = NULL;
   }
 
   // Copy data fragments to ETH-DMA buffer
-  memcpy(eth_mac0_rw_info.tx_buf.buffer + eth_mac0_rw_info.tx_buf.len, frame, len);
-  eth_mac0_rw_info.tx_buf.len += len;
+  memcpy(eth_mac0_tx_buf[eth_mac0_rw_info.tx.write_idx].data + eth_mac0_rw_info.tx.length, frame, len);
+  eth_mac0_rw_info.tx.length += len;
 
   if ((flags & ARM_ETH_MAC_TX_FRAME_FRAGMENT) != 0U) {
     // More data to come, remember current write position
     return ARM_DRIVER_OK;
   }
 
+  eth_mac0_tx_buf[eth_mac0_rw_info.tx.write_idx].length = eth_mac0_rw_info.tx.length;
+
   // Last fragment, send the packet now
-  eth_mac0_ro_info.ptr_TxConfig->TxBuffer = &eth_mac0_rw_info.tx_buf;
-  eth_mac0_ro_info.ptr_TxConfig->Length   =  eth_mac0_rw_info.tx_buf.len;
+  tx_buf.buffer = eth_mac0_tx_buf[eth_mac0_rw_info.tx.write_idx].data;
+  tx_buf.len    = eth_mac0_rw_info.tx.length;
+  tx_buf.next   = NULL;
+
+  eth_mac0_ro_info.ptr_TxConfig->TxBuffer = &tx_buf;
+  eth_mac0_ro_info.ptr_TxConfig->Length   = tx_buf.len;
 
   if (HAL_ETH_Transmit_IT(eth_mac0_ro_info.ptr_heth, eth_mac0_ro_info.ptr_TxConfig) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
 
-  eth_mac0_rw_info.tx_buf.len = 0;
+  eth_mac0_rw_info.tx.length = 0U;
+
+  eth_mac0_rw_info.tx.write_idx += 1U;
+  if (eth_mac0_rw_info.tx.write_idx >= EMAC_TX_BUF_CNT) {
+    eth_mac0_rw_info.tx.write_idx = 0U;
+  }
 
   return ARM_DRIVER_OK;
 }
@@ -706,7 +728,6 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
                  - value < 0: error occurred, value is execution status as defined with \ref execution_status
 */
 static int32_t ETH_MAC_ReadFrame (uint8_t *frame, uint32_t len) {
-  int32_t ret;
 
   if ((frame == NULL) && (len != 0U)) {
     // If parameter combination is invalid
@@ -717,15 +738,10 @@ static int32_t ETH_MAC_ReadFrame (uint8_t *frame, uint32_t len) {
     return ARM_DRIVER_ERROR;
   }
 
-  ret = 0;
-
-  if ((frame != NULL) && (eth_mac0_rw_info.rx_buf.buffer != NULL)) {
-    memcpy(frame, eth_mac0_rw_info.rx_buf.buffer, len);
-    eth_mac0_rw_info.rx_buf.buffer = NULL;
-    ret = (int32_t)len;
+  if (frame != NULL) {
+    memcpy(frame, eth_mac0_rw_info.rx.frame->data, len);
   }
-
-  return ret;
+  return ((int32_t)len);
 }
 
 /**
@@ -734,11 +750,10 @@ static int32_t ETH_MAC_ReadFrame (uint8_t *frame, uint32_t len) {
   \return      number of bytes in received frame
 */
 static uint32_t ETH_MAC_GetRxFrameSize (void) {
-  void *dummy;
 
-  if (HAL_ETH_ReadData(eth_mac0_ro_info.ptr_heth, &dummy) == HAL_OK) {
+  if (HAL_ETH_ReadData(eth_mac0_ro_info.ptr_heth, (void *)&eth_mac0_rw_info.rx.frame) == HAL_OK) {
     // Length returned in a Link callback function
-    return ((volatile uint32_t)eth_mac0_rw_info.rx_buf.len);
+    return (eth_mac0_rw_info.rx.frame->length);
   }
 
   // If no data is available
@@ -989,10 +1004,10 @@ static int32_t ETH_MAC_PHY_Write (uint8_t phy_addr, uint8_t reg_addr, uint16_t d
 void HAL_ETH_RxAllocateCallback(uint8_t **buff) {
 
   // Allocate one of the RX-DMA buffers sequentially
-  *buff = eth_mac0_rx_buf[eth_mac0_rw_info.alloc_idx];
-  eth_mac0_rw_info.alloc_idx += 1U;
-  if (eth_mac0_rw_info.alloc_idx >= ETH_RX_DESC_CNT) {
-    eth_mac0_rw_info.alloc_idx = 0U;
+  *buff = eth_mac0_rx_buf[eth_mac0_rw_info.rx.alloc_idx].data;
+  eth_mac0_rw_info.rx.alloc_idx += 1U;
+  if (eth_mac0_rw_info.rx.alloc_idx >= EMAC_RX_BUF_CNT) {
+    eth_mac0_rw_info.rx.alloc_idx = 0U;
   }
 }
 
@@ -1005,11 +1020,10 @@ void HAL_ETH_RxAllocateCallback(uint8_t **buff) {
   * @retval None
   */
 void HAL_ETH_RxLinkCallback(void **pStart, void **pEnd, uint8_t *buff, uint16_t Length) {
-  (void)pStart;
   (void)pEnd;
 
-  eth_mac0_rw_info.rx_buf.buffer = buff;
-  eth_mac0_rw_info.rx_buf.len    = Length;
+  *pStart = buff;
+  ((FrameBuf_t *)buff)->length = Length;
 }
 
 /**
@@ -1020,6 +1034,14 @@ void HAL_ETH_RxLinkCallback(void **pStart, void **pEnd, uint8_t *buff, uint16_t 
   */
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *h_eth) {
   (void)h_eth;
+
+  // Mark this TX buffer as available for reuse
+  eth_mac0_tx_buf[eth_mac0_rw_info.tx.consume_idx].length = 0U;
+
+  eth_mac0_rw_info.tx.consume_idx += 1U;
+  if (eth_mac0_rw_info.tx.consume_idx >= EMAC_TX_BUF_CNT) {
+    eth_mac0_rw_info.tx.consume_idx = 0U;
+  }
 
   if (eth_mac0_rw_info.cb_event != NULL) {
     eth_mac0_rw_info.cb_event(ARM_ETH_MAC_EVENT_TX_FRAME);

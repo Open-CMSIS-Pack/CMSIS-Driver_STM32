@@ -14,6 +14,9 @@
   <releases>
     <release version="1.4.0-dev">
       Active development ...
+      Ethernet MAC driver:
+       - Removed dependency on HAL internal DMA descriptor structures
+       - Added support for MX_ETH1 interface naming
       SPI driver:
        - Corrected baud rate prescaler calculation in Control function
       USB Device driver:
@@ -58,7 +61,7 @@
 
   <components>
     <!-- CMSIS Drivers -->
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.3.0" condition="CMSIS Driver requirements">
       <description>Ethernet MAC Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_ETH_MAC0            /* Driver ETH_MAC0 */
