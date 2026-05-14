@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       21. August 2025
- * $Revision:   V2.2
+ * $Date:       11. March 2026
+ * $Revision:   V2.3
  *
  * Project:     USB Host Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 2.3
+  - Added support for devices with two high-speed controllers (STM32N6)
 - Version 2.2
   - Added support for USB DRD controller
   - Updated high-speed support
@@ -232,7 +234,7 @@ int32_t USBH_HW_VbusOnOff (HCD_HandleTypeDef *ptr_hhcd, bool vbus) {
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,2) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,3) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -278,7 +280,6 @@ static const ARM_USBH_CAPABILITIES driver_capabilities = {
 #else
 #define USBH_HS_SUPPORT         0
 #endif
-
 
 // Configuration depending on the local macros
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024,2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       13. November 2024
- * $Revision:   V2.1
+ * $Date:       11. March 2026
+ * $Revision:   V2.3
  *
  * Project:     USB Host Driver header for STMicroelectronics STM32 devices
  *
@@ -51,11 +51,21 @@ extern  "C"
 #define MX_USBH0_HANDLE                 MX_USB_OTG_FS_HANDLE
 #endif
 
+#if    (defined(MX_USB1_OTG_HS) && defined(MX_USB1_OTG_HS_Host_HS))
+#define MX_USBH0                        1
+#define MX_USBH0_HANDLE                 MX_USB1_OTG_HS_HANDLE
+#endif
+
 #if    (defined(MX_USB_OTG_HS) && (defined(MX_USB_OTG_HS_Host_Only_FS) || \
                                    defined(MX_USB_OTG_HS_Host_FS)      || \
                                    defined(MX_USB_OTG_HS_Host_HS)))
 #define MX_USBH1                        1
 #define MX_USBH1_HANDLE                 MX_USB_OTG_HS_HANDLE
+#endif
+
+#if    (defined(MX_USB2_OTG_HS) && defined(MX_USB2_OTG_HS_Host_HS))
+#define MX_USBH1                        1
+#define MX_USBH1_HANDLE                 MX_USB2_OTG_HS_HANDLE
 #endif
 
 // Hardware-specific functions *************************************************

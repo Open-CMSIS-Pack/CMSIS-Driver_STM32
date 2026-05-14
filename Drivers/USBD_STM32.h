@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024,2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       7. June 2024
- * $Revision:   V3.0
+ * $Date:       11. March 2026
+ * $Revision:   V3.2
  *
  * Project:     USB Device Driver header for STMicroelectronics STM32 devices
  *
@@ -43,17 +43,27 @@ extern  "C"
 #define MX_USBD0_HANDLE                 MX_USB_HANDLE
 #endif
 
-#if   ((defined(MX_USB_OTG_FS) && defined(MX_USB_OTG_FS_DEVICE))         || \
-       (defined(MX_USB_OTG_FS) && defined(MX_USB_OTG_FS_Device_Only)))
+#if    (defined(MX_USB_OTG_FS) && (defined(MX_USB_OTG_FS_DEVICE)         || \
+                                   defined(MX_USB_OTG_FS_Device_Only)))
 #define MX_USBD0                        1
 #define MX_USBD0_HANDLE                 MX_USB_OTG_FS_HANDLE
 #endif
 
-#if   ((defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_DEVICE))         || \
-       (defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_Device_Only_FS)) || \
-       (defined(MX_USB_OTG_HS) && defined(MX_USB_OTG_HS_Device_HS)))
+#if    (defined(MX_USB1_OTG_HS) && defined(MX_USB1_OTG_HS_Device_HS))
+#define MX_USBD0                        1
+#define MX_USBD0_HANDLE                 MX_USB1_OTG_HS_HANDLE
+#endif
+
+#if    (defined(MX_USB_OTG_HS) && (defined(MX_USB_OTG_HS_DEVICE)         || \
+                                   defined(MX_USB_OTG_HS_Device_Only_FS) || \
+                                   defined(MX_USB_OTG_HS_Device_HS)))
 #define MX_USBD1                        1
 #define MX_USBD1_HANDLE                 MX_USB_OTG_HS_HANDLE
+#endif
+
+#if    (defined(MX_USB2_OTG_HS) && defined(MX_USB2_OTG_HS_Device_HS))
+#define MX_USBD1                        1
+#define MX_USBD1_HANDLE                 MX_USB2_OTG_HS_HANDLE
 #endif
 
 // Global driver structures ****************************************************
