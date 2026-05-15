@@ -12,17 +12,8 @@
   <url>https://www.keil.com/pack/</url>
 
   <releases>
-    <release version="1.4.0-dev">
+    <release version="1.4.1-dev">
       Active development ...
-      Ethernet MAC driver:
-       - Removed dependency on HAL internal DMA descriptor structures
-       - Added support for MX_ETH1 interface naming
-      SPI driver:
-       - Corrected baud rate prescaler calculation in Control function
-      USB Device driver:
-       - Added support for devices with two high-speed controllers (STM32N6)
-      USB Host driver:
-       - Added support for devices with two high-speed controllers (STM32N6)
     </release>
   </releases>
 
