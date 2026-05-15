@@ -1,5 +1,6 @@
 //--- list of versions ---
 const versions = {
+    "main": "1.4.1-dev1",
     "latest": "1.4.0",
     "usb_drivers_upd": "1.3.1-dev3",
     "v1.3.0": "1.3.0",
