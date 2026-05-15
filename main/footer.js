@@ -1,7 +1,7 @@
 function writeHeader() {
-    document.write('Version 1.3.1-dev3');
+    document.write('Version 1.3.1-dev4');
 };
 
 function writeFooter()  {
-    document.write('Generated on Thu May 14 2026 09:20:05 for CMSIS-Driver_STM32 1.3.1-dev3+g066e077. Copyright &copy; 2026 Arm Limited (or its affiliates). All rights reserved.');
+    document.write('Generated on Fri May 15 2026 05:02:41 for CMSIS-Driver_STM32 1.3.1-dev4+ge415cda. Copyright &copy; 2026 Arm Limited (or its affiliates). All rights reserved.');
 };
