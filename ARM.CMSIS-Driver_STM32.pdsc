@@ -10,6 +10,7 @@
     </licenseSet>
   </licenseSets>
   <url>https://www.keil.com/pack/</url>
+  <repository type="git">https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32.git</repository>
 
   <releases>
     <release version="1.4.1-dev">
