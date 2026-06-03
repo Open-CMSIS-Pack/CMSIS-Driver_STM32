@@ -15,6 +15,8 @@
   <releases>
     <release version="1.4.1-dev">
       Active development ...
+      Ethernet MAC driver:
+       - Fixed an issue affecting configurations with MPU cache enabled
     </release>
   </releases>
 
@@ -53,7 +55,7 @@
 
   <components>
     <!-- CMSIS Drivers -->
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.3.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.2.0" Cversion="3.4.0" condition="CMSIS Driver requirements">
       <description>Ethernet MAC Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_ETH_MAC0            /* Driver ETH_MAC0 */
