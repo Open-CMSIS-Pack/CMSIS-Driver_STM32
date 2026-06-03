@@ -128,27 +128,41 @@ $(document).ready(function(){initNavTree('rev_hist.html',''); initResizable(); }
 <tr>
 <th>Version </th><th>Description  </th></tr>
 <tr>
-<td>v1.4.0 </td><td>Ethernet MAC driver:<ul>
+<td>v1.4.0 </td><td><p class="starttd">Ethernet MAC driver:</p><ul>
 <li>Removed dependency on HAL internal DMA descriptor structures</li>
-<li>Added support for MX_ETH1 interface naming USB Device driver:</li>
-<li>Added support for devices with two high-speed controllers (STM32N6) USB Host driver:</li>
-<li>Added support for devices with two high-speed controllers (STM32N6) SPI driver:</li>
+<li>Added support for MX_ETH1 interface naming</li>
+</ul>
+<p class="intertd">USB Device driver:</p><ul>
+<li>Added support for devices with two high-speed controllers (STM32N6)</li>
+</ul>
+<p class="intertd">USB Host driver:</p><ul>
+<li>Added support for devices with two high-speed controllers (STM32N6)</li>
+</ul>
+<p class="endtd">SPI driver:</p><ul>
 <li>Corrected baud rate prescaler calculation in Control function   </li>
 </ul>
 </td></tr>
 <tr>
-<td>v1.3.0 </td><td>Ethernet MAC driver:<ul>
-<li>Added support for changed broadcast address filtering in HAL USB Host driver:</li>
+<td>v1.3.0 </td><td><p class="starttd">Ethernet MAC driver:</p><ul>
+<li>Added support for changed broadcast address filtering in HAL</li>
+</ul>
+<p class="intertd">USB Host driver:</p><ul>
 <li>Added support for USB DRD controller</li>
 <li>Updated high-speed support</li>
-<li>Updated detection and signaling of ARM_USBH_EVENT_RESET event I2C driver:</li>
+<li>Updated detection and signaling of ARM_USBH_EVENT_RESET event</li>
+</ul>
+<p class="endtd">I2C driver:</p><ul>
 <li>Corrected Control function behavior for devices without filter features   </li>
 </ul>
 </td></tr>
 <tr>
-<td>v1.2.0 </td><td>Ethernet MAC driver:<ul>
-<li>Added VLAN and multicast address hash filtering GPIO driver:</li>
-<li>Replaced POSITION_VAL macro with CMSIS implementation MCI driver:</li>
+<td>v1.2.0 </td><td><p class="starttd">Ethernet MAC driver:</p><ul>
+<li>Added VLAN and multicast address hash filtering</li>
+</ul>
+<p class="intertd">GPIO driver:</p><ul>
+<li>Replaced POSITION_VAL macro with CMSIS implementation</li>
+</ul>
+<p class="endtd">MCI driver:</p><ul>
 <li>Corrected bus clock divider return value when divider equals 1   </li>
 </ul>
 </td></tr>

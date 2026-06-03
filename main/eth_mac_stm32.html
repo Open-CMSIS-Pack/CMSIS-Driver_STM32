@@ -127,6 +127,10 @@ $(document).ready(function(){initNavTree('eth_mac_stm32.html',''); initResizable
 <div class="textblock"><h1><a class="anchor" id="autotoc_md1"></a>
 Revision History</h1>
 <ul>
+<li>Version 3.4<ul>
+<li>Fixed an issue affecting configurations with MPU cache enabled</li>
+</ul>
+</li>
 <li>Version 3.3<ul>
 <li>Removed dependency on HAL internal DMA descriptor structures</li>
 <li>Added support for MX_ETH1 interface naming</li>
@@ -180,7 +184,8 @@ Deviations</h1>
 </ul>
 </li>
 <li>SetAddressFilter:<ul>
-<li>not supported by HAL.</li>
+<li>supported on newer STM32H and STM32N devices.</li>
+<li>not supported on older STM32F devices.</li>
 </ul>
 </li>
 <li>GetRxFrameTime:<ul>
@@ -192,8 +197,8 @@ Deviations</h1>
 </ul>
 </li>
 <li>Control:<ul>
-<li>not supported control codes: ARM_ETH_MAC_CONTROL_TX, ARM_ETH_MAC_FLUSH, and ARM_ETH_MAC_SLEEP.</li>
-<li>for control code ARM_ETH_MAC_VLAN_FILTER the VLAN filter disable is not supported.</li>
+<li>not supported control codes: <code>ARM_ETH_MAC_CONTROL_TX</code>, <code>ARM_ETH_MAC_FLUSH</code>, and <code>ARM_ETH_MAC_SLEEP</code>.</li>
+<li>for control code <code>ARM_ETH_MAC_VLAN_FILTER</code> the VLAN filter control is supported on newer STM32H and STM32N devices.</li>
 </ul>
 </li>
 <li>ControlTimer:<ul>
@@ -218,7 +223,7 @@ CubeMX Configuration</h1>
 <p>&zwj;<b>Notes</b></p>
 <ul>
 <li>configuration information in the <b>MX_Device.h</b> file is based on CubeMX configuration.</li>
-<li>for devices with cache, ensure that ETH DMA descriptors (<b>DMARxDscrTab</b> and <b>DMATxDscrTab</b>) are located in <b>non-cacheable</b> and <b>non-shareable device memory</b>.</li>
+<li>for devices with cache, ensure that ETH DMA descriptors (<b>DMARxDscrTab</b> and <b>DMATxDscrTab</b>) are located in <b>non-cacheable</b> and <b>shareable device memory</b>.</li>
 <li>for devices with cache, ensure that ETH data buffers (<b>eth_mac0_rx_buf</b> and <b>eth_mac0_tx_buf</b>) are located in <b>non-cacheable</b> and <b>non-shareable normal memory</b>. </li>
 </ul>
 </blockquote>
@@ -270,7 +275,7 @@ Pinout &amp; Configuration tab</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft">First Rx Descriptor Address   </td><td class="markdownTableBodyCenter"><b>0x30040000</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft">Rx Buffers Length   </td><td class="markdownTableBodyCenter"><b>1524</b>   </td></tr>
+<td class="markdownTableBodyLeft">Rx Buffers Length   </td><td class="markdownTableBodyCenter"><b>1536</b>   </td></tr>
 </table>
 <br  />
 </li>
@@ -412,11 +417,11 @@ Pinout &amp; Configuration tab</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft">MPU Instruction Access   </td><td class="markdownTableBodyCenter"><b>DISABLE</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft">MPU Shareability Permission   </td><td class="markdownTableBodyCenter"><b>DISABLE</b>    </td></tr>
+<td class="markdownTableBodyLeft">MPU Shareability Permission   </td><td class="markdownTableBodyCenter"><b>ENABLE</b>    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft">MPU Cacheable Permission   </td><td class="markdownTableBodyCenter"><b>DISABLE</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft">MPU Bufferable Permission   </td><td class="markdownTableBodyCenter"><b>DISABLE</b>   </td></tr>
+<td class="markdownTableBodyLeft">MPU Bufferable Permission   </td><td class="markdownTableBodyCenter"><b>ENABLE</b>   </td></tr>
 </table>
 <br  />
  </li>
@@ -442,20 +447,21 @@ Project Manager tab</h3>
 </ol>
 <h2><a class="anchor" id="autotoc_md9"></a>
 Source Code</h2>
-<p>Add <b>RxDecripSection</b>, <b>TxDecripSection</b>, <b>.driver.eth_mac0_rx_buf</b> and <b>.driver.eth_mac0_tx_buf</b> sections to the Scatter file if GNU Compiler or Arm Compiler 6 is used.</p>
+<p>Add <b>RxDescripSection</b>, <b>TxDescripSection</b>, <b>driver.eth_mac0_rx_buf</b> and <b>driver.eth_mac0_tx_buf</b> sections to the Scatter file if GNU Compiler or Arm Compiler 6 is used.</p>
 <p>Example: </p><div class="fragment"><div class="line">RW_ETH_RX_DESC 0x30040000 0x00000060 {</div>
-<div class="line">  *(.RxDecripSection)</div>
+<div class="line">  *(.RxDescripSection)</div>
 <div class="line">}</div>
 <div class="line">RW_ETH_TX_DESC 0x30040060 0x00000060 {</div>
-<div class="line">  *(.TxDecripSection)</div>
+<div class="line">  *(.TxDescripSection)</div>
 <div class="line">}</div>
-<div class="line">RW_ETH_RX_BUF  0x30040100 0x00001800 {</div>
+<div class="line">RW_ETH_RX_BUF  0x30040100 0x00001E00 {</div>
 <div class="line">  *(.driver.eth_mac0_rx_buf)</div>
 <div class="line">}</div>
-<div class="line">RW_ETH_TX_BUF  0x30041900 0x00001800 {</div>
+<div class="line">RW_ETH_TX_BUF  0x30041F00 0x00001800 {</div>
 <div class="line">  *(.driver.eth_mac0_tx_buf)</div>
 <div class="line">}</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+</div><!-- fragment --><p>In older HAL versions, the DMA descriptor sections were named <b>RxDecripSection</b> and <b>TxDecripSection</b>. </p>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
