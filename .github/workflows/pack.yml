@@ -14,11 +14,11 @@ concurrency:
 jobs:
   pack:
     name: Generate pack
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
