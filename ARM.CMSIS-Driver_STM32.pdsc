@@ -21,7 +21,6 @@
        - Added HAL2 driver support
       USART driver:
        - Added HAL2 driver support
-   </release>
       Ethernet MAC driver:
        - Fixed an issue affecting configurations with MPU cache enabled
     </release>
