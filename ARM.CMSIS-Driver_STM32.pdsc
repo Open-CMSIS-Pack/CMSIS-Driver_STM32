@@ -15,6 +15,13 @@
   <releases>
     <release version="1.4.1-dev">
       Active development ...
+      I2C driver:
+       - Added HAL2 driver support
+      SPI driver:
+       - Added HAL2 driver support
+      USART driver:
+       - Added HAL2 driver support
+   </release>
       Ethernet MAC driver:
        - Fixed an issue affecting configurations with MPU cache enabled
     </release>
@@ -77,7 +84,7 @@
         <file category="source"  name="Drivers/GPIO_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
       <description>I2C Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_I2C1                /* Driver I2C1 */
@@ -107,7 +114,7 @@
         <file category="source"  name="Drivers/MCI_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
       <description>SPI Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_SPI1                /* Driver SPI1 */
@@ -125,7 +132,7 @@
         <file category="source"  name="Drivers/SPI_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
       <description>USART Driver for STM32 devices</description>
       <RTE_Components_h> <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_CMSIS_Driver_USART1         /* Driver USART1  */
