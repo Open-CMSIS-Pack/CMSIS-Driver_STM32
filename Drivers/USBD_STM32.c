@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       11. March 2026
- * $Revision:   V3.2
+ * $Date:       2. September 2026
+ * $Revision:   V3.3
  *
  * Project:     USB Device Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.3
+  - Added support for devices with high-speed internal phy (STM32H5)
 - Version 3.2
   - Added support for devices with two high-speed controllers (STM32N6)
 - Version 3.1

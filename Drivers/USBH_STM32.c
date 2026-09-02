@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       11. March 2026
- * $Revision:   V2.3
+ * $Date:       2. September 2026
+ * $Revision:   V2.4
  *
  * Project:     USB Host Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 2.4
+  - Added support for devices with high-speed internal phy (STM32H5)
 - Version 2.3
   - Added support for devices with two high-speed controllers (STM32N6)
 - Version 2.2

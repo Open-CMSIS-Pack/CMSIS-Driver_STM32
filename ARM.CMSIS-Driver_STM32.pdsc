@@ -17,6 +17,10 @@
       Active development ...
       Ethernet MAC driver:
        - Fixed an issue affecting configurations with MPU cache enabled
+      USB Device driver:
+       - Added support for devices with high-speed internal phy (STM32H5)
+      USB Host driver:
+       - Added support for devices with high-speed internal phy (STM32H5)
     </release>
   </releases>
 
@@ -154,7 +158,7 @@
         <file category="source"  name="Drivers/USART_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"   Capiversion="2.3.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"   Capiversion="2.3.0" Cversion="3.3.0" condition="CMSIS Driver requirements">
       <description>USB Device Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBD0               /* Driver USBD0 */
@@ -166,7 +170,7 @@
         <file category="source"  name="Drivers/USBD_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.3.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Host"     Capiversion="2.4.0" Cversion="2.4.0" condition="CMSIS Driver requirements">
       <description>USB Host Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_USBH0               /* Driver USBH0 */
