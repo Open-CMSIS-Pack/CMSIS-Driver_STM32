@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       11. March 2026
- * $Revision:   V3.2
+ * $Date:       2. September 2026
+ * $Revision:   V3.3
  *
  * Project:     USB Device Driver header for STMicroelectronics STM32 devices
  *
@@ -56,7 +56,8 @@ extern  "C"
 
 #if    (defined(MX_USB_OTG_HS) && (defined(MX_USB_OTG_HS_DEVICE)         || \
                                    defined(MX_USB_OTG_HS_Device_Only_FS) || \
-                                   defined(MX_USB_OTG_HS_Device_HS)))
+                                   defined(MX_USB_OTG_HS_Device_HS)      || \
+                                   defined(MX_USB_OTG_HS_Int_Phy_Device)))
 #define MX_USBD1                        1
 #define MX_USBD1_HANDLE                 MX_USB_OTG_HS_HANDLE
 #endif
