@@ -30,7 +30,7 @@
 # Revision History
 
 - Version 3.5
-  - Added Gigabit Ethernet support
+  - Added support for Gigabit Ethernet
 - Version 3.4
   - Fixed an issue affecting configurations with MPU cache enabled
 - Version 3.3
@@ -289,11 +289,6 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define DRIVER_CONFIG_VALID             1
 #endif
 
-// Check if Ethernet MAC supports Gigabit Ethernet
-#ifdef  STM32N6
-#define MAC_GBIT_ETHERNET
-#endif
-
 // Check if Ethernet MAC supports VLAN and multicast address hash filtering
 #ifdef  ETH_MACPFR_VTFE
 #define MAC_VLAN_FILTERING
@@ -442,7 +437,7 @@ static ARM_ETH_MAC_CAPABILITIES ETH_MAC_GetCapabilities (void) {
     case HAL_ETH_RMII_MODE:
       driver_capabilities.media_interface = ARM_ETH_INTERFACE_RMII;
       break;
-#ifdef MAC_GBIT_ETHERNET
+#ifdef ETH_SPEED_1000M
     case HAL_ETH_GMII_MODE:
       driver_capabilities.media_interface = ARM_ETH_INTERFACE_GMII;
       break;
@@ -450,7 +445,7 @@ static ARM_ETH_MAC_CAPABILITIES ETH_MAC_GetCapabilities (void) {
       driver_capabilities.media_interface = ARM_ETH_INTERFACE_RGMII;
       break;
 #endif
-  } 
+  }
   driver_capabilities.event_rx_frame = 1U;
   driver_capabilities.event_tx_frame = 1U;
   driver_capabilities.event_wakeup   = 1U;

@@ -16,7 +16,7 @@
     <release version="1.4.1-dev">
       Active development ...
       Ethernet MAC driver:
-       - Added Gigabit Ethernet support
+       - Added support for Gigabit Ethernet
        - Fixed an issue affecting configurations with MPU cache enabled
       USB Device driver:
        - Added support for devices with high-speed internal phy (STM32H5)
