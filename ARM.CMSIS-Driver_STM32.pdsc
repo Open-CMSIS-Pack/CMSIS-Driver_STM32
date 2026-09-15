@@ -27,7 +27,7 @@
 
   <requirements>
     <packages>
-      <package vendor="ARM" name="CMSIS" version="6.0.0"/>
+      <package vendor="ARM" name="CMSIS" version="6.4.0"/>
     </packages>
     <targets>
       <target Dvendor="STMicroelectronics:13" Dname="STM32*"/>
@@ -54,7 +54,7 @@
     <condition id="CMSIS Driver requirements">
       <description>CMSIS Driver requirements for all CMSIS Drivers</description>
       <require condition="Device requirement"/>
-      <require Cclass="CMSIS" Cgroup="CORE" Cversion="6.4.0"/>
+      <require Cclass="CMSIS" Cgroup="CORE"/>
     </condition>
   </conditions>
 
