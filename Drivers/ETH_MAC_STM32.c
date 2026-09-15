@@ -289,6 +289,11 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #define DRIVER_CONFIG_VALID             1
 #endif
 
+// Check if Ethernet MAC supports Gigabit Ethernet
+#ifdef  ETH_SPEED_1000M
+#define MAC_GBIT_ETHERNET
+#endif
+
 // Check if Ethernet MAC supports VLAN and multicast address hash filtering
 #ifdef  ETH_MACPFR_VTFE
 #define MAC_VLAN_FILTERING
@@ -437,7 +442,7 @@ static ARM_ETH_MAC_CAPABILITIES ETH_MAC_GetCapabilities (void) {
     case HAL_ETH_RMII_MODE:
       driver_capabilities.media_interface = ARM_ETH_INTERFACE_RMII;
       break;
-#ifdef ETH_SPEED_1000M
+#ifdef MAC_GBIT_ETHERNET
     case HAL_ETH_GMII_MODE:
       driver_capabilities.media_interface = ARM_ETH_INTERFACE_GMII;
       break;

@@ -54,7 +54,7 @@
     <condition id="CMSIS Driver requirements">
       <description>CMSIS Driver requirements for all CMSIS Drivers</description>
       <require condition="Device requirement"/>
-      <require Cclass="CMSIS" Cgroup="CORE"/>
+      <require Cclass="CMSIS" Cgroup="CORE" Cversion="6.4.0"/>
     </condition>
   </conditions>
 
