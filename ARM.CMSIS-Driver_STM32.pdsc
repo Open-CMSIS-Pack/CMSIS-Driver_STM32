@@ -13,8 +13,14 @@
   <repository type="git">https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32.git</repository>
 
   <releases>
-    <release version="1.4.1-dev">
+    <release version="1.5.0-dev">
       Active development ...
+      I2C driver:
+       - Added support for HAL2
+      SPI driver:
+       - Added support for HAL2
+      USART driver:
+       - Added support for HAL2
       Ethernet MAC driver:
        - Fixed an issue affecting configurations with MPU cache enabled
       USB Device driver:
@@ -55,6 +61,16 @@
       <require condition="Device requirement"/>
       <require Cclass="CMSIS" Cgroup="CORE"/>
     </condition>
+
+    <condition id="HAL1">
+      <description>Requirements for driver implementation using HAL1</description>
+      <require Cclass="Device" Cgroup="CubeMX"/>
+    </condition>
+
+    <condition id="HAL2">
+      <description>Requirements for driver implementation using HAL2</description>
+      <deny    Cclass="Device" Cgroup="CubeMX"/>
+    </condition>
   </conditions>
 
   <components>
@@ -81,7 +97,7 @@
         <file category="source"  name="Drivers/GPIO_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="I2C"          Capiversion="2.4.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
       <description>I2C Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_I2C1                /* Driver I2C1 */
@@ -96,7 +112,8 @@
       <files>
         <file category="doc"     name="Documentation/html/i2c_stm32.html"/>
         <file category="header"  name="Drivers/I2C_STM32.h"/>
-        <file category="source"  name="Drivers/I2C_STM32.c"/>
+        <file category="source"  name="Drivers/I2C_STM32.c"      condition="HAL1"/>
+        <file category="source"  name="Drivers/I2C_STM32_HAL2.c" condition="HAL2"/>
       </files>
     </component>
     <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="MCI"          Capiversion="2.4.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
@@ -111,7 +128,7 @@
         <file category="source"  name="Drivers/MCI_STM32.c"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="SPI"          Capiversion="2.3.0" Cversion="3.2.0" condition="CMSIS Driver requirements">
       <description>SPI Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_SPI1                /* Driver SPI1 */
@@ -126,10 +143,11 @@
       <files>
         <file category="doc"     name="Documentation/html/spi_stm32.html"/>
         <file category="header"  name="Drivers/SPI_STM32.h"/>
-        <file category="source"  name="Drivers/SPI_STM32.c"/>
+        <file category="source"  name="Drivers/SPI_STM32.c"      condition="HAL1"/>
+        <file category="source"  name="Drivers/SPI_STM32_HAL2.c" condition="HAL2"/>
       </files>
     </component>
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.0.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USART"        Capiversion="2.4.0" Cversion="3.1.0" condition="CMSIS Driver requirements">
       <description>USART Driver for STM32 devices</description>
       <RTE_Components_h> <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_CMSIS_Driver_USART1         /* Driver USART1  */
@@ -155,7 +173,8 @@
       <files>
         <file category="doc"     name="Documentation/html/usart_stm32.html"/>
         <file category="header"  name="Drivers/USART_STM32.h"/>
-        <file category="source"  name="Drivers/USART_STM32.c"/>
+        <file category="source"  name="Drivers/USART_STM32.c"      condition="HAL1"/>
+        <file category="source"  name="Drivers/USART_STM32_HAL2.c" condition="HAL2"/>
       </files>
     </component>
     <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="USB Device"   Capiversion="2.3.0" Cversion="3.3.0" condition="CMSIS Driver requirements">

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       24. August 2024
- * $Revision:   V3.0
+ * $Date:       23. September 2026
+ * $Revision:   V3.1
  *
  * Project:     USART Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.1
+  - Added support for HAL2
 - Version 3.0
   - Initial release
 
@@ -207,7 +209,7 @@ This driver requires the following configuration in CubeMX:
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************

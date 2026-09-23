@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       9. October 2025
- * $Revision:   V3.1
+ * $Date:       23. September 2026
+ * $Revision:   V3.2
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Added support for HAL2
 - Version 3.1
   - Corrected baud rate prescaler calculation in Control function
 - Version 3.0
@@ -206,7 +208,7 @@ This driver requires the following configuration in CubeMX:
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,2) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
