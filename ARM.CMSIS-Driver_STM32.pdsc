@@ -69,7 +69,10 @@
 
     <condition id="HAL2">
       <description>Requirements for driver implementation using HAL2</description>
-      <deny    Cclass="Device" Cgroup="CubeMX"/>
+<!--  HAL2 should rely on the CubeMX2 group -->
+<!--  <require Cclass="Device" Cgroup="CubeMX2"/> -->
+<!--  Until CubeMX2 group is available in the DFPs, use a condition to select devices with HAL2 support -->
+      <require Dname="STM32C5*"/>
     </condition>
   </conditions>
 
