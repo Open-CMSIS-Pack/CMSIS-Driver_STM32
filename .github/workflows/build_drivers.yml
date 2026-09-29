@@ -1,0 +1,103 @@
+# Copyright (c) 2026 Arm Limited (or its affiliates). All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+name: Build drivers
+# Build TestApp for a specific board to verify the successful compilation of all drivers provided by the board layer
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/build_drivers.yml
+      - '.ci/TestApp/**'
+      - 'Drivers/**'
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Build:
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        context: [
+          # board                , BSP                         , DFP
+          { board: B-U585I-IOT02A, bsp: Keil.B-U585I-IOT02A_BSP, dfp: Keil.STM32U5xx_DFP },
+          { board: STM32H735G-DK,  bsp: Keil.STM32H735G-DK_BSP,  dfp: Keil.STM32H7xx_DFP }
+        ]
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Check out this repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install the required tools
+        uses: ARM-software/cmsis-actions/vcpkg@8a50b77681a484568e08f31fb7c2285c4735f682 # v1.3
+        with:
+          config: "./.ci/vcpkg-configuration.json"
+
+      - name: Activate the Arm tool license
+        uses: ARM-software/cmsis-actions/armlm@8a50b77681a484568e08f31fb7c2285c4735f682 # v1.3
+
+      - name: Initialize the CMSIS pack root directory
+        run: |
+          cpackget init https://www.keil.com/pack/index.pidx
+          cpackget update-index
+
+      - name: Install the pack from this repository
+        run: |
+          cpackget add ./ARM.CMSIS-Driver_STM32.pdsc -a
+
+      - name: Install the required BSP and DFP packs
+        run: |
+          cpackget add ${{ matrix.context.bsp }} -a
+          cpackget add ${{ matrix.context.dfp }} -a
+
+      - name: Copy the template application from ./.ci/TestApp/ to ./${{ matrix.context.board }} directory
+        run: |
+          mkdir -p ./${{ matrix.context.board }}
+          cp -r ./.ci/TestApp/. ./${{ matrix.context.board }}/
+
+      - name: Copy the first board layer found in the BSP to ./${{ matrix.context.board }}/Board/ directory
+        working-directory: ./${{ matrix.context.board }}
+        run: |
+          BSP_PACK="${{ matrix.context.bsp }}"
+          BOARD_DIR=$(find "/home/runner/.cache/arm/packs/Keil/${BSP_PACK#*.}" -type f -name "Board.clayer.yml" -print -quit | xargs -r dirname)
+          mkdir -p ./Board/
+          cp -r "${BOARD_DIR}"/* ./Board/
+
+      - name: Add target information to the .csolution file
+        working-directory: ./${{ matrix.context.board }}
+        run: |
+          sed -i "s|target-types:|&\n    - type: ${{ matrix.context.board }}\n      board: ${{ matrix.context.board }}\n      variables:\n      - Board-Layer: \$SolutionDir()\$/Board/Board.clayer.yml|" ./TestApp.csolution.yml
+
+      - name: Build the test application
+        working-directory: ./${{ matrix.context.board }}
+        run: |
+          cbuild ./TestApp.csolution.yml --packs --update-rte
+
+      - name: Deactivate the Arm tool license
+        if: always()
+        run: |
+          armlm deactivate --product KEMDK-COM0

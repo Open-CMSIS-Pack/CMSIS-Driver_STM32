@@ -1,5 +1,6 @@
 [![Version](https://img.shields.io/github/v/release/Open-CMSIS-Pack/CMSIS-Driver_STM32?label=Release)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/releases/latest)
 [![Pack build](https://img.shields.io/github/actions/workflow/status/Open-CMSIS-Pack/CMSIS-Driver_STM32/pack.yml?logo=arm&logoColor=0091bd&label=Build%20pack)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/.github/workflows/pack.yml)
+[![Drivers build](https://img.shields.io/github/actions/workflow/status/Open-CMSIS-Pack/CMSIS-Driver_STM32/build_drivers.yml?logo=arm&logoColor=0091bd&label=Build%20drivers)](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/.github/workflows/build_drivers.yml)
 
 # CMSIS-Driver Interface to STM32 HAL
 
@@ -104,6 +105,10 @@ Directory                   | Description
 [.github/workflows](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/.github/workflows)  | [GitHub Actions](#github-actions).
 [Documentation](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/Documentation)          | Doxygen source of the [documentation](https://open-cmsis-pack.github.io/CMSIS-Driver_STM32/latest/index.html).
 [Drivers](https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32/tree/main/Drivers)                | Source code of the Driver API Shim Interfaces.
+
+## Continuous Integration (CI)
+
+The repository uses GitHub Action [build_drivers](./.github/workflows/build_drivers.yml) to test that drivers build successfully with AC6.
 
 ## License
 
