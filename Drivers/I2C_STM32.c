@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       20. August 2025
- * $Revision:   V3.1
+ * $Date:       22. July 2026
+ * $Revision:   V3.2
  *
  * Project:     I2C Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Added HAL2 version support under STM32_HAL_VERSION_2
 - Version 3.1
   - Corrected Control function behavior for devices without filter features
 - Version 3.0
@@ -174,7 +176,7 @@ This driver requires the following configuration in CubeMX:
 
   - Reason:   peripheral clock frequency is not determinable from CubeMX configuration.
   - Solution: add **User Constant** with Name **I2Cn_PERIPH_CLOCK_FREQ** and Value of respective I2Cn **peripheral clock frequency (in Hz)**.
-  - Example:  in the **Pinout & Configuration** tab, under **Categories**: **Connectivity** select **I2C1**, 
+  - Example:  in the **Pinout & Configuration** tab, under **Categories**: **Connectivity** select **I2C1**,
               under **Configuration**: **User Constants** add **Constant** with Name **I2C1_PERIPH_CLOCK_FREQ** and Value
               of **peripheral clock frequency (in Hz)** as determined from the **Clock Configuration** or device documentation.
 */
@@ -185,12 +187,15 @@ This driver requires the following configuration in CubeMX:
 
 #include "RTE_Components.h"
 #include  CMSIS_device_header
+#ifdef STM32_HAL_VERSION_2
+#include "stm32_hal.h"
+#endif // STM32_HAL_VERSION_2
 
 #include <string.h>
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(4,0) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -248,6 +253,90 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 #define DRIVER_CONFIG_VALID             1
 #endif
 
+// Check HAL version
+#ifdef STM32_HAL_VERSION_2
+// HAL2 I2C handle type
+#define HAL_I2C_HANDLE_TYPE hal_i2c_handle_t
+
+// Retrieve I2C instance from handle
+#define HAL_I2C_INSTANCE(handle)   (I2C_TypeDef *)((uint32_t)handle->instance)
+
+// HAL2 I2C init function
+#define HAL_I2C_INIT(ptr_ro_info) HAL_I2C_Init(ptr_ro_info->ptr_hi2c, ptr_ro_info->instance)
+
+// HAL2 CR1 register manipulation
+#define __HAL_I2C_ENABLE_IT(handle, flags)    LL_I2C_EnableIT(HAL_I2C_INSTANCE(handle), flags)
+
+// Retreive the DMA channel instance
+#define HAL_DMA_CHANNEL_INSTANCE(handle)   ((DMA_Channel_TypeDef *)((uint32_t)(handle)->instance))
+
+// HAL2 DMA Rx handle
+#define HAL_DMA_RX_HANDLE(handle)   handle->hdma_rx
+
+// HAL2 DMA Tx handle
+#define HAL_DMA_TX_HANDLE(handle)   handle->hdma_tx
+
+// HAL2 GPIO config type
+#define GPIO_CONFIG_TYPE hal_gpio_config_t
+
+// HAL2 GPIO cast pin state
+#define GPIO_CAST_PIN_STATE hal_gpio_pin_state_t
+
+// HAL2 Callback names
+#define HAL_I2C_MasterTxCpltCallback(h)    HAL_I2C_MASTER_TxCpltCallback(h)
+#define HAL_I2C_MasterRxCpltCallback(h)    HAL_I2C_MASTER_RxCpltCallback(h)
+#define HAL_I2C_SlaveTxCpltCallback(h)     HAL_I2C_SLAVE_TxCpltCallback(h)
+#define HAL_I2C_SlaveRxCpltCallback(h)     HAL_I2C_SLAVE_RxCpltCallback(h)
+#define HAL_I2C_ListenCpltCallback(h)      HAL_I2C_SLAVE_ListenCpltCallback(h)
+
+#else // STM32_HAL_VERSION_2
+// HAL1 I2C handle type
+#define HAL_I2C_HANDLE_TYPE I2C_HandleTypeDef
+
+// Retrieve I2C instance from handle
+#define HAL_I2C_INSTANCE(handle)   (I2C_TypeDef *)((uint32_t)handle->Instance)
+
+// HAL1 I2C init function
+#define HAL_I2C_INIT(ptr_ro_info) HAL_I2C_Init(ptr_ro_info->ptr_hi2c)
+
+// HAL1 DMA Rx handle
+#define HAL_DMA_RX_HANDLE(handle)   handle->hdmarx
+
+// HAL1 DMA Tx handle
+#define HAL_DMA_TX_HANDLE(handle)   handle->hdmatx
+
+// HAL1 GPIO config type
+#define GPIO_CONFIG_TYPE GPIO_InitTypeDef
+
+// HAL1 GPIO cast pin state
+#define GPIO_CAST_PIN_STATE GPIO_PinState
+
+// HAL1 I2C Sequential Transfer Options
+#define HAL_I2C_XFER_FIRST_FRAME            I2C_FIRST_FRAME
+#define HAL_I2C_XFER_FIRST_AND_NEXT_FRAME   I2C_FIRST_AND_NEXT_FRAME
+#define HAL_I2C_XFER_NEXT_FRAME             I2C_NEXT_FRAME
+#define HAL_I2C_XFER_FIRST_AND_LAST_FRAME   I2C_FIRST_AND_LAST_FRAME
+#define HAL_I2C_XFER_LAST_FRAME             I2C_LAST_FRAME
+#define HAL_I2C_XFER_LAST_FRAME_NO_STOP     I2C_LAST_FRAME_NO_STOP
+#define HAL_I2C_XFER_OTHER_FRAME            I2C_OTHER_FRAME
+#define HAL_I2C_XFER_OTHER_AND_LAST_FRAME   I2C_OTHER_AND_LAST_FRAME
+
+// HAL1 Slave listen disable
+#define HAL_I2C_SLAVE_DisableListen_IT(handle)      HAL_I2C_DisableListen_IT(handle)
+
+// HAL1 Slave Listen enable
+#define HAL_I2C_SLAVE_EnableListen_IT(handle)      HAL_I2C_EnableListen_IT(handle)
+
+#define HAL_I2C_MASTER_Abort_IT         HAL_I2C_Master_Abort_IT
+
+#define HAL_I2C_SLAVE_SEQ_Receive_DMA   HAL_I2C_Slave_Seq_Receive_DMA
+#define HAL_I2C_SLAVE_SEQ_Receive_IT    HAL_I2C_Slave_Seq_Receive_IT
+
+#define HAL_I2C_SLAVE_SEQ_Transmit_DMA  HAL_I2C_Slave_Seq_Transmit_DMA
+#define HAL_I2C_SLAVE_SEQ_Transmit_IT   HAL_I2C_Slave_Seq_Transmit_IT
+
+#endif // STM32_HAL_VERSION_2
+
 // Determine peripheral differences that driver needs to handle
 
 // Determine if peripheral has filter features
@@ -286,10 +375,35 @@ static const ARM_I2C_CAPABILITIES driver_capabilities = {
 
 #ifdef  I2C_VARIANT_HAS_FILTER  // If I2C peripheral has filters
 // Macro to create i2c_ro_info and i2c_rw_info (for instances), with filter settings
+#ifdef STM32_HAL_VERSION_2
+#define INFO_DEFINE(n)                                                                                         \
+extern  hal_i2c_handle_t       *mx_i2c##n##_hal_gethandle(void);                                               \
+static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
+static        RO_Info_t         i2c##n##_ro_info    = { .hal_i2c_gethandle = mx_i2c##n##_hal_gethandle,        \
+                                                        .instance = HAL_I2C##n,                                \
+                                                        .ptr_rw_info = &i2c##n##_rw_info,                      \
+                                                        .peri_clock_freq = (uint32_t)MX_I2C##n##_PERIPH_CLOCK_FREQ, \
+                                                        .scl_pin_config = { (hal_gpio_t) MX_I2C##n##_SCL_GPIOx,  \
+                                                           MX_I2C##n##_SCL_GPIO_Pin,                           \
+                                                           MX_I2C##n##_SCL_GPIO_AF,                            \
+                                                           MX_I2C##n##_SCL_GPIO_PuPd,                          \
+                                                           MX_I2C##n##_SCL_GPIO_Speed                          \
+                                                         },                                                    \
+                                                        .sda_pin_config = { (hal_gpio_t) MX_I2C##n##_SDA_GPIOx,  \
+                                                           MX_I2C##n##_SDA_GPIO_Pin,                           \
+                                                           MX_I2C##n##_SDA_GPIO_AF,                            \
+                                                           MX_I2C##n##_SDA_GPIO_PuPd,                          \
+                                                           MX_I2C##n##_SDA_GPIO_Speed                          \
+                                                         },                                                    \
+                                                         .anf_en = MX_I2C##n##_ANF_ENABLE,                     \
+                                                         .dnf = MX_I2C##n##_DNF                                \
+                                                      };
+#else // STM32_HAL_VERSION_2
+// Macro to create i2c_ro_info and i2c_rw_info (for instances), with filter settings
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
 static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
-static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
+static        RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
                                                          (uint32_t)MX_I2C##n##_PERIPH_CLOCK_FREQ,              \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
@@ -307,12 +421,35 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                          MX_I2C##n##_ANF_ENABLE,                               \
                                                          MX_I2C##n##_DNF                                       \
                                                       };
+#endif // STM32_HAL_VERSION_2
 #else
 // Macro to create i2c_ro_info and i2c_rw_info (for instances), without filter settings
+#ifdef STM32_HAL_VERSION_2
+#define INFO_DEFINE(n)                                                                                         \
+extern  hal_i2c_handle_t       *mx_i2c##n##_hal_gethandle(void);                                               \
+static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
+static        RO_Info_t         i2c##n##_ro_info    = { .hal_i2c_gethandle = mx_i2c##n##_hal_gethandle,        \
+                                                        .instance = HAL_I2C##n,                                \
+                                                        .ptr_rw_info = &i2c##n##_rw_info,                      \
+                                                        .peri_clock_freq = (uint32_t)MX_I2C##n##_PERIPH_CLOCK_FREQ, \
+                                                        .scl_pin_config = { MX_I2C##n##_SCL_GPIOx,             \
+                                                           MX_I2C##n##_SCL_GPIO_Pin,                           \
+                                                           MX_I2C##n##_SCL_GPIO_AF,                            \
+                                                           MX_I2C##n##_SCL_GPIO_PuPd,                          \
+                                                           MX_I2C##n##_SCL_GPIO_Speed                          \
+                                                         },                                                    \
+                                                        .sda_pin_config = { MX_I2C##n##_SDA_GPIOx,             \
+                                                           MX_I2C##n##_SDA_GPIO_Pin,                           \
+                                                           MX_I2C##n##_SDA_GPIO_AF,                            \
+                                                           MX_I2C##n##_SDA_GPIO_PuPd,                          \
+                                                           MX_I2C##n##_SDA_GPIO_Speed                          \
+                                                         }                                                     \
+                                                      };
+#else // STM32_HAL_VERSION_2
 #define INFO_DEFINE(n)                                                                                         \
 extern  I2C_HandleTypeDef       hi2c##n;                                                                       \
 static        RW_Info_t         i2c##n##_rw_info I2Cn_SECTION(n);                                              \
-static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
+static        RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,                                              \
                                                         &i2c##n##_rw_info,                                     \
                                                          (uint32_t)MX_I2C##n##_PERIPH_CLOCK_FREQ,              \
                                                          { MX_I2C##n##_SCL_GPIOx,                              \
@@ -328,6 +465,7 @@ static  const RO_Info_t         i2c##n##_ro_info    = { &hi2c##n,               
                                                            MX_I2C##n##_SDA_GPIO_Speed                          \
                                                          }                                                     \
                                                       };
+#endif // STM32_HAL_VERSION_2
 #endif
 
 // Macro for declaring functions (for instances)
@@ -435,8 +573,13 @@ typedef struct {
 
 // Pin configuration
 typedef struct {
+#ifdef STM32_HAL_VERSION_2
+  hal_gpio_t                    ptr_port;               // Pin's port
+  uint32_t                      pin;                    // Pin
+#else // STM32_HAL_VERSION_2
   GPIO_TypeDef                 *ptr_port;               // Pointer to pin's port
   uint16_t                      pin;                    // Pin
+#endif // STM32_HAL_VERSION_2
   uint16_t                      af;                     // Pin's alternate function setting
   uint16_t                      pull;                   // Pin's pull-up/pull-down setting
   uint16_t                      speed;                  // Pin's speed setting
@@ -463,21 +606,34 @@ typedef struct {
            uint32_t             xfer_size;              // Requested transfer size (in bytes)
   const    uint8_t * volatile   slave_xfer_tx_data;     // Pointer to transmit data (for Slave only)
            uint8_t * volatile   slave_xfer_rx_data;     // Pointer to receive  data (for Slave only)
+#ifdef STM32_HAL_VERSION_2
+           uint32_t             slave_xfer_tx_num;      // Requested number of bytes to transmit
+           uint32_t             slave_xfer_rx_num;      // Requested number of bytes to receive
+#else // STM32_HAL_VERSION_2
            uint16_t             slave_xfer_tx_num;      // Requested number of bytes to transmit
            uint16_t             slave_xfer_rx_num;      // Requested number of bytes to receive
+#endif // STM32_HAL_VERSION_2
 } RW_Info_t;
 
 // Instance compile-time information (RO)
 // also contains pointer to run-time information
 typedef struct {
-  I2C_HandleTypeDef            *ptr_hi2c;               // Pointer to I2C handle
+  HAL_I2C_HANDLE_TYPE          *ptr_hi2c;               // Pointer to I2C handle
+#ifdef STM32_HAL_VERSION_2
+  hal_i2c_handle_t * (*hal_i2c_gethandle)(void);        // Callback to I2C get handle
+  hal_i2c_t                     instance;               // I2C instance
+#endif // STM32_HAL_VERSION_2
   RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
   uint32_t                      peri_clock_freq;        // Peripheral clock frequency (in Hz)
   PinConfig_t                   scl_pin_config;         // SCL pin configuration structure
   PinConfig_t                   sda_pin_config;         // SDA pin configuration structure
 #ifdef I2C_VARIANT_HAS_FILTER
   uint16_t                      anf_en;                 // Analog noise filter enable
+#ifdef STM32_HAL_VERSION_2
+  uint32_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
+#else // STM32_HAL_VERSION_2
   uint16_t                      dnf;                    // Digital noise filter coefficient value (0 - disabled)
+#endif // STM32_HAL_VERSION_2
 #endif
 } RO_Info_t;
 
@@ -575,7 +731,7 @@ static const RO_Info_t * const i2c_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t         *I2C_GetInfo         (const I2C_HandleTypeDef * const hi2c);
+static const RO_Info_t         *I2C_GetInfo         (const HAL_I2C_HANDLE_TYPE * const hi2c);
 static uint32_t                 I2Cn_GetPeriphClock (const RO_Info_t * const ptr_ro_info);
 #ifdef I2C_VARIANT_TIMINGR      // If TIMINGR register exists
 static int32_t                  I2Cn_GetSCLRatio    (ClockSetup_t *ptr_clock_setup, const StandardTiming_t *ptr_timing_spec, TimingReg_t *ptr_timing_reg);
@@ -583,7 +739,7 @@ static uint32_t                 I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_set
 #endif
 static ARM_DRIVER_VERSION       I2C_GetVersion      (void);
 static ARM_I2C_CAPABILITIES     I2C_GetCapabilities (void);
-static int32_t                  I2Cn_Initialize     (const RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event);
+static int32_t                  I2Cn_Initialize     (RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event);
 static int32_t                  I2Cn_Uninitialize   (const RO_Info_t * const ptr_ro_info);
 static int32_t                  I2Cn_PowerControl   (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
 static int32_t                  I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending);
@@ -623,12 +779,12 @@ FUNCS_DECLARE(8)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *I2C_GetInfo (const I2C_HandleTypeDef * const hi2c)
+  \fn          RO_Info_t *I2C_GetInfo (const HAL_I2C_HANDLE_TYPE * const hi2c)
   \brief       Get pointer to RO_Info_t structure corresponding to specified hi2c.
-  \param[in]   hi2c     Pointer to I2C handle structure (I2C_HandleTypeDef)
+  \param[in]   hi2c     Pointer to I2C handle structure (HAL_I2C_HANDLE_TYPE)
   \return      pointer to I2C RO info structure (RO_Info_t)
 */
-static const RO_Info_t *I2C_GetInfo (const I2C_HandleTypeDef * const hi2c) {
+static const RO_Info_t *I2C_GetInfo (const HAL_I2C_HANDLE_TYPE * const hi2c) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -839,7 +995,7 @@ static ARM_I2C_CAPABILITIES I2C_GetCapabilities (void) {
   \param[in]   cb_event      Pointer to \ref ARM_I2C_SignalEvent
   \return      \ref execution_status
 */
-static int32_t I2Cn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event) {
+static int32_t I2Cn_Initialize (RO_Info_t * const ptr_ro_info, ARM_I2C_SignalEvent_t cb_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -849,6 +1005,10 @@ static int32_t I2Cn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_I2C_Sig
 
   // Set driver status to initialized
   ptr_ro_info->ptr_rw_info->drv_status.initialized = 1U;
+
+#ifdef STM32_HAL_VERSION_2
+  ptr_ro_info->ptr_hi2c = ptr_ro_info->hal_i2c_gethandle();
+#endif // STM32_HAL_VERSION_2
 
   return ARM_DRIVER_OK;
 }
@@ -901,26 +1061,20 @@ static int32_t I2Cn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER
       ptr_ro_info->ptr_rw_info->drv_status = drv_status;
 
       // Initialize pins, clocks, interrupts and peripheral
-      if (HAL_I2C_Init(ptr_ro_info->ptr_hi2c) != HAL_OK) {
+      if (HAL_I2C_INIT(ptr_ro_info) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
 
 #ifdef I2C_VARIANT_HAS_FILTER           // If I2C peripheral has filters
       // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
       if (ptr_ro_info->anf_en != 0U) {
-        if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
-          return ARM_DRIVER_ERROR;
-        }
+        LL_I2C_EnableAnalogFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
       } else {
-        if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
-          return ARM_DRIVER_ERROR;
-        }
+        LL_I2C_DisableAnalogFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
       }
 
       // Reconfigure Digital Noise Filter because HAL_I2C_Init destroys DNF setting in the CR1 register
-      if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
-        return ARM_DRIVER_ERROR;
-      }
+      LL_I2C_SetDigitalFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), ptr_ro_info->dnf);
 #endif
 
       // Set driver status to powered
@@ -973,16 +1127,30 @@ static int32_t I2Cn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER
   \return      \ref execution_status
 */
 static int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending) {
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t tx_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef tx_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
   uint16_t          saddr;
   uint32_t          opt;
   int32_t           ret;
 
-  if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX) ||
+  #ifdef STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) ||
      ((addr & ~((uint32_t)ARM_I2C_ADDRESS_10BIT | (uint32_t)ARM_I2C_ADDRESS_GC)) > 0x3FFU)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) || (num > (uint32_t)MAX_NUM_DATA) ||
+     ((addr & ~((uint32_t)ARM_I2C_ADDRESS_10BIT | (uint32_t)ARM_I2C_ADDRESS_GC)) > 0x3FFU)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -993,7 +1161,7 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_
   }
 
   saddr = (addr & 0x3FFU);
-  if (ptr_ro_info->ptr_hi2c->Init.AddressingMode == I2C_ADDRESSINGMODE_7BIT) {
+  if (LL_I2C_GetMasterAddressingMode(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c)) == LL_I2C_ADDRESSING_MODE_7BIT) {
     saddr <<= 1;
   }
 
@@ -1007,27 +1175,35 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_
     if (ptr_ro_info->ptr_rw_info->xfer_no_stop == 0U) {
       // First transfer without STOP generation
       ptr_ro_info->ptr_rw_info->xfer_no_stop = 1U;
-      opt = I2C_FIRST_FRAME;
+      opt = HAL_I2C_XFER_FIRST_FRAME;
     } else {
       // Any further transfer without STOP generation
-      opt = I2C_OTHER_FRAME;
+      opt = HAL_I2C_XFER_OTHER_FRAME;
     }
   } else {                              // If transfer should generate STOP at the end
     if (ptr_ro_info->ptr_rw_info->xfer_no_stop == 1U) {
       // If previous request did not generate STOP after transfer, terminate the sequence
       ptr_ro_info->ptr_rw_info->xfer_no_stop = 0U;
-      opt = I2C_OTHER_AND_LAST_FRAME;
+      opt = HAL_I2C_XFER_OTHER_AND_LAST_FRAME;
     } else {
-      opt = I2C_LAST_FRAME;
+      opt = HAL_I2C_XFER_LAST_FRAME;
     }
   }
 
   // Start the transmit
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_hi2c->hdma_tx != NULL) {  // If DMA is used for Tx
+    tx_status = HAL_I2C_MASTER_SEQ_Transmit_DMA(ptr_ro_info->ptr_hi2c, saddr, (void *) data, num, (hal_i2c_xfer_opt_t)opt);
+  } else {                                      // If DMA is not configured (IRQ mode)
+    tx_status = HAL_I2C_MASTER_SEQ_Transmit_IT (ptr_ro_info->ptr_hi2c, saddr, (void *) data, num, (hal_i2c_xfer_opt_t)opt);
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_hi2c->hdmatx != NULL) {  // If DMA is used for Tx
     tx_status = HAL_I2C_Master_Seq_Transmit_DMA(ptr_ro_info->ptr_hi2c, saddr, (uint8_t *)(uint32_t)data, (uint16_t)num, opt);
   } else {                                      // If DMA is not configured (IRQ mode)
     tx_status = HAL_I2C_Master_Seq_Transmit_IT (ptr_ro_info->ptr_hi2c, saddr, (uint8_t *)(uint32_t)data, (uint16_t)num, opt);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (tx_status) {
@@ -1042,6 +1218,12 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -1063,16 +1245,30 @@ static int32_t I2Cn_MasterTransmit (const RO_Info_t * const ptr_ro_info, uint32_
   \return      \ref execution_status
 */
 static int32_t I2Cn_MasterReceive (const RO_Info_t * const ptr_ro_info, uint32_t addr, uint8_t *data, uint32_t num, bool xfer_pending) {
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t rx_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef rx_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
   uint16_t          saddr;
   uint32_t          opt;
   int32_t           ret;
 
-  if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX) ||
+  #ifdef STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) ||
      ((addr & ~((uint32_t)ARM_I2C_ADDRESS_10BIT | (uint32_t)ARM_I2C_ADDRESS_GC)) > 0x3FFU)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) || (num > (uint32_t)MAX_NUM_DATA) ||
+     ((addr & ~((uint32_t)ARM_I2C_ADDRESS_10BIT | (uint32_t)ARM_I2C_ADDRESS_GC)) > 0x3FFU)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
     return ARM_DRIVER_ERROR;
@@ -1083,7 +1279,7 @@ static int32_t I2Cn_MasterReceive (const RO_Info_t * const ptr_ro_info, uint32_t
   }
 
   saddr = (addr & 0x3FFU);
-  if (ptr_ro_info->ptr_hi2c->Init.AddressingMode == I2C_ADDRESSINGMODE_7BIT) {
+  if (LL_I2C_GetMasterAddressingMode(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c)) == LL_I2C_ADDRESSING_MODE_7BIT) {
     saddr <<= 1;
   }
 
@@ -1097,27 +1293,35 @@ static int32_t I2Cn_MasterReceive (const RO_Info_t * const ptr_ro_info, uint32_t
     if (ptr_ro_info->ptr_rw_info->xfer_no_stop == 0U) {
       // First transfer without STOP generation
       ptr_ro_info->ptr_rw_info->xfer_no_stop = 1U;
-      opt = I2C_FIRST_FRAME;
+      opt = HAL_I2C_XFER_FIRST_FRAME;
     } else {
       // Any further transfer without STOP generation
-      opt = I2C_OTHER_FRAME;
+      opt = HAL_I2C_XFER_OTHER_FRAME;
     }
   } else {                              // If transfer should generate STOP at the end
     if (ptr_ro_info->ptr_rw_info->xfer_no_stop == 1U) {
       // If previous request did not generate STOP after transfer, terminate the sequence
       ptr_ro_info->ptr_rw_info->xfer_no_stop = 0U;
-      opt = I2C_OTHER_AND_LAST_FRAME;
+      opt = HAL_I2C_XFER_OTHER_AND_LAST_FRAME;
     } else {
-      opt = I2C_LAST_FRAME;
+      opt = HAL_I2C_XFER_LAST_FRAME;
     }
   }
 
   // Start the reception
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_hi2c->hdma_rx != NULL) {  // If DMA is used for Rx
+    rx_status = HAL_I2C_MASTER_SEQ_Receive_DMA(ptr_ro_info->ptr_hi2c, saddr, (void *) data, num, (hal_i2c_xfer_opt_t)opt);
+  } else {                                      // If DMA is not configured (IRQ mode)
+    rx_status = HAL_I2C_MASTER_SEQ_Receive_IT (ptr_ro_info->ptr_hi2c, saddr, (void *) data, num, (hal_i2c_xfer_opt_t)opt);
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {  // If DMA is used for Rx
     rx_status = HAL_I2C_Master_Seq_Receive_DMA(ptr_ro_info->ptr_hi2c, saddr, data, (uint16_t)num, opt);
   } else {                                      // If DMA is not configured (IRQ mode)
     rx_status = HAL_I2C_Master_Seq_Receive_IT (ptr_ro_info->ptr_hi2c, saddr, data, (uint16_t)num, opt);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (rx_status) {
@@ -1132,6 +1336,12 @@ static int32_t I2Cn_MasterReceive (const RO_Info_t * const ptr_ro_info, uint32_t
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -1234,6 +1444,31 @@ static int32_t I2Cn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
   if (HAL_I2C_GetState(ptr_ro_info->ptr_hi2c) == HAL_I2C_STATE_LISTEN) {
     cnt = -1;
   } else {
+    #ifdef STM32_HAL_VERSION_2
+    cnt_xferred       = 0;
+    cnt_xferred_valid = 0U;
+    if (ptr_ro_info->ptr_hi2c->hdma_rx != NULL) {        // If DMA is used for Rx
+      if (HAL_DMA_GetState(ptr_ro_info->ptr_hi2c->hdma_rx) == HAL_DMA_STATE_ACTIVE) {
+        // If reception is in progress
+        cnt_xferred       = (int32_t) LL_DMA_GetBlkDataLength(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hi2c->hdma_rx));
+        cnt_xferred_valid = 1U;
+      }
+    }
+    if ((ptr_ro_info->ptr_hi2c->hdma_tx != NULL) &&      // If DMA is used for Tx
+        (cnt_xferred_valid == 0U)) {                    // and not valid
+      if (HAL_DMA_GetState(ptr_ro_info->ptr_hi2c->hdma_tx) == HAL_DMA_STATE_ACTIVE) {
+        // If transmission is in progress
+        cnt_xferred       = (int32_t) LL_DMA_GetBlkDataLength(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hi2c->hdma_tx));
+        cnt_xferred_valid = 1U;
+      }
+    }
+    if (cnt_xferred_valid == 0U) {
+      // If DMA is not used and in progress
+      cnt_xferred = (int32_t)ptr_ro_info->ptr_hi2c->xfer_count;
+    }
+
+    cnt = (int32_t)ptr_ro_info->ptr_rw_info->xfer_size - cnt_xferred;
+    #else // STM32_HAL_VERSION_2
     cnt_xferred       = 0;
     cnt_xferred_valid = 0U;
     if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {        // If DMA is used for Rx
@@ -1257,6 +1492,7 @@ static int32_t I2Cn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
     }
 
     cnt = (int32_t)ptr_ro_info->ptr_rw_info->xfer_size - cnt_xferred;
+    #endif // STM32_HAL_VERSION_2
   }
 
   return cnt;
@@ -1271,9 +1507,8 @@ static int32_t I2Cn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
   \return      \ref execution_status
 */
 static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg) {
-        HAL_I2C_ModeTypeDef mode;
-        GPIO_InitTypeDef    GPIO_InitStruct;
-        GPIO_PinState       state;
+        GPIO_CONFIG_TYPE    GPIO_InitStruct;
+        bool       state;
         uint32_t            i;
         uint32_t            periph_clk;
 #ifdef  I2C_VARIANT_TIMINGR             // If TIMINGR register exists
@@ -1288,42 +1523,49 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 
   // Special handling for Abort Transfer command
   if (control == ARM_I2C_ABORT_TRANSFER) {
-    mode = HAL_I2C_GetMode(ptr_ro_info->ptr_hi2c);
-    switch (mode) {
+    switch (HAL_I2C_GetMode(ptr_ro_info->ptr_hi2c)) {
       case HAL_I2C_MODE_NONE:           // No I2C communication on going
         break;
 
       case HAL_I2C_MODE_MASTER:         // I2C communication is in Master Mode
-        ptr_ro_info->ptr_rw_info->xfer_abort = 0U;
+        {
+          uint16_t DevAddress = LL_I2C_GetSlaveAddr(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
 
-        if (HAL_I2C_Master_Abort_IT(ptr_ro_info->ptr_hi2c, (uint16_t)ptr_ro_info->ptr_hi2c->Init.OwnAddress1) != HAL_OK) {
-          return ARM_DRIVER_ERROR;
-        }
+          ptr_ro_info->ptr_rw_info->xfer_abort = 0U;
 
-        // Wait until abort operation completes
-        for (i = 0U; i < I2C_XFER_ABORT_TIMEOUT; i++) {
-          if (ptr_ro_info->ptr_rw_info->xfer_abort == 0U) {
-            // If abort finished, exit the loop => success
-            break;
+          if (HAL_I2C_MASTER_Abort_IT(ptr_ro_info->ptr_hi2c, DevAddress) != HAL_OK) {
+            return ARM_DRIVER_ERROR;
           }
-          HAL_Delay(1U);
-        }
-        if (i == I2C_XFER_ABORT_TIMEOUT) {
-          // If abort did not finish before timeout => failed
-          return ARM_DRIVER_ERROR;
+
+          // Wait until abort operation completes
+          for (i = 0U; i < I2C_XFER_ABORT_TIMEOUT; i++) {
+            if (ptr_ro_info->ptr_rw_info->xfer_abort == 0U) {
+              // If abort finished, exit the loop => success
+              break;
+            }
+            HAL_Delay(1U);
+          }
+          if (i == I2C_XFER_ABORT_TIMEOUT) {
+            // If abort did not finish before timeout => failed
+            return ARM_DRIVER_ERROR;
+          }
         }
         break;
 
       case HAL_I2C_MODE_SLAVE:          // I2C communication is in Slave Mode
         // Generate NACK when in Slave mode
 #ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
-        __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
+        LL_I2C_AcknowledgeNextData(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), LL_I2C_NACK);
 #else                                   // if this is I2C peripheral without TIMINGR register
         ptr_ro_info->ptr_hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
 #endif
         break;
 
+#ifdef STM32_HAL_VERSION_2
+      case HAL_I2C_MODE_MASTER_MEM:     // I2C communication is in Memory Mode
+#else // STM32_HAL_VERSION_2
       case HAL_I2C_MODE_MEM:            // I2C communication is in Memory Mode
+#endif // STM32_HAL_VERSION_2
       default:
         return ARM_DRIVER_ERROR;
     }
@@ -1339,53 +1581,47 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
   switch (control) {
     case ARM_I2C_OWN_ADDRESS:                   // Set Own Slave Address; arg = address
       if (arg == 0U) {                          // Disable Slave
-        if (HAL_I2C_DisableListen_IT(ptr_ro_info->ptr_hi2c) != HAL_OK) {
+        if (HAL_I2C_SLAVE_DisableListen_IT(ptr_ro_info->ptr_hi2c) != HAL_OK) {
           return ARM_DRIVER_ERROR;
         }
       } else {                                  // Set Slave address
         if ((arg & ARM_I2C_ADDRESS_GC) != 0U) {
           // Enable general call
-          ptr_ro_info->ptr_hi2c->Init.GeneralCallMode = I2C_GENERALCALL_ENABLE;
+          LL_I2C_EnableGeneralCall(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
         } else {
           // Disable general call
-          ptr_ro_info->ptr_hi2c->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+          LL_I2C_DisableGeneralCall(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
         }
 
         if ((arg & ARM_I2C_ADDRESS_10BIT) != 0U) {
           // Own address is a 10-bit address
-          ptr_ro_info->ptr_hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_10BIT;
+          LL_I2C_SetMasterAddressingMode(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), LL_I2C_ADDRESSING_MODE_10BIT);
+          LL_I2C_SetOwnAddress1(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), (arg << 1) & 0x03FFU, LL_I2C_ADDRESSING_MODE_10BIT);
         } else {
           // Own address is a 7-bit address
-          ptr_ro_info->ptr_hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+          LL_I2C_SetMasterAddressingMode(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), LL_I2C_ADDRESSING_MODE_7BIT);
+          LL_I2C_SetOwnAddress1(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), (arg << 1) & 0x07FU, LL_I2C_ADDRESSING_MODE_7BIT);
         }
 
-        ptr_ro_info->ptr_hi2c->Init.OwnAddress1 = (arg << 1) & 0x03FFU;
-
         // Update the Own Address configuration
-        if (HAL_I2C_Init(ptr_ro_info->ptr_hi2c) != HAL_OK) {
+        if (HAL_I2C_INIT(ptr_ro_info) != HAL_OK) {
           return ARM_DRIVER_ERROR;
         }
 
 #ifdef  I2C_VARIANT_HAS_FILTER                  // If I2C peripheral has filters
         // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
         if (ptr_ro_info->anf_en != 0U) {
-          if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
-            return ARM_DRIVER_ERROR;
-          }
+          LL_I2C_EnableAnalogFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
         } else {
-          if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
-            return ARM_DRIVER_ERROR;
-          }
+          LL_I2C_DisableAnalogFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
         }
 
         // Reconfigure Digital Noise Filter because HAL_I2C_Init destroys DNF setting in the CR1 register
-        if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
-          return ARM_DRIVER_ERROR;
-        }
+        LL_I2C_SetDigitalFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), ptr_ro_info->dnf);
 #endif
 
         // Enable the Address listen mode
-        if (HAL_I2C_EnableListen_IT(ptr_ro_info->ptr_hi2c) != HAL_OK) {
+        if (HAL_I2C_SLAVE_EnableListen_IT(ptr_ro_info->ptr_hi2c) != HAL_OK) {
           return ARM_DRIVER_ERROR;
         }
       }
@@ -1424,9 +1660,8 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       clock_setup.busclk = (uint16_t)((1000000000U + (scl_freq   / 2)) / scl_freq);
 
       // Determine digital filter delay (in ns)
-      clock_setup.dfd = clock_setup.i2cclk * ((ptr_ro_info->ptr_hi2c->Instance->CR1 & I2C_CR1_DNF) >> 8);
+      clock_setup.dfd = clock_setup.i2cclk * LL_I2C_GetDigitalFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
 
-#ifdef  I2C_VARIANT_HAS_FILTER                  // If I2C peripheral has filters
       // Set analog filter delay (in ns)
       if (ptr_ro_info->anf_en != 0U) {
         clock_setup.afd_min = I2C_ANALOG_FILTER_DELAY_MIN;
@@ -1435,75 +1670,86 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         clock_setup.afd_min = 0U;
         clock_setup.afd_max = 0U;
       }
-#endif
 
       // Set max iteration error
       clock_setup.error = 0xFFFF;
 
       // Get TIMINGR register values
-      ptr_ro_info->ptr_hi2c->Init.Timing = I2Cn_GetTimingValue(&clock_setup, ptr_std_timing);
+      LL_I2C_SetTiming(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), I2Cn_GetTimingValue(&clock_setup, ptr_std_timing));
 #else                                   // If this is I2C peripheral without filter capabilities
-      ptr_ro_info->ptr_hi2c->Init.ClockSpeed = arg;
+      ptr_ro_info->ptr_hi2c->Init.ClockSpeed = arg; /* Unknwon reference to 'ClockSpeed' in both HAL1 and HAL2. */
 #endif
 
       // Update the bus speed configuration
-      if (HAL_I2C_Init(ptr_ro_info->ptr_hi2c) != HAL_OK) {
+      if (HAL_I2C_INIT(ptr_ro_info) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
 
 #ifdef  I2C_VARIANT_HAS_FILTER          // If I2C peripheral has filters
       // Reconfigure Analog Noise Filter because HAL_I2C_Init destroys ANFOFF setting in the CR1 register
       if (ptr_ro_info->anf_en != 0U) {
-        if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
-          return ARM_DRIVER_ERROR;
-        }
+        LL_I2C_EnableAnalogFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
       } else {
-        if (HAL_I2CEx_ConfigAnalogFilter(ptr_ro_info->ptr_hi2c, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
-          return ARM_DRIVER_ERROR;
-        }
+        LL_I2C_DisableAnalogFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c));
       }
 
       // Reconfigure Digital Noise Filter because HAL_I2C_Init destroys DNF setting in the CR1 register
-      if (HAL_I2CEx_ConfigDigitalFilter(ptr_ro_info->ptr_hi2c, ptr_ro_info->dnf) != HAL_OK) {
-        return ARM_DRIVER_ERROR;
-      }
+      LL_I2C_SetDigitalFilter(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), ptr_ro_info->dnf);
 #endif
       break;
 
     case ARM_I2C_BUS_CLEAR:
       // Configure SCL pin as GPIO
+      #ifdef STM32_HAL_VERSION_2
+      GPIO_InitStruct.mode        = HAL_GPIO_MODE_OUTPUT;
+      GPIO_InitStruct.output_type = HAL_GPIO_OUTPUT_OPENDRAIN;
+      GPIO_InitStruct.pull        = (hal_gpio_pull_t)ptr_ro_info->scl_pin_config.pull;
+      GPIO_InitStruct.speed       = (hal_gpio_speed_freq_t)ptr_ro_info->scl_pin_config.speed;
+      GPIO_InitStruct.alternate   = (hal_gpio_af_t)ptr_ro_info->scl_pin_config.af;
+      HAL_GPIO_Init(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, &GPIO_InitStruct);
+      #else // STM32_HAL_VERSION_2
       GPIO_InitStruct.Pin       = ptr_ro_info->scl_pin_config.pin;
       GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_OD;
       GPIO_InitStruct.Pull      = ptr_ro_info->scl_pin_config.pull;
       GPIO_InitStruct.Speed     = ptr_ro_info->scl_pin_config.speed;
       GPIO_InitStruct.Alternate = ptr_ro_info->scl_pin_config.af;
       HAL_GPIO_Init(ptr_ro_info->scl_pin_config.ptr_port, &GPIO_InitStruct);
+      #endif // STM32_HAL_VERSION_2
 
       // Configure SDA pin as GPIO
+      #ifdef STM32_HAL_VERSION_2
+      GPIO_InitStruct.mode        = HAL_GPIO_MODE_OUTPUT;
+      GPIO_InitStruct.output_type = HAL_GPIO_OUTPUT_OPENDRAIN;
+      GPIO_InitStruct.pull        = (hal_gpio_pull_t)ptr_ro_info->sda_pin_config.pull;
+      GPIO_InitStruct.speed       = (hal_gpio_speed_freq_t)ptr_ro_info->sda_pin_config.speed;
+      GPIO_InitStruct.alternate   = (hal_gpio_af_t)ptr_ro_info->sda_pin_config.af;
+      HAL_GPIO_Init(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin, &GPIO_InitStruct);
+      #else // STM32_HAL_VERSION_2
       GPIO_InitStruct.Pin       = ptr_ro_info->sda_pin_config.pin;
       GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_OD;
       GPIO_InitStruct.Pull      = ptr_ro_info->sda_pin_config.pull;
       GPIO_InitStruct.Speed     = ptr_ro_info->sda_pin_config.speed;
       GPIO_InitStruct.Alternate = ptr_ro_info->sda_pin_config.af;
       HAL_GPIO_Init(ptr_ro_info->sda_pin_config.ptr_port, &GPIO_InitStruct);
+      #endif // STM32_HAL_VERSION_2
 
       // Pull SCL and SDA lines high
-      HAL_GPIO_WritePin(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, (GPIO_CAST_PIN_STATE)1);
+      HAL_GPIO_WritePin(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin, (GPIO_CAST_PIN_STATE)1);
 
       HAL_Delay(I2C_BUS_CLEAR_CLOCK_PERIOD);
 
       for (i = 0U; i < 9U; i++) {
-        if (HAL_GPIO_ReadPin(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin) == GPIO_PIN_SET) {
+        if (HAL_GPIO_ReadPin(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin) == 1) {
           // Break from loop if Slave released SDA line
           break;
         }
         // Drive SCL clock line high
-        HAL_GPIO_WritePin(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, (GPIO_CAST_PIN_STATE)1);
         HAL_Delay(I2C_BUS_CLEAR_CLOCK_PERIOD/2);
 
         // Drive SCL clock line low
-        HAL_GPIO_WritePin(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, (GPIO_CAST_PIN_STATE)0);
         HAL_Delay(I2C_BUS_CLEAR_CLOCK_PERIOD/2);
       }
 
@@ -1511,26 +1757,44 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       state = HAL_GPIO_ReadPin(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin);
 
       // Configure SCL pin as I2C pin
+      #ifdef STM32_HAL_VERSION_2
+      GPIO_InitStruct.mode        = HAL_GPIO_MODE_ALTERNATE;
+      GPIO_InitStruct.output_type = HAL_GPIO_OUTPUT_OPENDRAIN;
+      GPIO_InitStruct.pull        = (hal_gpio_pull_t)ptr_ro_info->scl_pin_config.pull;
+      GPIO_InitStruct.speed       = (hal_gpio_speed_freq_t)ptr_ro_info->scl_pin_config.speed;
+      GPIO_InitStruct.alternate   = (hal_gpio_af_t)ptr_ro_info->scl_pin_config.af;
+      HAL_GPIO_Init(ptr_ro_info->scl_pin_config.ptr_port, ptr_ro_info->scl_pin_config.pin, &GPIO_InitStruct);
+      #else // STM32_HAL_VERSION_2
       GPIO_InitStruct.Pin       = ptr_ro_info->scl_pin_config.pin;
       GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
       GPIO_InitStruct.Pull      = ptr_ro_info->scl_pin_config.pull;
       GPIO_InitStruct.Speed     = ptr_ro_info->scl_pin_config.speed;
       GPIO_InitStruct.Alternate = ptr_ro_info->scl_pin_config.af;
       HAL_GPIO_Init(ptr_ro_info->scl_pin_config.ptr_port, &GPIO_InitStruct);
+      #endif // STM32_HAL_VERSION_2
 
       // Configure SDA pin as I2C pin
+      #ifdef STM32_HAL_VERSION_2
+      GPIO_InitStruct.mode        = HAL_GPIO_MODE_ALTERNATE;
+      GPIO_InitStruct.output_type = HAL_GPIO_OUTPUT_OPENDRAIN;
+      GPIO_InitStruct.pull        = (hal_gpio_pull_t)ptr_ro_info->sda_pin_config.pull;
+      GPIO_InitStruct.speed       = (hal_gpio_speed_freq_t)ptr_ro_info->sda_pin_config.speed;
+      GPIO_InitStruct.alternate   = (hal_gpio_af_t)ptr_ro_info->sda_pin_config.af;
+      HAL_GPIO_Init(ptr_ro_info->sda_pin_config.ptr_port, ptr_ro_info->sda_pin_config.pin, &GPIO_InitStruct);
+      #else // STM32_HAL_VERSION_2
       GPIO_InitStruct.Pin       = ptr_ro_info->sda_pin_config.pin;
       GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
       GPIO_InitStruct.Pull      = ptr_ro_info->sda_pin_config.pull;
       GPIO_InitStruct.Speed     = ptr_ro_info->sda_pin_config.speed;
       GPIO_InitStruct.Alternate = ptr_ro_info->sda_pin_config.af;
       HAL_GPIO_Init(ptr_ro_info->sda_pin_config.ptr_port, &GPIO_InitStruct);
+      #endif // STM32_HAL_VERSION_2
 
       if (ptr_ro_info->ptr_rw_info->cb_event != NULL) {
         ptr_ro_info->ptr_rw_info->cb_event(ARM_I2C_EVENT_BUS_CLEAR);
       }
 
-      if (state == GPIO_PIN_RESET) {
+      if (state == 0) {
         // If Bus Clear has failed as Slave left SDA line low
         return ARM_DRIVER_ERROR;
       }
@@ -1556,6 +1820,26 @@ static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   // Clear status structure
   memset(&status, 0, sizeof(ARM_I2C_STATUS));
 
+  #ifdef STM32_HAL_VERSION_2
+  // Process HAL state
+  switch (HAL_I2C_GetState(ptr_ro_info->ptr_hi2c)) {
+    case HAL_I2C_STATE_RX:          // Data Reception process is ongoing
+    case HAL_I2C_STATE_ABORT:       // Abort user request ongoing
+    case HAL_I2C_STATE_TX:          // Data Transmission process is ongoing
+    case HAL_I2C_STATE_TX_LISTEN:   // Address Listen Mode and Data Transmission process is ongoing
+      status.busy = 1U;
+      break;
+
+    case HAL_I2C_STATE_LISTEN:          // Address Listen Mode is ongoing
+    case HAL_I2C_STATE_RX_LISTEN:       // Address Listen Mode and Data Reception process is ongoing. Listen is not considered busy from driver perspective
+    case HAL_I2C_STATE_RESET:          // Peripheral is not yet Initialized
+    case HAL_I2C_STATE_INIT:           // Initialized but not yet configured
+    case HAL_I2C_STATE_IDLE:           // Peripheral Initialized and ready for use
+    default:
+      // Not busy related
+      break;
+  }
+  #else // STM32_HAL_VERSION_2
   // Process HAL state
   switch (HAL_I2C_GetState(ptr_ro_info->ptr_hi2c)) {
     case HAL_I2C_STATE_BUSY:            // An internal process is ongoing
@@ -1576,6 +1860,7 @@ static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t * const ptr_ro_info) {
       // Not busy related
       break;
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Determine mode
   if (HAL_I2C_GetMode(ptr_ro_info->ptr_hi2c) == HAL_I2C_MODE_MASTER) {
@@ -1602,12 +1887,12 @@ static ARM_I2C_STATUS I2Cn_GetStatus (const RO_Info_t * const ptr_ro_info) {
 // HAL callback functions ******************************************************
 
 /**
-  \fn          void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_MasterTxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       Master Tx Transfer completed callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_MasterTxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = I2C_GetInfo(hi2c);
@@ -1626,12 +1911,12 @@ void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c) {
 }
 
 /**
-  \fn          void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_MasterRxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       Master Rx Transfer completed callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_MasterRxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = I2C_GetInfo(hi2c);
@@ -1650,16 +1935,26 @@ void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c) {
 }
 
 /**
-  \fn          void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
+  \fn          void HAL_I2C_AddrCallback (HAL_I2C_HANDLE_TYPE *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
   \brief       Slave Address Match callback.
-  \param[in]   hi2c                 Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c                 Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                                 the configuration information for the specified I2C
   \param[in]   TransferDirection    Master request Transfer Direction (Write/Read), value of @ref I2C_XFERDIRECTION
   \param[in]   AddrMatchCode        Address Match Code
   */
-void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode) {
+#ifdef STM32_HAL_VERSION_2
+void HAL_I2C_SLAVE_AddrCallback (HAL_I2C_HANDLE_TYPE *hi2c, hal_i2c_slave_xfer_direction_t TransferDirection, uint32_t AddrMatchCode) {
+#else // STM32_HAL_VERSION_2
+void HAL_I2C_AddrCallback (HAL_I2C_HANDLE_TYPE *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode) {
+#endif // STM32_HAL_VERSION_2
   const RO_Info_t *ptr_ro_info;
         uint32_t   event;
+
+  #ifdef STM32_HAL_VERSION_2
+  #define TX_DATA_CAST(data) (void *) data
+  #else // STM32_HAL_VERSION_2
+  #define TX_DATA_CAST(data) (uint8_t *)(uint32_t) data
+  #endif // STM32_HAL_VERSION_2
 
   ptr_ro_info = I2C_GetInfo(hi2c);
 
@@ -1672,14 +1967,14 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
 
   event = 0U;
 
-  if (TransferDirection == I2C_DIRECTION_TRANSMIT) {            // If Master requests to send data to Slave
+  if (TransferDirection == LL_I2C_DIRECTION_WRITE) {            // If Master requests to send data to Slave
     if (ptr_ro_info->ptr_rw_info->slave_xfer_rx_data != NULL) { // If Slave operation was registered by SlaveReceive
       // Start the Slave reception
       ptr_ro_info->ptr_rw_info->xfer_size = ptr_ro_info->ptr_rw_info->slave_xfer_rx_num;
-      if (ptr_ro_info->ptr_hi2c->hdmarx != NULL) {              // If DMA is used for Rx
-        (void)HAL_I2C_Slave_Seq_Receive_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->slave_xfer_rx_data, ptr_ro_info->ptr_rw_info->slave_xfer_rx_num, I2C_NEXT_FRAME);
+      if (HAL_DMA_RX_HANDLE(ptr_ro_info->ptr_hi2c) != NULL) {              // If DMA is used for Rx
+        (void)HAL_I2C_SLAVE_SEQ_Receive_DMA(ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->slave_xfer_rx_data, ptr_ro_info->ptr_rw_info->slave_xfer_rx_num, HAL_I2C_XFER_NEXT_FRAME);
       } else {                                                  // If DMA is not configured (IRQ mode)
-        (void)HAL_I2C_Slave_Seq_Receive_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->slave_xfer_rx_data, ptr_ro_info->ptr_rw_info->slave_xfer_rx_num, I2C_NEXT_FRAME);
+        (void)HAL_I2C_SLAVE_SEQ_Receive_IT (ptr_ro_info->ptr_hi2c, ptr_ro_info->ptr_rw_info->slave_xfer_rx_data, ptr_ro_info->ptr_rw_info->slave_xfer_rx_num, HAL_I2C_XFER_NEXT_FRAME);
       }
     } else {                                                    // If Slave operation was not registered by SlaveReceive
       event = ARM_I2C_EVENT_SLAVE_RECEIVE;
@@ -1689,10 +1984,10 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
     if (ptr_ro_info->ptr_rw_info->slave_xfer_tx_data != NULL) { // If Slave operation was registered by SlaveTransmit
       // Start the Slave transmission
       ptr_ro_info->ptr_rw_info->xfer_size = ptr_ro_info->ptr_rw_info->slave_xfer_tx_num;
-      if (ptr_ro_info->ptr_hi2c->hdmatx != NULL) {              // If DMA is used for Tx
-        (void)HAL_I2C_Slave_Seq_Transmit_DMA(ptr_ro_info->ptr_hi2c, (uint8_t *)(uint32_t)ptr_ro_info->ptr_rw_info->slave_xfer_tx_data, ptr_ro_info->ptr_rw_info->slave_xfer_tx_num, I2C_NEXT_FRAME);
+      if (HAL_DMA_TX_HANDLE(ptr_ro_info->ptr_hi2c) != NULL) {              // If DMA is used for Tx
+        (void)HAL_I2C_SLAVE_SEQ_Transmit_DMA(ptr_ro_info->ptr_hi2c, TX_DATA_CAST(ptr_ro_info->ptr_rw_info->slave_xfer_tx_data), ptr_ro_info->ptr_rw_info->slave_xfer_tx_num, HAL_I2C_XFER_NEXT_FRAME);
       } else {                                          // If DMA is not configured (IRQ mode)
-        (void)HAL_I2C_Slave_Seq_Transmit_IT (ptr_ro_info->ptr_hi2c, (uint8_t *)(uint32_t)ptr_ro_info->ptr_rw_info->slave_xfer_tx_data, ptr_ro_info->ptr_rw_info->slave_xfer_tx_num, I2C_NEXT_FRAME);
+        (void)HAL_I2C_SLAVE_SEQ_Transmit_IT (ptr_ro_info->ptr_hi2c, TX_DATA_CAST(ptr_ro_info->ptr_rw_info->slave_xfer_tx_data), ptr_ro_info->ptr_rw_info->slave_xfer_tx_num, HAL_I2C_XFER_NEXT_FRAME);
       }
     } else {                                            // If Slave operation was not registered by SlaveTransmit
       event = ARM_I2C_EVENT_SLAVE_TRANSMIT;
@@ -1712,8 +2007,8 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
 
   if (event != 0U) {
 #ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
-    __HAL_I2C_GENERATE_NACK(ptr_ro_info->ptr_hi2c);
-    __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
+    LL_I2C_AcknowledgeNextData(HAL_I2C_INSTANCE(ptr_ro_info->ptr_hi2c), LL_I2C_NACK);
+    __HAL_I2C_ENABLE_IT((ptr_ro_info->ptr_hi2c), I2C_CR1_ADDRIE | I2C_CR1_STOPIE | I2C_CR1_NACKIE | I2C_CR1_ERRIE);
 #else                                   // if this is I2C peripheral without TIMINGR register
     ptr_ro_info->ptr_hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
     __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
@@ -1722,12 +2017,12 @@ void HAL_I2C_AddrCallback (I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, u
 }
 
 /**
-  \fn          void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_SlaveTxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       Slave Tx Transfer completed callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_SlaveTxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = I2C_GetInfo(hi2c);
@@ -1747,19 +2042,19 @@ void HAL_I2C_SlaveTxCpltCallback (I2C_HandleTypeDef *hi2c) {
 
   // Re-enable interrupts
 #ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
-  __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
+  __HAL_I2C_ENABLE_IT((ptr_ro_info->ptr_hi2c), I2C_CR1_ADDRIE | I2C_CR1_STOPIE | I2C_CR1_NACKIE | I2C_CR1_ERRIE);
 #else                                   // if this is I2C peripheral without TIMINGR register
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 #endif
 }
 
 /**
-  \fn          void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_SlaveRxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       Slave Rx Transfer completed callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_SlaveRxCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = I2C_GetInfo(hi2c);
@@ -1779,19 +2074,19 @@ void HAL_I2C_SlaveRxCpltCallback (I2C_HandleTypeDef *hi2c) {
 
   // Re-enable interrupts
 #ifdef  I2C_VARIANT_TIMINGR             // If this is variant with TIMINGR register
-  __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_ADDRI | I2C_IT_STOPI | I2C_IT_NACKI | I2C_IT_ERRI);
+  __HAL_I2C_ENABLE_IT((ptr_ro_info->ptr_hi2c), I2C_CR1_ADDRIE | I2C_CR1_STOPIE | I2C_CR1_NACKIE | I2C_CR1_ERRIE);
 #else                                   // if this is I2C peripheral without TIMINGR register
   __HAL_I2C_ENABLE_IT(ptr_ro_info->ptr_hi2c, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR);
 #endif
 }
 
 /**
-  \fn          void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_ListenCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       Listen Complete callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_ListenCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = I2C_GetInfo(hi2c);
@@ -1801,16 +2096,16 @@ void HAL_I2C_ListenCpltCallback (I2C_HandleTypeDef *hi2c) {
   }
 
   // Re-enable listen mode
-  (void)HAL_I2C_EnableListen_IT(ptr_ro_info->ptr_hi2c);
+  (void)HAL_I2C_SLAVE_EnableListen_IT(ptr_ro_info->ptr_hi2c);
 }
 
 /**
-  \fn          void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_ErrorCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       I2C error callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_ErrorCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
         uint32_t   error;
         uint32_t   event;
@@ -1824,7 +2119,15 @@ void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c) {
     return;
   }
 
+#ifdef STM32_HAL_VERSION_2
+#if defined (USE_HAL_I2C_GET_LAST_ERRORS) && (USE_HAL_I2C_GET_LAST_ERRORS == 1)
+  error = HAL_I2C_GetLastErrorCodes(hi2c);
+#else /* USE_HAL_I2C_GET_LAST_ERRORS */
+  error = 0;
+#endif /* USE_HAL_I2C_GET_LAST_ERRORS */
+#else // STM32_HAL_VERSION_2
   error = HAL_I2C_GetError(hi2c);
+#endif // STM32_HAL_VERSION_2
   event = ARM_I2C_EVENT_TRANSFER_DONE | ARM_I2C_EVENT_TRANSFER_INCOMPLETE;
 
   if ((error & HAL_I2C_ERROR_BERR) != 0U) {
@@ -1841,7 +2144,11 @@ void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c) {
 
   if ((error & HAL_I2C_ERROR_AF) != 0U) {
     // Acknowledge not received
+    #ifdef STM32_HAL_VERSION_2
+    if ((ptr_ro_info->ptr_hi2c->xfer_count == 0U) && (ptr_ro_info->ptr_hi2c->xfer_size > 0U)) {
+    #else // STM32_HAL_VERSION_2
     if ((ptr_ro_info->ptr_hi2c->XferCount == 0U) && (ptr_ro_info->ptr_hi2c->XferSize > 0U)) {
+    #endif // STM32_HAL_VERSION_2
       // Slave address was not acknowledged
       event |= ARM_I2C_EVENT_ADDRESS_NACK;
     }
@@ -1853,12 +2160,12 @@ void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c) {
 }
 
 /**
-  \fn          void HAL_I2C_AbortCpltCallback (I2C_HandleTypeDef *hi2c)
+  \fn          void HAL_I2C_AbortCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c)
   \brief       I2C abort callback.
-  \param[in]   hi2c   Pointer to a I2C_HandleTypeDef structure that contains
+  \param[in]   hi2c   Pointer to a HAL_I2C_HANDLE_TYPE structure that contains
   *                   the configuration information for the specified I2C
   */
-void HAL_I2C_AbortCpltCallback (I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_AbortCpltCallback (HAL_I2C_HANDLE_TYPE *hi2c) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = I2C_GetInfo(hi2c);

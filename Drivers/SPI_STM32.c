@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       9. October 2025
- * $Revision:   V3.1
+ * $Date:       22. July 2026
+ * $Revision:   V3.2
  *
  * Project:     SPI Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.2
+  - Added HAL2 version support under STM32_HAL_VERSION_2
 - Version 3.1
   - Corrected baud rate prescaler calculation in Control function
 - Version 3.0
@@ -190,7 +192,7 @@ This driver requires the following configuration in CubeMX:
 
   - Reason:   peripheral clock frequency is not determinable from CubeMX configuration.
   - Solution: add **User Constant** with Name **SPIn_PERIPH_CLOCK_FREQ** and Value of respective SPIn **peripheral clock frequency (in Hz)**.
-  - Example:  in the **Pinout & Configuration** tab, under **Categories**: **Connectivity** select **SPI1**, 
+  - Example:  in the **Pinout & Configuration** tab, under **Categories**: **Connectivity** select **SPI1**,
               under **Configuration**: **User Constants** add **Constant** with Name **SPI1_PERIPH_CLOCK_FREQ** and Value
               of **peripheral clock frequency (in Hz)** as determined from the **Clock Configuration** or device documentation.
 */
@@ -201,12 +203,15 @@ This driver requires the following configuration in CubeMX:
 
 #include "RTE_Components.h"
 #include  CMSIS_device_header
+#ifdef STM32_HAL_VERSION_2
+#include "stm32_hal.h"
+#endif // STM32_HAL_VERSION_2
 
 #include <string.h>
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(4,0) };
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -267,10 +272,137 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 #define DRIVER_CONFIG_VALID     1
 #endif
 
+// Check HAL version
+#ifdef STM32_HAL_VERSION_2
+// HAL2 SPI handle type
+#define HAL_SPI_HANDLE_TYPE hal_spi_handle_t
+
+// Retrieve SPI instance from handle
+#define HAL_SPI_INSTANCE(handle)   (SPI_TypeDef *)((uint32_t)handle->instance)
+
+// HAL2 SPI init function
+#define HAL_SPI_INIT(ptr_ro_info) HAL_SPI_Init(ptr_ro_info->ptr_hspi, ptr_ro_info->instance)
+
+// HAL2 SPI disable
+#define HAL_SPI_DISABLE(hspi) LL_SPI_Disable((SPI_TypeDef *)((uint32_t)hspi->instance))
+
+// HAL2 GPIO config type
+#define GPIO_CONFIG_TYPE hal_gpio_config_t
+
+// HAL2 GPIO cast pin state
+#define GPIO_CAST_PIN_STATE hal_gpio_pin_state_t
+
+// Retreive the DMA channel instance
+#define HAL_DMA_CHANNEL_INSTANCE(handle)   ((DMA_Channel_TypeDef *)((uint32_t)(handle)->instance))
+
+// HAL2 SPI read data width
+#define HAL_SPI_GET_DATA_WIDTH(handle) LL_SPI_GetDataWidth((SPI_TypeDef *)((uint32_t)handle->instance))
+
+// HAL2 SPI set data width
+#define HAL_SPI_SET_DATA_WIDTH(handle, data_width) LL_SPI_SetDataWidth((SPI_TypeDef *)((uint32_t)handle->instance), data_width)
+
+// HAL2 SPI data width Definition
+// LL_SPI_DATA_WIDTH_8_BIT = 7
+// LL_SPI_DATA_WIDTH_9_BIT = 8
+// ...
+#define SPI_DATA_BIT(n) (n-1)
+
+// HAL2 SPI baudrate prescaler definition
+#define SPI_BAUDRATE_PRESCALER_2 LL_SPI_BAUD_RATE_PRESCALER_2
+#define SPI_BAUDRATE_PRESCALER_4 LL_SPI_BAUD_RATE_PRESCALER_4
+#define SPI_BAUDRATE_PRESCALER_8 LL_SPI_BAUD_RATE_PRESCALER_8
+#define SPI_BAUDRATE_PRESCALER_16 LL_SPI_BAUD_RATE_PRESCALER_16
+#define SPI_BAUDRATE_PRESCALER_32 LL_SPI_BAUD_RATE_PRESCALER_32
+#define SPI_BAUDRATE_PRESCALER_64 LL_SPI_BAUD_RATE_PRESCALER_64
+#define SPI_BAUDRATE_PRESCALER_128 LL_SPI_BAUD_RATE_PRESCALER_128
+#define SPI_BAUDRATE_PRESCALER_256 LL_SPI_BAUD_RATE_PRESCALER_256
+
+// HAL2 SPI clock phase
+#define SPI_CLOCK_PHASE_1_EDGE LL_SPI_CLOCK_PHASE_1_EDGE
+#define SPI_CLOCK_PHASE_2_EDGE LL_SPI_CLOCK_PHASE_2_EDGE
+
+// HAL2 SPI clock polarity
+#define SPI_CLOCK_POLARITY_LOW LL_SPI_CLOCK_POLARITY_LOW
+#define SPI_CLOCK_POLARITY_HIGH LL_SPI_CLOCK_POLARITY_HIGH
+
+// HAL2 UART DMA Source Data Width Definition
+#define DMA_SRC_WIDTH_BYTE     LL_DMA_SRC_DATA_WIDTH_BYTE
+#define DMA_SRC_WIDTH_HALFWORD LL_DMA_SRC_DATA_WIDTH_HALFWORD
+#define DMA_SRC_WIDTH_WORD     LL_DMA_SRC_DATA_WIDTH_WORD
+
+// HAL2 UART DMA Destination Data Width Definition
+#define DMA_DEST_WIDTH_BYTE     LL_DMA_DEST_DATA_WIDTH_BYTE
+#define DMA_DEST_WIDTH_HALFWORD LL_DMA_DEST_DATA_WIDTH_HALFWORD
+#define DMA_DEST_WIDTH_WORD     LL_DMA_DEST_DATA_WIDTH_WORD
+
+#else // STM32_HAL_VERSION_2
+// HAL1 SPI handle type
+#define HAL_SPI_HANDLE_TYPE SPI_HandleTypeDef
+
+// Retrieve SPI instance from handle
+#define HAL_SPI_INSTANCE(handle)   (SPI_TypeDef *)((uint32_t)handle->Instance)
+
+// HAL1 SPI init function
+#define HAL_SPI_INIT(ptr_ro_info) HAL_SPI_Init(ptr_ro_info->ptr_hspi)
+
+// HAL1 SPI disable
+#define HAL_SPI_DISABLE(hspi) __HAL_SPI_DISABLE(hspi)
+
+// HAL1 GPIO config type
+#define GPIO_CONFIG_TYPE GPIO_InitTypeDef
+
+// HAL1 GPIO cast pin state
+#define GPIO_CAST_PIN_STATE GPIO_PinState
+
+// HAL1 SPI read data width
+#define HAL_SPI_GET_DATA_WIDTH(handle) handle->Init.DataSize
+
+// HAL1 SPI set data width
+#define HAL_SPI_SET_DATA_WIDTH(handle, data_width) (handle->Init.DataSize = data_width)
+
+// HAL1 SPI data width Definition
+// SPI_DATASIZE_8BIT = 7
+// SPI_DATASIZE_9BIT = 8
+// ...
+#define SPI_DATA_BIT(n) (n-1)
+
+// HAL1 SPI baudrate prescaler definition
+#define SPI_BAUDRATE_PRESCALER_2 LL_SPI_BAUDRATEPRESCALER_DIV2
+#define SPI_BAUDRATE_PRESCALER_4 LL_SPI_BAUDRATEPRESCALER_DIV4
+#define SPI_BAUDRATE_PRESCALER_8 LL_SPI_BAUDRATEPRESCALER_DIV8
+#define SPI_BAUDRATE_PRESCALER_16 LL_SPI_BAUDRATEPRESCALER_DIV16
+#define SPI_BAUDRATE_PRESCALER_32 LL_SPI_BAUDRATEPRESCALER_DIV32
+#define SPI_BAUDRATE_PRESCALER_64 LL_SPI_BAUDRATEPRESCALER_DIV64
+#define SPI_BAUDRATE_PRESCALER_128 LL_SPI_BAUDRATEPRESCALER_DIV128
+#define SPI_BAUDRATE_PRESCALER_256 LL_SPI_BAUDRATEPRESCALER_DIV256
+
+// HAL2 SPI clock phase
+#define SPI_CLOCK_PHASE_1_EDGE LL_SPI_PHASE_1EDGE
+#define SPI_CLOCK_PHASE_2_EDGE LL_SPI_PHASE_2EDGE
+
+// HAL2 SPI clock polarity
+#define SPI_CLOCK_POLARITY_LOW LL_SPI_POLARITY_LOW
+#define SPI_CLOCK_POLARITY_HIGH LL_SPI_POLARITY_HIGH
+
+// HAL1 UART DMA Data Width Definition
+#define DMA_SRC_WIDTH_BYTE     LL_DMA_SRC_DATAWIDTH_BYTE
+#define DMA_SRC_WIDTH_HALFWORD LL_DMA_SRC_DATAWIDTH_HALFWORD
+#define DMA_SRC_WIDTH_WORD     LL_DMA_SRC_DATAWIDTH_WORD
+
+// HAL1 UART DMA Destination Data Width Definition
+#define DMA_DEST_WIDTH_BYTE     LL_DMA_DEST_DATAWIDTH_BYTE
+#define DMA_DEST_WIDTH_HALFWORD LL_DMA_DEST_DATAWIDTH_HALFWORD
+#define DMA_DEST_WIDTH_WORD     LL_DMA_DEST_DATAWIDTH_WORD
+
+#endif // STM32_HAL_VERSION_2
+
 // Determine peripheral/HAL differences that driver needs to handle
 
 // Determine if HAL does not have extended module
 
+#ifdef STM32_HAL_VERSION_2
+#define SPI_VARIANT_NO_HAL_EX           1
+#else // STM32_HAL_VERSION_2
 #if  (((defined(__STM32F1xx_HAL_H) || defined(STM32F1xx_HAL_H)) && !defined(STM32F1xx_HAL_SPI_EX_H)) || \
       ((defined(__STM32F2xx_HAL_H) || defined(STM32F2xx_HAL_H)) && !defined(STM32F2xx_HAL_SPI_EX_H)) || \
       ((defined(__STM32F4xx_HAL_H) || defined(STM32F4xx_HAL_H)) && !defined(STM32F4xx_HAL_SPI_EX_H)) || \
@@ -278,6 +410,7 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
       ((defined(__STM32L1xx_HAL_H) || defined(STM32L1xx_HAL_H)) && !defined(STM32L1xx_HAL_SPI_EX_H)))
 #define SPI_VARIANT_NO_HAL_EX           1
 #endif
+#endif // STM32_HAL_VERSION_2
 
 // *****************************************************************************
 
@@ -293,6 +426,34 @@ static const ARM_SPI_CAPABILITIES driver_capabilities = {
 #endif
 
 // Macro to create spi_ro_info and spi_rw_info (for instances), with NSS pin configured in the STM32CubeMX
+#ifdef STM32_HAL_VERSION_2
+#define INFO_W_NSS_DEFINE(n)                                                                                   \
+extern  hal_spi_handle_t       *mx_spi##n##_hal_gethandle(void);                                               \
+static  const PinConfig_t       spi##n##_nss_config = {  (hal_gpio_t) MX_SPI##n##_NSS_GPIOx,                     \
+                                                         MX_SPI##n##_NSS_GPIO_Pin,                             \
+                                                         MX_SPI##n##_NSS_GPIO_AF,                              \
+                                                         MX_SPI##n##_NSS_GPIO_PuPd,                            \
+                                                         MX_SPI##n##_NSS_GPIO_Speed                            \
+                                                      };                                                       \
+static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
+static       RO_Info_t         spi##n##_ro_info    = { .hal_spi_gethandle = mx_spi##n##_hal_gethandle,        \
+                                                        .instance = HAL_SPI##n,                                \
+                                                        .ptr_rw_info = &spi##n##_rw_info,                                     \
+                                                        .peri_clock_freq = (uint32_t)MX_SPI##n##_PERIPH_CLOCK_FREQ,              \
+                                                        .ptr_nss_pin_config = &spi##n##_nss_config                                   \
+                                                      };
+
+// Macro to create spi_ro_info and spi_rw_info (for instances), without NSS pin configured in the STM32CubeMX
+#define INFO_WO_NSS_DEFINE(n)                                                                                  \
+extern  hal_spi_handle_t       *mx_spi##n##_hal_gethandle(void);                                               \
+static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
+static        RO_Info_t         spi##n##_ro_info    = { .hal_spi_gethandle = mx_spi##n##_hal_gethandle,                                              \
+                                                        .instance = HAL_SPI##n,                                \
+                                                        .ptr_rw_info = &spi##n##_rw_info,                                     \
+                                                        .peri_clock_freq = (uint32_t)MX_SPI##n##_PERIPH_CLOCK_FREQ,              \
+                                                        .ptr_nss_pin_config = NULL                                                  \
+                                                      };
+#else // STM32_HAL_VERSION_2
 #define INFO_W_NSS_DEFINE(n)                                                                                   \
 extern  SPI_HandleTypeDef       hspi##n;                                                                       \
 static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx,                                \
@@ -302,7 +463,7 @@ static  const PinConfig_t       spi##n##_nss_config = {  MX_SPI##n##_NSS_GPIOx, 
                                                          MX_SPI##n##_NSS_GPIO_Speed                            \
                                                       };                                                       \
 static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
-static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
+static        RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
                                                         &spi##n##_rw_info,                                     \
                                                          (uint32_t)MX_SPI##n##_PERIPH_CLOCK_FREQ,              \
                                                         &spi##n##_nss_config                                   \
@@ -312,11 +473,12 @@ static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,               
 #define INFO_WO_NSS_DEFINE(n)                                                                                  \
 extern  SPI_HandleTypeDef       hspi##n;                                                                       \
 static        RW_Info_t         spi##n##_rw_info SPIn_SECTION(n);                                              \
-static  const RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
+static        RO_Info_t         spi##n##_ro_info    = { &hspi##n,                                              \
                                                         &spi##n##_rw_info,                                     \
                                                          (uint32_t)MX_SPI##n##_PERIPH_CLOCK_FREQ,              \
                                                          NULL                                                  \
                                                       };
+#endif /* __HAL_2 */
 
 // Macro for declaring functions (for instances)
 #define FUNCS_DECLARE(n)                                                                                       \
@@ -360,8 +522,13 @@ ARM_DRIVER_SPI Driver_SPI##n = {        \
 
 // Pin configuration
 typedef struct {
+  #ifdef STM32_HAL_VERSION_2
+  hal_gpio_t                    ptr_port;               // Pin's port
+  uint32_t                      pin;                    // Pin
+  #else // STM32_HAL_VERSION_2
   GPIO_TypeDef                 *ptr_port;               // Pointer to pin's port
   uint16_t                      pin;                    // Pin
+  #endif // STM32_HAL_VERSION_2
   uint16_t                      af;                     // Pin's alternate function setting
   uint16_t                      pull;                   // Pin's pull-up/pull-down setting
   uint16_t                      speed;                  // Pin's speed setting
@@ -385,7 +552,11 @@ typedef struct {
 // Instance compile-time information (RO)
 // also contains pointer to run-time information
 typedef struct {
-        SPI_HandleTypeDef      *ptr_hspi;               // Pointer to SPI handle
+        HAL_SPI_HANDLE_TYPE      *ptr_hspi;             // Pointer to SPI handle
+#ifdef STM32_HAL_VERSION_2
+  hal_spi_handle_t * (*hal_spi_gethandle)(void);       // Callback to SPI get handle
+  hal_spi_t                    instance;                // SPI instance
+#endif // STM32_HAL_VERSION_2
         RW_Info_t              *ptr_rw_info;            // Pointer to run-time information (RW)
         uint32_t                peri_clock_freq;        // Peripheral clock frequency (in Hz)
   const PinConfig_t            *ptr_nss_pin_config;     // Pointer to NSS pin configuration structure (NULL - if pin was not configured in STM32CubeMX)
@@ -479,11 +650,11 @@ static const RO_Info_t * const spi_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t         *SPI_GetInfo         (const SPI_HandleTypeDef * const hspi);
+static const RO_Info_t         *SPI_GetInfo         (const HAL_SPI_HANDLE_TYPE * const hspi);
 static uint32_t                 SPIn_GetPeriphClock (const RO_Info_t * const ptr_ro_info);
 static ARM_DRIVER_VERSION       SPI_GetVersion      (void);
 static ARM_SPI_CAPABILITIES     SPI_GetCapabilities (void);
-static int32_t                  SPIn_Initialize     (const RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event);
+static int32_t                  SPIn_Initialize     (RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event);
 static int32_t                  SPIn_Uninitialize   (const RO_Info_t * const ptr_ro_info);
 static int32_t                  SPIn_PowerControl   (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
 static int32_t                  SPIn_Send           (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num);
@@ -522,12 +693,12 @@ FUNCS_DECLARE(8)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *SPI_GetInfo (const SPI_HandleTypeDef * const hspi)
+  \fn          RO_Info_t *SPI_GetInfo (const HAL_SPI_HANDLE_TYPE * const hspi)
   \brief       Get pointer to RO_Info_t structure corresponding to specified hspi.
-  \param[in]   hspi     Pointer to SPI handle structure (SPI_HandleTypeDef)
+  \param[in]   hspi     Pointer to SPI handle structure (HAL_SPI_HANDLE_TYPE)
   \return      pointer to SPI RO info structure (RO_Info_t)
 */
-static const RO_Info_t *SPI_GetInfo (const SPI_HandleTypeDef * const hspi) {
+static const RO_Info_t *SPI_GetInfo (const HAL_SPI_HANDLE_TYPE * const hspi) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -584,7 +755,7 @@ static ARM_SPI_CAPABILITIES SPI_GetCapabilities (void) {
   \param[in]   cb_event        Pointer to \ref ARM_SPI_SignalEvent
   \return      \ref execution_status
 */
-static int32_t SPIn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event) {
+static int32_t SPIn_Initialize (RO_Info_t * const ptr_ro_info, ARM_SPI_SignalEvent_t cb_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -594,6 +765,10 @@ static int32_t SPIn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_SPI_Sig
 
   // Set driver status to initialized
   ptr_ro_info->ptr_rw_info->drv_status.initialized = 1U;
+
+  #ifdef STM32_HAL_VERSION_2
+  ptr_ro_info->ptr_hspi = ptr_ro_info->hal_spi_gethandle();
+  #endif // STM32_HAL_VERSION_2
 
   return ARM_DRIVER_OK;
 }
@@ -636,7 +811,7 @@ static int32_t SPIn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER
       ptr_ro_info->ptr_rw_info->default_tx_value = 0U;
 
       // Initialize pins, clocks, interrupts and peripheral
-      if (HAL_SPI_Init(ptr_ro_info->ptr_hspi) != HAL_OK) {
+      if (HAL_SPI_INIT(ptr_ro_info) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
 
@@ -677,24 +852,45 @@ static int32_t SPIn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POWER
   \return      \ref execution_status
 */
 static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num) {
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t send_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef send_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
   int32_t           ret;
 
-  if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
+  #ifdef STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) || (num > (uint32_t)MAX_NUM_DATA)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
     return ARM_DRIVER_ERROR;
   }
 
   // Start the send
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_hspi->hdma_tx != NULL) {  // If DMA is used for Tx
+    send_status = HAL_SPI_Transmit_DMA(ptr_ro_info->ptr_hspi, data, num);
+  } else {                                      // If DMA is not configured (IRQ mode)
+    send_status = HAL_SPI_Transmit_IT(ptr_ro_info->ptr_hspi, data, num);
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {  // If DMA is used for Tx
     send_status = HAL_SPI_Transmit_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint16_t)num);
   } else {                                      // If DMA is not configured (IRQ mode)
     send_status = HAL_SPI_Transmit_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint16_t)num);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (send_status) {
@@ -709,6 +905,12 @@ static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data,
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -728,17 +930,30 @@ static int32_t SPIn_Send (const RO_Info_t * const ptr_ro_info, const void *data,
   \return      \ref execution_status
 */
 static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, uint32_t num) {
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t receive_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef receive_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
   int32_t           ret;
   uint32_t          i;
   uint8_t          *ptr_u8;
   uint16_t         *ptr_u16;
   uint32_t         *ptr_u32;
 
-  if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
+  #ifdef STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) || (num > (uint32_t)MAX_NUM_DATA)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
     return ARM_DRIVER_ERROR;
@@ -749,13 +964,13 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
   // to TransmitReceive function as transmit buffer also
 
   // Fill buffer with default transmit value
-  if (ptr_ro_info->ptr_hspi->Init.DataSize <= SPI_DATASIZE_8BIT) {
+  if (HAL_SPI_GET_DATA_WIDTH(ptr_ro_info->ptr_hspi) <= SPI_DATA_BIT(8)) {
     ptr_u8 = (uint8_t *)data;
     for (i = 0U; i < num; i++) {
       *ptr_u8 = (uint8_t)ptr_ro_info->ptr_rw_info->default_tx_value;
       ptr_u8++;
     }
-  } else if (ptr_ro_info->ptr_hspi->Init.DataSize <= SPI_DATASIZE_16BIT) {
+  } else if (HAL_SPI_GET_DATA_WIDTH(ptr_ro_info->ptr_hspi) <= SPI_DATA_BIT(16)) {
     ptr_u16 = (uint16_t *)data;
     for (i = 0U; i < num; i++) {
       *ptr_u16 = (uint16_t)ptr_ro_info->ptr_rw_info->default_tx_value;
@@ -770,12 +985,21 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
   }
 
   // Start the reception
+  #ifdef STM32_HAL_VERSION_2
+  if ((ptr_ro_info->ptr_hspi->hdma_tx != NULL) &&    // If DMA is used for Tx and
+      (ptr_ro_info->ptr_hspi->hdma_rx != NULL)) {    // If DMA is used for Rx
+    receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, data, data, num);
+  } else {                                          // If DMA is not configured (IRQ mode)
+    receive_status = HAL_SPI_TransmitReceive_IT(ptr_ro_info->ptr_hspi, data, data, num);
+  }
+  #else // STM32_HAL_VERSION_2
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
     receive_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
     receive_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data, (uint8_t *)data, (uint16_t)num);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (receive_status) {
@@ -790,6 +1014,12 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -810,25 +1040,47 @@ static int32_t SPIn_Receive (const RO_Info_t * const ptr_ro_info, void *data, ui
   \return      \ref execution_status
 */
 static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *data_out, void *data_in, uint32_t num) {
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t transfer_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef transfer_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
   int32_t           ret;
 
-  if ((data_out == NULL) || (data_in == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
+  #ifdef STM32_HAL_VERSION_2
+  if ((data_out == NULL) || (data_in == NULL) || (num == 0U)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data_out == NULL) || (data_in == NULL) || (num == 0U) || (num > (uint32_t)MAX_NUM_DATA)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
     return ARM_DRIVER_ERROR;
   }
 
   // Start the transfer
+  #ifdef STM32_HAL_VERSION_2
+  if ((ptr_ro_info->ptr_hspi->hdma_tx != NULL) &&    // If DMA is used for Tx and
+      (ptr_ro_info->ptr_hspi->hdma_rx != NULL)) {    // If DMA is used for Rx
+    transfer_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, data_out, data_in, num);
+  } else {                                          // If DMA is not configured (IRQ mode)
+    transfer_status = HAL_SPI_TransmitReceive_IT(ptr_ro_info->ptr_hspi, data_out, data_in, num);
+  }
+  #else // STM32_HAL_VERSION_2
   if ((ptr_ro_info->ptr_hspi->hdmatx != NULL) &&    // If DMA is used for Tx and
       (ptr_ro_info->ptr_hspi->hdmarx != NULL)) {    // If DMA is used for Rx
     transfer_status = HAL_SPI_TransmitReceive_DMA(ptr_ro_info->ptr_hspi, (uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   } else {                                          // If DMA is not configured (IRQ mode)
     transfer_status = HAL_SPI_TransmitReceive_IT (ptr_ro_info->ptr_hspi, (uint8_t *)data_out, (uint8_t *)data_in, (uint16_t)num);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (transfer_status) {
@@ -843,6 +1095,12 @@ static int32_t SPIn_Transfer (const RO_Info_t * const ptr_ro_info, const void *d
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -869,6 +1127,27 @@ static uint32_t SPIn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
 
   cnt = 0U;
 
+  #ifdef STM32_HAL_VERSION_2
+  if ((ptr_ro_info->ptr_hspi->p_rx_buff != NULL) && (ptr_ro_info->ptr_hspi->rx_xfer_size != 0U)) {
+    // If reception was activated
+    if (ptr_ro_info->ptr_hspi->hdma_rx != NULL) {        // If DMA is used for Rx
+      cnt_xferred = LL_DMA_GetBlkDataLength(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx));
+    } else {
+      cnt_xferred = ptr_ro_info->ptr_hspi->rx_xfer_count;
+    }
+
+    cnt = (uint32_t)ptr_ro_info->ptr_hspi->rx_xfer_size - cnt_xferred;
+  } else if ((ptr_ro_info->ptr_hspi->p_tx_buff != NULL) && (ptr_ro_info->ptr_hspi->tx_xfer_size != 0U)) {
+    // If transmission was activated
+    if (ptr_ro_info->ptr_hspi->hdma_tx != NULL) {        // If DMA is used for Tx
+      cnt_xferred = LL_DMA_GetBlkDataLength(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx));
+    } else {
+      cnt_xferred = ptr_ro_info->ptr_hspi->tx_xfer_count;
+    }
+
+    cnt = (uint32_t)ptr_ro_info->ptr_hspi->tx_xfer_size - cnt_xferred;
+  }
+  #else // STM32_HAL_VERSION_2
   if ((ptr_ro_info->ptr_hspi->pRxBuffPtr != NULL) && (ptr_ro_info->ptr_hspi->RxXferSize != 0U)) {
     // If reception was activated
     if (ptr_ro_info->ptr_hspi->hdmarx != NULL) {        // If DMA is used for Rx
@@ -888,6 +1167,7 @@ static uint32_t SPIn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
 
     cnt = (uint32_t)ptr_ro_info->ptr_hspi->TxXferSize - cnt_xferred;
   }
+  #endif // STM32_HAL_VERSION_2
 
   return cnt;
 }
@@ -901,7 +1181,7 @@ static uint32_t SPIn_GetDataCount (const RO_Info_t * const ptr_ro_info) {
   \return      common \ref execution_status and driver specific \ref spi_execution_status
 */
 static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t control, uint32_t arg) {
-  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_CONFIG_TYPE GPIO_InitStruct;
   uint32_t         periph_clk;
   uint32_t         spi_clk;
   uint8_t          reconfigure_nss_pin;
@@ -915,6 +1195,16 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
     if (HAL_SPI_Abort(ptr_ro_info->ptr_hspi) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
+    #ifdef STM32_HAL_VERSION_2
+    if (ptr_ro_info->ptr_hspi->hdma_tx == NULL) {
+      // If DMA is not used for Tx, clear tx_xfer_size for GetDataCount to work properly
+      ptr_ro_info->ptr_hspi->tx_xfer_size = 0U;
+    }
+    if (ptr_ro_info->ptr_hspi->hdma_rx == NULL) {
+      // If DMA is not used for Rx, clear rx_xfer_size for GetDataCount to work properly
+      ptr_ro_info->ptr_hspi->rx_xfer_size = 0U;
+    }
+    #else // STM32_HAL_VERSION_2
     if (ptr_ro_info->ptr_hspi->hdmatx == NULL) {
       // If DMA is not used for Tx, clear TxXferSize for GetDataCount to work properly
       ptr_ro_info->ptr_hspi->TxXferSize = 0U;
@@ -923,6 +1213,7 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       // If DMA is not used for Rx, clear RxXferSize for GetDataCount to work properly
       ptr_ro_info->ptr_hspi->RxXferSize = 0U;
     }
+    #endif // STM32_HAL_VERSION_2
     return ARM_DRIVER_OK;
   }
 
@@ -935,17 +1226,17 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
                                                 // --- Control Mode
     case ARM_SPI_MODE_INACTIVE:                 // Mode: SPI Inactive
       ptr_ro_info->ptr_rw_info->drv_status.configured = 0U;
-      __HAL_SPI_DISABLE(ptr_ro_info->ptr_hspi);
+      HAL_SPI_DISABLE(ptr_ro_info->ptr_hspi);
       return ARM_DRIVER_OK;
 
     case ARM_SPI_MODE_MASTER:                   // Mode: SPI Master
-      ptr_ro_info->ptr_hspi->Init.Mode      = SPI_MODE_MASTER;
-      ptr_ro_info->ptr_hspi->Init.Direction = SPI_DIRECTION_2LINES;
+      LL_SPI_SetMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_MODE_MASTER);
+      LL_SPI_SetTransferDirection(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_FULL_DUPLEX);
       break;                                    // Continue configuring parameters after this switch block
 
     case ARM_SPI_MODE_SLAVE:                    // Mode: SPI Slave
-      ptr_ro_info->ptr_hspi->Init.Mode      = SPI_MODE_SLAVE;
-      ptr_ro_info->ptr_hspi->Init.Direction = SPI_DIRECTION_2LINES;
+      LL_SPI_SetMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_MODE_SLAVE);
+      LL_SPI_SetTransferDirection(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_FULL_DUPLEX);
       break;                                    // Continue configuring parameters after this switch block
 
                                                 // --- Control Miscellaneous
@@ -955,14 +1246,14 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         // If peripheral clock is unknown
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
-      if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
-      else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
-      else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
-      else if ((periph_clk >> 4) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;  }
-      else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
-      else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
-      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128; }
-      else if ((periph_clk >> 8) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
+      if      ((periph_clk >> 1) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_2);   }
+      else if ((periph_clk >> 2) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_4);   }
+      else if ((periph_clk >> 3) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_8);   }
+      else if ((periph_clk >> 4) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_16);  }
+      else if ((periph_clk >> 5) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_32);  }
+      else if ((periph_clk >> 6) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_64);  }
+      else if ((periph_clk >> 7) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_128); }
+      else if ((periph_clk >> 8) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_256); }
       else                               { return ARM_DRIVER_ERROR;                                                   }
       return ARM_DRIVER_OK;
 
@@ -972,15 +1263,15 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
         // If peripheral clock is unknown
         return ARM_DRIVER_ERROR_UNSUPPORTED;
       }
-      switch (ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler) {
-        case SPI_BAUDRATEPRESCALER_2:   spi_clk = periph_clk >> 1; break;
-        case SPI_BAUDRATEPRESCALER_4:   spi_clk = periph_clk >> 2; break;
-        case SPI_BAUDRATEPRESCALER_8:   spi_clk = periph_clk >> 3; break;
-        case SPI_BAUDRATEPRESCALER_16:  spi_clk = periph_clk >> 4; break;
-        case SPI_BAUDRATEPRESCALER_32:  spi_clk = periph_clk >> 5; break;
-        case SPI_BAUDRATEPRESCALER_64:  spi_clk = periph_clk >> 6; break;
-        case SPI_BAUDRATEPRESCALER_128: spi_clk = periph_clk >> 7; break;
-        case SPI_BAUDRATEPRESCALER_256: spi_clk = periph_clk >> 8; break;
+      switch (LL_SPI_GetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi))) {
+        case SPI_BAUDRATE_PRESCALER_2:   spi_clk = periph_clk >> 1; break;
+        case SPI_BAUDRATE_PRESCALER_4:   spi_clk = periph_clk >> 2; break;
+        case SPI_BAUDRATE_PRESCALER_8:   spi_clk = periph_clk >> 3; break;
+        case SPI_BAUDRATE_PRESCALER_16:  spi_clk = periph_clk >> 4; break;
+        case SPI_BAUDRATE_PRESCALER_32:  spi_clk = periph_clk >> 5; break;
+        case SPI_BAUDRATE_PRESCALER_64:  spi_clk = periph_clk >> 6; break;
+        case SPI_BAUDRATE_PRESCALER_128: spi_clk = periph_clk >> 7; break;
+        case SPI_BAUDRATE_PRESCALER_256: spi_clk = periph_clk >> 8; break;
         default:                        spi_clk = periph_clk;      break;
       }
       return ((int32_t)spi_clk);
@@ -990,13 +1281,13 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       return ARM_DRIVER_OK;
 
     case ARM_SPI_CONTROL_SS:                    // Control Slave Select; arg: 0=inactive, 1=active
-      if (ptr_ro_info->ptr_hspi->Init.NSS != SPI_NSS_SOFT) {
+      if (LL_SPI_GetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi)) != LL_SPI_NSS_SOFT) {
         // If slave select line is not configured as software controlled
         return ARM_DRIVER_ERROR;
       }
 
-      switch (ptr_ro_info->ptr_hspi->Init.Mode) {
-        case SPI_MODE_MASTER:                   // Master mode
+      switch (LL_SPI_GetMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi))) {
+        case LL_SPI_MODE_MASTER:                   // Master mode
           if (ptr_ro_info->ptr_nss_pin_config == NULL) {
             // If NSS pin is not available
             return ARM_DRIVER_ERROR;
@@ -1004,20 +1295,20 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 
           if (arg == ARM_SPI_SS_INACTIVE) {
             // Inactive, set pin voltage level to high
-            HAL_GPIO_WritePin(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin, (GPIO_CAST_PIN_STATE)1);
           } else {
             // Active, set pin voltage level to low
-            HAL_GPIO_WritePin(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin, (GPIO_CAST_PIN_STATE)0);
           }
           break;
 
-        case SPI_MODE_SLAVE:                    // Slave mode
+        case LL_SPI_MODE_SLAVE:                    // Slave mode
           if (arg == ARM_SPI_SS_ACTIVE) {
             // Inactive, set SSI bit in CR1 register to 0
-            ptr_ro_info->ptr_hspi->Instance->CR1 &= ~SPI_CR1_SSI;
+            LL_SPI_SetInternalSSLevel(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_SS_LEVEL_LOW);
           } else {
             // Active, set SSI bit in CR1 register to 1
-            ptr_ro_info->ptr_hspi->Instance->CR1 |=  SPI_CR1_SSI;
+            LL_SPI_SetInternalSSLevel(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_SS_LEVEL_HIGH);
           }
           break;
 
@@ -1034,31 +1325,31 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 
   switch (control & ARM_SPI_FRAME_FORMAT_Msk) { // --- Mode Parameters: Frame Format
     case ARM_SPI_CPOL0_CPHA0:                   // Clock Polarity 0, Clock Phase 0 (default)
-      ptr_ro_info->ptr_hspi->Init.TIMode      = SPI_TIMODE_DISABLE;
-      ptr_ro_info->ptr_hspi->Init.CLKPhase    = SPI_PHASE_1EDGE;
-      ptr_ro_info->ptr_hspi->Init.CLKPolarity = SPI_POLARITY_LOW;
+      LL_SPI_SetStandard(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_PROTOCOL_MOTOROLA);
+      LL_SPI_SetClockPhase(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_PHASE_1_EDGE);
+      LL_SPI_SetClockPolarity(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_POLARITY_LOW);
       break;
 
     case ARM_SPI_CPOL0_CPHA1:                   // Clock Polarity 0, Clock Phase 1
-      ptr_ro_info->ptr_hspi->Init.TIMode      = SPI_TIMODE_DISABLE;
-      ptr_ro_info->ptr_hspi->Init.CLKPhase    = SPI_PHASE_2EDGE;
-      ptr_ro_info->ptr_hspi->Init.CLKPolarity = SPI_POLARITY_LOW;
+      LL_SPI_SetStandard(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_PROTOCOL_MOTOROLA);
+      LL_SPI_SetClockPhase(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_PHASE_2_EDGE);
+      LL_SPI_SetClockPolarity(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_POLARITY_LOW);
       break;
 
     case ARM_SPI_CPOL1_CPHA0:                   // Clock Polarity 0, Clock Phase 1
-      ptr_ro_info->ptr_hspi->Init.TIMode      = SPI_TIMODE_DISABLE;
-      ptr_ro_info->ptr_hspi->Init.CLKPhase    = SPI_PHASE_1EDGE;
-      ptr_ro_info->ptr_hspi->Init.CLKPolarity = SPI_POLARITY_HIGH;
+      LL_SPI_SetStandard(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_PROTOCOL_MOTOROLA);
+      LL_SPI_SetClockPhase(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_PHASE_1_EDGE);
+      LL_SPI_SetClockPolarity(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_POLARITY_HIGH);
       break;
 
     case ARM_SPI_CPOL1_CPHA1:                   // Clock Polarity 1, Clock Phase 1
-      ptr_ro_info->ptr_hspi->Init.TIMode      = SPI_TIMODE_DISABLE;
-      ptr_ro_info->ptr_hspi->Init.CLKPhase    = SPI_PHASE_2EDGE;
-      ptr_ro_info->ptr_hspi->Init.CLKPolarity = SPI_POLARITY_HIGH;
+      LL_SPI_SetStandard(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_PROTOCOL_MOTOROLA);
+      LL_SPI_SetClockPhase(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_PHASE_2_EDGE);
+      LL_SPI_SetClockPolarity(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_CLOCK_POLARITY_HIGH);
       break;
 
     case ARM_SPI_TI_SSI:                        // Texas Instruments Frame Format
-      ptr_ro_info->ptr_hspi->Init.TIMode      = SPI_TIMODE_ENABLE;
+      LL_SPI_SetStandard(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_PROTOCOL_TI);
       break;
 
     case ARM_SPI_MICROWIRE:                     // National Semiconductor Microwire Frame Format
@@ -1068,108 +1359,29 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       return ARM_SPI_ERROR_FRAME_FORMAT;
   }
 
-  switch (control & ARM_SPI_DATA_BITS_Msk) {    // --- Mode Parameters: Data Bits
-    case ARM_SPI_DATA_BITS(8U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_8BIT;  break;
-    case ARM_SPI_DATA_BITS(16U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_16BIT; break;
-#ifdef SPI_DATASIZE_4BIT
-    case ARM_SPI_DATA_BITS(4U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_4BIT;  break;
-#endif
-#ifdef SPI_DATASIZE_5BIT
-    case ARM_SPI_DATA_BITS(5U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_5BIT;  break;
-#endif
-#ifdef SPI_DATASIZE_6BIT
-    case ARM_SPI_DATA_BITS(6U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_6BIT;  break;
-#endif
-#ifdef SPI_DATASIZE_7BIT
-    case ARM_SPI_DATA_BITS(7U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_7BIT;  break;
-#endif
-#ifdef SPI_DATASIZE_9BIT
-    case ARM_SPI_DATA_BITS(9U):  ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_9BIT;  break;
-#endif
-#ifdef SPI_DATASIZE_10BIT
-    case ARM_SPI_DATA_BITS(10U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_10BIT; break;
-#endif
-#ifdef SPI_DATASIZE_11BIT
-    case ARM_SPI_DATA_BITS(11U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_11BIT; break;
-#endif
-#ifdef SPI_DATASIZE_12BIT
-    case ARM_SPI_DATA_BITS(12U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_12BIT; break;
-#endif
-#ifdef SPI_DATASIZE_13BIT
-    case ARM_SPI_DATA_BITS(13U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_13BIT; break;
-#endif
-#ifdef SPI_DATASIZE_14BIT
-    case ARM_SPI_DATA_BITS(14U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_14BIT; break;
-#endif
-#ifdef SPI_DATASIZE_15BIT
-    case ARM_SPI_DATA_BITS(15U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_15BIT; break;
-#endif
-#ifdef SPI_DATASIZE_17BIT
-    case ARM_SPI_DATA_BITS(17U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_17BIT; break;
-#endif
-#ifdef SPI_DATASIZE_18BIT
-    case ARM_SPI_DATA_BITS(18U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_18BIT; break;
-#endif
-#ifdef SPI_DATASIZE_19BIT
-    case ARM_SPI_DATA_BITS(19U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_19BIT; break;
-#endif
-#ifdef SPI_DATASIZE_20BIT
-    case ARM_SPI_DATA_BITS(20U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_20BIT; break;
-#endif
-#ifdef SPI_DATASIZE_21BIT
-    case ARM_SPI_DATA_BITS(21U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_21BIT; break;
-#endif
-#ifdef SPI_DATASIZE_22BIT
-    case ARM_SPI_DATA_BITS(22U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_22BIT; break;
-#endif
-#ifdef SPI_DATASIZE_23BIT
-    case ARM_SPI_DATA_BITS(23U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_23BIT; break;
-#endif
-#ifdef SPI_DATASIZE_24BIT
-    case ARM_SPI_DATA_BITS(24U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_24BIT; break;
-#endif
-#ifdef SPI_DATASIZE_25BIT
-    case ARM_SPI_DATA_BITS(25U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_25BIT; break;
-#endif
-#ifdef SPI_DATASIZE_26BIT
-    case ARM_SPI_DATA_BITS(26U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_26BIT; break;
-#endif
-#ifdef SPI_DATASIZE_27BIT
-    case ARM_SPI_DATA_BITS(27U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_27BIT; break;
-#endif
-#ifdef SPI_DATASIZE_28BIT
-    case ARM_SPI_DATA_BITS(28U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_28BIT; break;
-#endif
-#ifdef SPI_DATASIZE_29BIT
-    case ARM_SPI_DATA_BITS(29U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_29BIT; break;
-#endif
-#ifdef SPI_DATASIZE_30BIT
-    case ARM_SPI_DATA_BITS(30U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_30BIT; break;
-#endif
-#ifdef SPI_DATASIZE_31BIT
-    case ARM_SPI_DATA_BITS(31U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_31BIT; break;
-#endif
-#ifdef SPI_DATASIZE_32BIT
-    case ARM_SPI_DATA_BITS(32U): ptr_ro_info->ptr_hspi->Init.DataSize = SPI_DATASIZE_32BIT; break;
-#endif
-    default:
-      return ARM_SPI_ERROR_DATA_BITS;
+  uint32_t data_width = (control & ARM_SPI_DATA_BITS_Msk) >> ARM_SPI_DATA_BITS_Pos;
+  if ((data_width < 4) || (data_width > 32)) {
+    return ARM_SPI_ERROR_DATA_BITS;
+  }
+  else
+  {
+    HAL_SPI_SET_DATA_WIDTH(ptr_ro_info->ptr_hspi, SPI_DATA_BIT(data_width));
   }
 
                                                 // --- Mode Parameters: Bit Order
   if ((control & ARM_SPI_BIT_ORDER_Msk) == ARM_SPI_LSB_MSB) {
-    ptr_ro_info->ptr_hspi->Init.FirstBit = SPI_FIRSTBIT_LSB;
+    LL_SPI_SetTransferBitOrder(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_LSB_FIRST);
   } else {
-    ptr_ro_info->ptr_hspi->Init.FirstBit = SPI_FIRSTBIT_MSB;
+    LL_SPI_SetTransferBitOrder(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_MSB_FIRST);
   }
 
   reconfigure_nss_pin = 0U;                                     // --- Mode Parameters: Slave Select Mode
-  if (ptr_ro_info->ptr_hspi->Init.Mode == SPI_MODE_MASTER) {    // If mode is Master
+  if (LL_SPI_GetMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi)) == LL_SPI_MODE_MASTER) {    // If mode is Master
     switch (control & ARM_SPI_SS_MASTER_MODE_Msk) {             // --- Mode Parameters: Slave Select Mode
       case ARM_SPI_SS_MASTER_UNUSED:                            // SPI Slave Select when Master: Not used (default)
-        ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_SOFT;
+        LL_SPI_SetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_NSS_SOFT);
 #ifdef  SPI_NSS_PULSE_DISABLE
-        ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+        LL_SPI_DisableNSSPulseMgt(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi));
 #endif
         if (ptr_ro_info->ptr_nss_pin_config != NULL) {
           // Unconfigure NSS pin
@@ -1183,13 +1395,18 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
           return ARM_SPI_ERROR_SS_MODE;
         }
 
-        ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_SOFT;
+        LL_SPI_SetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_NSS_SOFT);
 #ifdef  SPI_NSS_PULSE_DISABLE
-        ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+        LL_SPI_DisableNSSPulseMgt(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi));
 #endif
 
         // Prepare NSS pin configuration for GPIO output mode
+        #ifdef STM32_HAL_VERSION_2
+        GPIO_InitStruct.mode            = HAL_GPIO_MODE_OUTPUT;
+        GPIO_InitStruct.output_type     = HAL_GPIO_OUTPUT_PUSHPULL;
+        #else // STM32_HAL_VERSION_2
         GPIO_InitStruct.Mode     = GPIO_MODE_OUTPUT_PP;
+        #endif // STM32_HAL_VERSION_2
         reconfigure_nss_pin      = 1U;
         break;
 
@@ -1199,13 +1416,18 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
           return ARM_SPI_ERROR_SS_MODE;
         }
 
-        ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_HARD_OUTPUT;
+        LL_SPI_SetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_NSS_HARD_OUTPUT);
 #ifdef  SPI_NSS_PULSE_DISABLE
-        ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+        LL_SPI_DisableNSSPulseMgt(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi));
 #endif
 
         // Prepare NSS pin configuration for alternate function mode
+        #ifdef STM32_HAL_VERSION_2
+        GPIO_InitStruct.mode            = HAL_GPIO_MODE_ALTERNATE;
+        GPIO_InitStruct.output_type     = HAL_GPIO_OUTPUT_PUSHPULL;
+        #else // STM32_HAL_VERSION_2
         GPIO_InitStruct.Mode     = GPIO_MODE_AF_PP;
+        #endif // STM32_HAL_VERSION_2
         reconfigure_nss_pin      = 1U;
         break;
 
@@ -1215,20 +1437,25 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
           return ARM_SPI_ERROR_SS_MODE;
         }
 
-        ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_HARD_INPUT;
+        LL_SPI_SetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_NSS_HARD_INPUT);
 #ifdef  SPI_NSS_PULSE_DISABLE
-        ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+        LL_SPI_DisableNSSPulseMgt(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi));
 #endif
 
         // Prepare NSS pin configuration for alternate function mode
+        #ifdef STM32_HAL_VERSION_2
+        GPIO_InitStruct.mode            = HAL_GPIO_MODE_ALTERNATE;
+        GPIO_InitStruct.output_type     = HAL_GPIO_OUTPUT_PUSHPULL;
+        #else // STM32_HAL_VERSION_2
         GPIO_InitStruct.Mode     = GPIO_MODE_AF_PP;
+        #endif // STM32_HAL_VERSION_2
         reconfigure_nss_pin      = 1U;
         break;
 
       default:
         return ARM_SPI_ERROR_SS_MODE;
     }
-  } else if (ptr_ro_info->ptr_hspi->Init.Mode == SPI_MODE_SLAVE) {  // If mode is Slave
+  } else if (LL_SPI_GetMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi)) == LL_SPI_MODE_SLAVE) {  // If mode is Slave
     switch (control & ARM_SPI_SS_SLAVE_MODE_Msk) {              // --- Mode Parameters: Slave Select Mode
       case ARM_SPI_SS_SLAVE_HW:                                 // SPI Slave Select when Slave: Hardware monitored (default)
         if (ptr_ro_info->ptr_nss_pin_config == NULL) {
@@ -1236,20 +1463,25 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
           return ARM_SPI_ERROR_SS_MODE;
         }
 
-        ptr_ro_info->ptr_hspi->Init.NSS      = SPI_NSS_HARD_INPUT;
+        LL_SPI_SetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_NSS_HARD_INPUT);
 #ifdef  SPI_NSS_PULSE_DISABLE
-        ptr_ro_info->ptr_hspi->Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+        LL_SPI_DisableNSSPulseMgt(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi));
 #endif
 
         // Prepare NSS pin configuration for alternate function mode
+        #ifdef STM32_HAL_VERSION_2
+        GPIO_InitStruct.mode            = HAL_GPIO_MODE_ALTERNATE;
+        GPIO_InitStruct.output_type     = HAL_GPIO_OUTPUT_PUSHPULL;
+        #else // STM32_HAL_VERSION_2
         GPIO_InitStruct.Mode     = GPIO_MODE_AF_PP;
+        #endif // STM32_HAL_VERSION_2
         reconfigure_nss_pin      = 1U;
         break;
 
       case ARM_SPI_SS_SLAVE_SW:                                 // SPI Slave Select when Slave: Software controlled
-        ptr_ro_info->ptr_hspi->Init.NSS       = SPI_NSS_SOFT;
+        LL_SPI_SetNSSMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), LL_SPI_NSS_SOFT);
 #ifdef  SPI_NSS_PULSE_DISABLE
-        ptr_ro_info->ptr_hspi->Init.NSSPMode  = SPI_NSS_PULSE_DISABLE;
+        LL_SPI_DisableNSSPulseMgt(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi));
 #endif
         if (ptr_ro_info->ptr_nss_pin_config != NULL) {
           // Unconfigure NSS pin
@@ -1263,23 +1495,42 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
   }
 
   // Configure Bus Speed, only for Master mode
-  if (ptr_ro_info->ptr_hspi->Init.Mode == SPI_MODE_MASTER) {
+  if (LL_SPI_GetMode(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi)) == LL_SPI_MODE_MASTER) {
     periph_clk = SPIn_GetPeriphClock(ptr_ro_info);
     if (periph_clk != 0U) {
       // If peripheral clock is valid, if peripheral clock is not valid or unknown then clock reconfiguration will be skipped
-      if      ((periph_clk >> 1) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;   }
-      else if ((periph_clk >> 2) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;   }
-      else if ((periph_clk >> 3) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;   }
-      else if ((periph_clk >> 4) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;  }
-      else if ((periph_clk >> 5) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;  }
-      else if ((periph_clk >> 6) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;  }
-      else if ((periph_clk >> 7) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128; }
-      else if ((periph_clk >> 8) <= arg) { ptr_ro_info->ptr_hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256; }
+      if      ((periph_clk >> 1) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_2);   }
+      else if ((periph_clk >> 2) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_4);   }
+      else if ((periph_clk >> 3) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_8);   }
+      else if ((periph_clk >> 4) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_16);  }
+      else if ((periph_clk >> 5) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_32);  }
+      else if ((periph_clk >> 6) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_64);  }
+      else if ((periph_clk >> 7) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_128); }
+      else if ((periph_clk >> 8) <= arg) { LL_SPI_SetBaudRatePrescaler(HAL_SPI_INSTANCE(ptr_ro_info->ptr_hspi), SPI_BAUDRATE_PRESCALER_256); }
       else                               { return ARM_DRIVER_ERROR;                                                   }
     }
   }
 
   // Reconfigure DMA
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_hspi->hdma_rx != NULL) {      // If DMA is used for Rx
+    if ((control & ARM_SPI_DATA_BITS_Msk) > ARM_SPI_DATA_BITS(16U)) {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx), DMA_SRC_WIDTH_WORD);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx), DMA_DEST_WIDTH_WORD);
+    } else if ((control & ARM_SPI_DATA_BITS_Msk) > ARM_SPI_DATA_BITS(8U)) {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx), DMA_SRC_WIDTH_HALFWORD);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx), DMA_DEST_WIDTH_HALFWORD);
+    } else {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx), DMA_SRC_WIDTH_BYTE);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_rx), DMA_DEST_WIDTH_BYTE);
+    }
+
+    // Reconfigure DMA for Rx
+    if (HAL_DMA_Init(ptr_ro_info->ptr_hspi->hdma_rx, ptr_ro_info->ptr_hspi->hdma_rx->instance) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_hspi->hdmarx != NULL) {      // If DMA is used for Rx
     if ((control & ARM_SPI_DATA_BITS_Msk) > ARM_SPI_DATA_BITS(16U)) {
 #if defined(DMA_MDATAALIGN_WORD)
@@ -1312,7 +1563,27 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       return ARM_DRIVER_ERROR;
     }
   }
+  #endif // STM32_HAL_VERSION_2
 
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_hspi->hdma_tx != NULL) {      // If DMA is used for Tx
+    if ((control & ARM_SPI_DATA_BITS_Msk) > ARM_SPI_DATA_BITS(16U)) {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx), DMA_SRC_WIDTH_WORD);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx), DMA_DEST_WIDTH_WORD);
+    } else if ((control & ARM_SPI_DATA_BITS_Msk) > ARM_SPI_DATA_BITS(8U)) {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx), DMA_SRC_WIDTH_HALFWORD);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx), DMA_DEST_WIDTH_HALFWORD);
+    } else {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx), DMA_SRC_WIDTH_BYTE);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_hspi->hdma_tx), DMA_DEST_WIDTH_BYTE);
+    }
+
+    // Reconfigure DMA for Tx
+    if (HAL_DMA_Init(ptr_ro_info->ptr_hspi->hdma_tx, ptr_ro_info->ptr_hspi->hdma_tx->instance) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_hspi->hdmatx != NULL) {      // If DMA is used for Tx
     if ((control & ARM_SPI_DATA_BITS_Msk) > ARM_SPI_DATA_BITS(16U)) {
 #if defined(DMA_MDATAALIGN_WORD)
@@ -1345,19 +1616,27 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
       return ARM_DRIVER_ERROR;
     }
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Reconfigure SPI
-  if (HAL_SPI_Init(ptr_ro_info->ptr_hspi) != HAL_OK) {
+  if (HAL_SPI_INIT(ptr_ro_info) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
 
   // Reconfigure NSS pin
   if (reconfigure_nss_pin != 0U) {
+    #ifdef STM32_HAL_VERSION_2
+    GPIO_InitStruct.pull      = (hal_gpio_pull_t)ptr_ro_info->ptr_nss_pin_config->pull;
+    GPIO_InitStruct.speed     = (hal_gpio_speed_freq_t)ptr_ro_info->ptr_nss_pin_config->speed;
+    GPIO_InitStruct.alternate = (hal_gpio_af_t)ptr_ro_info->ptr_nss_pin_config->af;
+    HAL_GPIO_Init(ptr_ro_info->ptr_nss_pin_config->ptr_port, ptr_ro_info->ptr_nss_pin_config->pin, &GPIO_InitStruct);
+    #else // STM32_HAL_VERSION_2
     GPIO_InitStruct.Pin       = ptr_ro_info->ptr_nss_pin_config->pin;
     GPIO_InitStruct.Pull      = ptr_ro_info->ptr_nss_pin_config->pull;
     GPIO_InitStruct.Speed     = ptr_ro_info->ptr_nss_pin_config->speed;
     GPIO_InitStruct.Alternate = ptr_ro_info->ptr_nss_pin_config->af;
     HAL_GPIO_Init(ptr_ro_info->ptr_nss_pin_config->ptr_port, &GPIO_InitStruct);
+    #endif // STM32_HAL_VERSION_2
   }
 
   // Set driver status to configured
@@ -1374,14 +1653,37 @@ static int32_t SPIn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 */
 static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   ARM_SPI_STATUS status;
-  uint32_t       error;
 
   // Clear status structure
   memset(&status, 0, sizeof(ARM_SPI_STATUS));
 
-  error = HAL_SPI_GetError(ptr_ro_info->ptr_hspi);
+  #ifdef STM32_HAL_VERSION_2
+  #if defined(USE_HAL_SPI_GET_LAST_ERRORS) && (USE_HAL_SPI_GET_LAST_ERRORS == 1)
+  uint32_t error = HAL_SPI_GetLastErrorsCodes(ptr_ro_info->ptr_hspi);
+  #endif /* USE_HAL_SPI_GET_LAST_ERRORS */
+  #else // STM32_HAL_VERSION_2
+  uint32_t error = HAL_SPI_GetError(ptr_ro_info->ptr_hspi);
+  #endif // STM32_HAL_VERSION_2
 
   // Process HAL state
+  #ifdef STM32_HAL_VERSION_2
+  switch (HAL_SPI_GetState(ptr_ro_info->ptr_hspi)) {
+    case HAL_SPI_STATE_TX_ACTIVE:       // Data Transmission process is ongoing
+    case HAL_SPI_STATE_RX_ACTIVE:       // Data Reception process is ongoing
+    case HAL_SPI_STATE_TX_RX_ACTIVE:    // Data Transmission and Reception process is ongoing
+    case HAL_SPI_STATE_ABORT:           // SPI abort is ongoing
+      status.busy = 1U;
+      break;
+
+    case HAL_SPI_STATE_RESET:           // Peripheral not Initialized
+    case HAL_SPI_STATE_INIT:            // initialized but not yet configured
+    case HAL_SPI_STATE_IDLE:            // Peripheral Initialized and ready for use
+    case HAL_SPI_STATE_FAULT:           // SPI error state
+    default:
+      // Not busy related
+      break;
+  }
+  #else // STM32_HAL_VERSION_2
   switch (HAL_SPI_GetState(ptr_ro_info->ptr_hspi)) {
     case HAL_SPI_STATE_BUSY:            // An internal process is ongoing
     case HAL_SPI_STATE_BUSY_TX:         // Data Transmission process is ongoing
@@ -1398,7 +1700,10 @@ static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t * const ptr_ro_info) {
       // Not busy related
       break;
   }
+  #endif // STM32_HAL_VERSION_2
 
+  #ifdef STM32_HAL_VERSION_2
+  #if defined(USE_HAL_SPI_GET_LAST_ERRORS) && (USE_HAL_SPI_GET_LAST_ERRORS == 1)
   // Process HAL errors status
   if ((error & HAL_SPI_ERROR_OVR)  != 0U) {
     status.data_lost = 1U;
@@ -1406,6 +1711,16 @@ static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   if ((error & HAL_SPI_ERROR_MODF) != 0U) {
     status.mode_fault = 1U;
   }
+  #endif /* USE_HAL_SPI_GET_LAST_ERRORS */
+  #else // STM32_HAL_VERSION_2
+  // Process HAL errors status
+  if ((error & HAL_SPI_ERROR_OVR)  != 0U) {
+    status.data_lost = 1U;
+  }
+  if ((error & HAL_SPI_ERROR_MODF) != 0U) {
+    status.mode_fault = 1U;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   return status;
 }
@@ -1413,11 +1728,11 @@ static ARM_SPI_STATUS SPIn_GetStatus (const RO_Info_t * const ptr_ro_info) {
 // HAL callback functions ******************************************************
 
 /**
-  \fn          void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi)
+  \fn          void HAL_SPI_TxCpltCallback (HAL_SPI_HANDLE_TYPE *hspi)
   \brief       Tx Transfer completed callback.
   \param[in]   hspi     SPI handle
   */
-void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi) {
+void HAL_SPI_TxCpltCallback (HAL_SPI_HANDLE_TYPE *hspi) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = SPI_GetInfo(hspi);
@@ -1447,11 +1762,11 @@ void HAL_SPI_TxCpltCallback (SPI_HandleTypeDef *hspi) {
 }
 
 /**
-  \fn          void HAL_SPI_RxCpltCallback (SPI_HandleTypeDef *hspi)
+  \fn          void HAL_SPI_RxCpltCallback (HAL_SPI_HANDLE_TYPE *hspi)
   \brief       Rx Transfer completed callback.
   \param[in]   hspi     SPI handle
   */
-void HAL_SPI_RxCpltCallback (SPI_HandleTypeDef *hspi) {
+void HAL_SPI_RxCpltCallback (HAL_SPI_HANDLE_TYPE *hspi) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = SPI_GetInfo(hspi);
@@ -1470,11 +1785,11 @@ void HAL_SPI_RxCpltCallback (SPI_HandleTypeDef *hspi) {
 }
 
 /**
-  \fn          void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef *hspi)
+  \fn          void HAL_SPI_TxRxCpltCallback (HAL_SPI_HANDLE_TYPE *hspi)
   \brief       Tx and Rx Transfer completed callback.
   \param[in]   hspi     SPI handle
   */
-void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef *hspi) {
+void HAL_SPI_TxRxCpltCallback (HAL_SPI_HANDLE_TYPE *hspi) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = SPI_GetInfo(hspi);
@@ -1493,14 +1808,12 @@ void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef *hspi) {
 }
 
 /**
-  \fn          void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi)
+  \fn          void HAL_SPI_ErrorCallback (HAL_SPI_HANDLE_TYPE *hspi)
   \brief       SPI error callback.
   \param[in]   hspi     SPI handle
   */
-void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi) {
+void HAL_SPI_ErrorCallback (HAL_SPI_HANDLE_TYPE *hspi) {
   const RO_Info_t *ptr_ro_info;
-        uint32_t   error;
-        uint32_t   event;
 
   ptr_ro_info = SPI_GetInfo(hspi);
 
@@ -1514,8 +1827,10 @@ void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi) {
     return;
   }
 
-  error = HAL_SPI_GetError(hspi);
-  event = 0U;
+  #ifdef STM32_HAL_VERSION_2
+  #if defined(USE_HAL_SPI_GET_LAST_ERRORS) && (USE_HAL_SPI_GET_LAST_ERRORS == 1)
+  uint32_t error = HAL_SPI_GetLastErrorsCodes(ptr_ro_info->ptr_hspi);
+  uint32_t event = 0;
 
   if ((error & HAL_SPI_ERROR_MODF) != 0U) {
     event |= ARM_SPI_EVENT_MODE_FAULT;
@@ -1528,6 +1843,23 @@ void HAL_SPI_ErrorCallback (SPI_HandleTypeDef *hspi) {
   if (event != 0U) {
     ptr_ro_info->ptr_rw_info->cb_event(event);
   }
+  #endif /* USE_HAL_SPI_GET_LAST_ERRORS */
+  #else // STM32_HAL_VERSION_2
+  uint32_t error = HAL_SPI_GetError(hspi);
+  uint32_t event = 0;
+
+  if ((error & HAL_SPI_ERROR_MODF) != 0U) {
+    event |= ARM_SPI_EVENT_MODE_FAULT;
+  }
+
+  if ((error & HAL_SPI_ERROR_OVR) != 0U) {
+    event |= ARM_SPI_EVENT_DATA_LOST;
+  }
+
+  if (event != 0U) {
+    ptr_ro_info->ptr_rw_info->cb_event(event);
+  }
+  #endif // STM32_HAL_VERSION_2
 }
 
 // Local driver functions definitions (for instances)
