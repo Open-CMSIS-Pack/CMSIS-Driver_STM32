@@ -290,7 +290,7 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #endif
 
 // Check if Ethernet MAC supports Gigabit Ethernet
-#ifdef  ETH_SPEED_1000M
+#if     defined(ETH_SPEED_1000M) && (ARM_ETH_MAC_API_VERSION >= ARM_DRIVER_VERSION_MAJOR_MINOR(2,3)) 
 #define MAC_GBIT_ETHERNET
 #endif
 
