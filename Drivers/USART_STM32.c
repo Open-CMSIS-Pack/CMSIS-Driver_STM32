@@ -205,10 +205,9 @@ This driver requires the following configuration in CubeMX:
 
 #include <string.h>
 
-// Driver Version **************************************************************
-                                                //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
-// *****************************************************************************
+/* Driver Version */
+#define ARM_USART_DRV_VERSION           ARM_DRIVER_VERSION_MAJOR_MINOR(3,0)
+
 
 // Compile-time configuration **************************************************
 
@@ -567,7 +566,10 @@ static const RO_Info_t *USART_GetInfo (const UART_HandleTypeDef * const huart) {
   \return      \ref ARM_DRIVER_VERSION
 */
 static ARM_DRIVER_VERSION USART_GetVersion (void) {
-  return driver_version;
+  const ARM_DRIVER_VERSION version = { ARM_USART_API_VERSION,
+                                       ARM_USART_DRV_VERSION };
+  return version;
+
 }
 
 /**

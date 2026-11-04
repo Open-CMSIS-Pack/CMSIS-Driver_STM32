@@ -204,9 +204,9 @@ This driver requires the following configuration in CubeMX:
 
 #include <string.h>
 
-// Driver Version **************************************************************
-                                                //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
+/* Driver Version */
+#define ARM_SPI_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,1)
+
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -565,7 +565,9 @@ static uint32_t SPIn_GetPeriphClock (const RO_Info_t * const ptr_ro_info) {
   \return      \ref ARM_DRV_VERSION
 */
 static ARM_DRIVER_VERSION SPI_GetVersion (void) {
-  return driver_version;
+  const ARM_DRIVER_VERSION version = { ARM_SPI_API_VERSION,
+                                       ARM_SPI_DRV_VERSION };
+  return version;
 }
 
 /**

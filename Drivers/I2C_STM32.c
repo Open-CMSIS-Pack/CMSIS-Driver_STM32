@@ -188,10 +188,9 @@ This driver requires the following configuration in CubeMX:
 
 #include <string.h>
 
-// Driver Version **************************************************************
-                                                //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,1) };
-// *****************************************************************************
+/* Driver Version */
+#define ARM_I2C_DRV_VERSION             ARM_DRIVER_VERSION_MAJOR_MINOR(3,1)
+
 
 // Driver Capabilities *********************************************************
 static const ARM_I2C_CAPABILITIES driver_capabilities = {
@@ -820,7 +819,9 @@ static uint32_t I2Cn_GetTimingValue (ClockSetup_t *ptr_clock_setup, const Standa
   \return      \ref ARM_DRIVER_VERSION
 */
 static ARM_DRIVER_VERSION I2C_GetVersion (void) {
-  return driver_version;
+  const ARM_DRIVER_VERSION version = { ARM_I2C_API_VERSION,
+                                       ARM_I2C_DRV_VERSION };
+  return version;
 }
 
 /**

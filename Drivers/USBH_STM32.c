@@ -234,9 +234,10 @@ int32_t USBH_HW_VbusOnOff (HCD_HandleTypeDef *ptr_hhcd, bool vbus) {
 
 #include "cmsis_compiler.h"
 
-// Driver Version **************************************************************
-                                                //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(2,3) };
+/* Driver Version */
+#define ARM_USBH_DRV_VERSION            ARM_DRIVER_VERSION_MAJOR_MINOR(2,3)
+
+
 // *****************************************************************************
 
 // Driver Capabilities *********************************************************
@@ -679,7 +680,9 @@ __WEAK int32_t USBH_HW_VbusOnOff (HCD_HandleTypeDef *ptr_hhcd, bool vbus) {
   \return      \ref ARM_DRIVER_VERSION
 */
 static ARM_DRIVER_VERSION USBH_GetVersion (void) {
-  return driver_version;
+  const ARM_DRIVER_VERSION version = { ARM_USBH_API_VERSION,
+                                       ARM_USBH_DRV_VERSION };
+  return version;
 }
 
 /**

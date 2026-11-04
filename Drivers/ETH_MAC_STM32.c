@@ -273,10 +273,9 @@ In older HAL versions, the DMA descriptor sections were named **RxDecripSection*
 
 #include <string.h>
 
-// Driver Version **************************************************************
-                                                //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,5) };
-// *****************************************************************************
+/* Driver Version */
+#define ARM_ETH_MAC_DRV_VERSION         ARM_DRIVER_VERSION_MAJOR_MINOR(3,5)
+
 
 // Compile-time configuration **************************************************
 
@@ -409,7 +408,9 @@ static int32_t                  ETH_MAC_PHY_Write        (uint8_t phy_addr, uint
   \return      \ref ARM_DRIVER_VERSION
 */
 static ARM_DRIVER_VERSION ETH_MAC_GetVersion (void) {
-  return driver_version;
+  const ARM_DRIVER_VERSION version = { ARM_ETH_MAC_API_VERSION,
+                                       ARM_ETH_MAC_DRV_VERSION };
+  return version;
 }
 
 /**

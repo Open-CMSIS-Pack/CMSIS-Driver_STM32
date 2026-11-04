@@ -222,9 +222,10 @@ This driver requires the following configuration in CubeMX:
 
 #include <string.h>
 
-// Driver Version **************************************************************
-                                                //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,2) };
+/* Driver Version */
+#define ARM_USBD_DRV_VERSION            ARM_DRIVER_VERSION_MAJOR_MINOR(3,2)
+
+
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -605,7 +606,9 @@ static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_inf
   \return      \ref ARM_DRIVER_VERSION
 */
 static ARM_DRIVER_VERSION USBD_GetVersion (void) {
-  return driver_version;
+  const ARM_DRIVER_VERSION version = { ARM_USBD_API_VERSION,
+                                       ARM_USBD_DRV_VERSION };
+  return version;
 }
 
 /**
