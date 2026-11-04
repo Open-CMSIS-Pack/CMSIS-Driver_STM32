@@ -1,0 +1,20 @@
+solution:
+  description: Template application for driver build test
+  created-for: CMSIS-Toolbox@2.14.1
+  cdefault:
+
+  # Selected compiler.
+  compiler: AC6
+
+  # Placeholder for hardware target.
+  target-types:
+
+  # Build type.
+  build-types:
+    - type: Test
+      debug: off
+      optimize: balanced
+
+  # Related project.
+  projects:
+    - project: TestApp.cproject.yml
