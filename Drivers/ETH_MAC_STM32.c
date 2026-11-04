@@ -289,7 +289,7 @@ In older HAL versions, the DMA descriptor sections were named **RxDecripSection*
 #endif
 
 // Check if Ethernet MAC supports Gigabit Ethernet
-#if     defined(ETH_SPEED_1000M) && (ARM_ETH_MAC_API_VERSION >= ARM_DRIVER_VERSION_MAJOR_MINOR(2,3)) 
+#if     defined(ETH_SPEED_1000M) && (ARM_ETH_MAC_API_VERSION >= ARM_DRIVER_VERSION_MAJOR_MINOR(2,3))
 #define MAC_GBIT_ETHERNET
 #endif
 
@@ -452,6 +452,7 @@ static ARM_ETH_MAC_CAPABILITIES ETH_MAC_GetCapabilities (void) {
       break;
 #endif
   }
+
   driver_capabilities.event_rx_frame = 1U;
   driver_capabilities.event_tx_frame = 1U;
   driver_capabilities.event_wakeup   = 1U;

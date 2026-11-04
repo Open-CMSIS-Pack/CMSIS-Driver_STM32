@@ -27,7 +27,7 @@
 
   <requirements>
     <packages>
-      <package vendor="ARM" name="CMSIS" version="6.4.0"/>
+      <package vendor="ARM" name="CMSIS" version="6.0.0"/>
     </packages>
     <targets>
       <target Dvendor="STMicroelectronics:13" Dname="STM32*"/>
