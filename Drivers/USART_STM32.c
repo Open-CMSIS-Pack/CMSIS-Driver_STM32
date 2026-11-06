@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       24. August 2024
- * $Revision:   V3.0
+ * $Date:       22. July 2026
+ * $Revision:   V3.1
  *
  * Project:     USART Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.1
+  - Added HAL2 version support under STM32_HAL_VERSION_2
 - Version 3.0
   - Initial release
 
@@ -202,12 +204,15 @@ This driver requires the following configuration in CubeMX:
 
 #include "RTE_Components.h"
 #include  CMSIS_device_header
+#ifdef STM32_HAL_VERSION_2
+#include "stm32_hal.h"
+#endif // STM32_HAL_VERSION_2
 
 #include <string.h>
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(3,0) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,4), ARM_DRIVER_VERSION_MAJOR_MINOR(4,0) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -247,6 +252,88 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 
 #ifdef  DRIVER_CONFIG_VALID     // Driver code is available only if configuration is valid
 
+// Check HAL version
+#ifdef STM32_HAL_VERSION_2
+// HAL2 UART handle type
+#define HAL_UART_HANDLE_TYPE hal_uart_handle_t
+
+// HAL2 UART init function
+#define HAL_UART_INIT(ptr_ro_info) HAL_UART_Init(ptr_ro_info->ptr_huart, ptr_ro_info->instance)
+
+// Retrieve UART instance from handle
+#define HAL_UART_INSTANCE(handle)   ((USART_TypeDef *)((uint32_t)(handle)->instance))
+
+// Retreive the DMA channel instance
+#define HAL_DMA_CHANNEL_INSTANCE(handle)   ((DMA_Channel_TypeDef *)((uint32_t)(handle)->instance))
+
+// HAL2 UART Wordlength Definition
+#define WORDLENGTH_7B HAL_UART_WORD_LENGTH_7_BIT
+#define WORDLENGTH_8B HAL_UART_WORD_LENGTH_8_BIT
+#define WORDLENGTH_9B HAL_UART_WORD_LENGTH_9_BIT
+
+// HAL2 UART StopBts Definition
+#define STOPBITS_0_5 HAL_UART_STOP_BIT_0_5
+#define STOPBITS_1 HAL_UART_STOP_BIT_1
+#define STOPBITS_1_5 HAL_UART_STOP_BIT_1_5
+#define STOPBITS_2 HAL_UART_STOP_BIT_2
+
+// HAL2 UART DMA Source Data Width Definition
+#define DMA_SRC_WIDTH_BYTE     LL_DMA_SRC_DATA_WIDTH_BYTE
+#define DMA_SRC_WIDTH_HALFWORD LL_DMA_SRC_DATA_WIDTH_HALFWORD
+#define DMA_SRC_WIDTH_WORD     LL_DMA_SRC_DATA_WIDTH_WORD
+
+// HAL2 UART DMA Destination Data Width Definition
+#define DMA_DEST_WIDTH_BYTE     LL_DMA_DEST_DATA_WIDTH_BYTE
+#define DMA_DEST_WIDTH_HALFWORD LL_DMA_DEST_DATA_WIDTH_HALFWORD
+#define DMA_DEST_WIDTH_WORD     LL_DMA_DEST_DATA_WIDTH_WORD
+
+#else // STM32_HAL_VERSION_2
+// HAL1 UART handle type
+#define HAL_UART_HANDLE_TYPE UART_HandleTypeDef
+
+// HAL1 UART init function
+#define HAL_UART_INIT(ptr_ro_info) HAL_UART_Init(ptr_ro_info->ptr_huart)
+
+// Retrieve UART instance from handle
+#define HAL_UART_INSTANCE(handle)   ((USART_TypeDef *)((uint32_t)(handle)->Instance))
+
+// HAL1 UART Wordlength Definition
+#ifdef UART_WORDLENGTH_7B
+#define WORDLENGTH_7B UART_WORDLENGTH_7B
+#endif
+#ifdef UART_WORDLENGTH_8B
+#define WORDLENGTH_8B UART_WORDLENGTH_8B
+#endif
+#ifdef UART_WORDLENGTH_9B
+#define WORDLENGTH_9B UART_WORDLENGTH_9B
+#endif
+
+// HAL1 UART StopBts Definition
+#ifdef UART_STOPBITS_0_5
+#define STOPBITS_0_5 UART_STOPBITS_0_5
+#endif
+#ifdef UART_STOPBITS_1
+#define STOPBITS_1 UART_STOPBITS_1
+#endif
+#ifdef UART_STOPBITS_1_5
+#define STOPBITS_1_5 UART_STOPBITS_1_5
+#endif
+#ifdef UART_STOPBITS_2
+#define STOPBITS_2 UART_STOPBITS_2
+#endif
+
+// HAL1 UART DMA Data Width Definition
+#define DMA_SRC_WIDTH_BYTE     LL_DMA_SRC_DATAWIDTH_BYTE
+#define DMA_SRC_WIDTH_HALFWORD LL_DMA_SRC_DATAWIDTH_HALFWORD
+#define DMA_SRC_WIDTH_WORD     LL_DMA_SRC_DATAWIDTH_WORD
+
+// HAL1 UART DMA Destination Data Width Definition
+#define DMA_DEST_WIDTH_BYTE     LL_DMA_DEST_DATAWIDTH_BYTE
+#define DMA_DEST_WIDTH_HALFWORD LL_DMA_DEST_DATAWIDTH_HALFWORD
+#define DMA_DEST_WIDTH_WORD     LL_DMA_DEST_DATAWIDTH_WORD
+
+#endif // STM32_HAL_VERSION_2
+
 // Macros
 // Macro for section for RW info
 #ifdef  USART_SECTION_NAME
@@ -257,10 +344,37 @@ static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MIN
 #endif
 
 // Macro to create usart_ro_info and usart_rw_info (for U(S)ART instances)
-#define INFO_DEFINE(n)                                                                                         \
+#ifdef STM32_HAL_VERSION_2
+#define UART_INFO_DEFINE(n)                                                                                   \
+extern  hal_uart_handle_t       *mx_uart##n##_hal_uart_gethandle(void);                                       \
+static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                         \
+static        RO_Info_t         usart##n##_ro_info = { .hal_uart_gethandle = mx_uart##n##_hal_uart_gethandle, \
+                                                       .instance = HAL_UART##n,                               \
+                                                       .ptr_rw_info = &usart##n##_rw_info                     \
+                                                     };
+
+#define USART_INFO_DEFINE(n)                                                                                   \
+extern  hal_uart_handle_t       *mx_usart##n##_hal_uart_gethandle(void);                                       \
+static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                          \
+static        RO_Info_t         usart##n##_ro_info = { .hal_uart_gethandle = mx_usart##n##_hal_uart_gethandle, \
+                                                       .instance = HAL_UART##n,                                \
+                                                       .ptr_rw_info = &usart##n##_rw_info                      \
+                                                     };
+
+// Macro to create usart_ro_info and usart_rw_info (for LPUART instances)
+#define LP_INFO_DEFINE(n,lp_n)                                                                                      \
+extern  hal_uart_handle_t       *mx_lpuart##lp_n##_hal_uart_gethandle(void);                                        \
+static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                               \
+static        RO_Info_t         usart##n##_ro_info = { .hal_uart_gethandle = mx_lpuart##lp_n##_hal_uart_gethandle,  \
+                                                       .instance = HAL_LPUART##lp_n,                                \
+                                                       .ptr_rw_info = &usart##n##_rw_info                           \
+                                                     };
+#else // STM32_HAL_VERSION_2
+#define USART_INFO_DEFINE(n) UART_INFO_DEFINE(n)
+#define UART_INFO_DEFINE(n)                                                                                    \
 extern  UART_HandleTypeDef      huart##n;                                                                      \
 static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                          \
-static  const RO_Info_t         usart##n##_ro_info = { &huart##n,                                              \
+static        RO_Info_t         usart##n##_ro_info = { &huart##n,                                              \
                                                        &usart##n##_rw_info                                     \
                                                      };
 
@@ -268,9 +382,10 @@ static  const RO_Info_t         usart##n##_ro_info = { &huart##n,               
 #define LP_INFO_DEFINE(n,lp_n)                                                                                 \
 extern  UART_HandleTypeDef      hlpuart##lp_n;                                                                 \
 static        RW_Info_t         usart##n##_rw_info USARTn_SECTION(n);                                          \
-static  const RO_Info_t         usart##n##_ro_info = { &hlpuart##lp_n,                                         \
+static        RO_Info_t         usart##n##_ro_info = { &hlpuart##lp_n,                                         \
                                                        &usart##n##_rw_info                                     \
                                                      };
+#endif // STM32_HAL_VERSION_2
 
 // Macro for declaring functions (for instances)
 #define FUNCS_DECLARE(n)                                                                                       \
@@ -339,55 +454,89 @@ typedef struct {
 // Instance compile-time information (RO)
 // also contains pointer to run-time information
 typedef struct {
-  UART_HandleTypeDef           *ptr_huart;              // Pointer to UART handle
-  RW_Info_t                    *ptr_rw_info;            // Pointer to run-time information (RW)
+  HAL_UART_HANDLE_TYPE         *ptr_huart;            // Pointer to UART handle
+#ifdef STM32_HAL_VERSION_2
+  hal_uart_handle_t * (*hal_uart_gethandle)(void);    // Callback to UART get handle
+  hal_uart_t                    instance;             // UART or LPUART instance
+#endif // STM32_HAL_VERSION_2
+  RW_Info_t                    *ptr_rw_info;          // Pointer to run-time information (RW)
 } RO_Info_t;
 
 // Information definitions (for instances)
-#ifdef MX_UART1
-INFO_DEFINE(1)
+#if defined(MX_USART1)
+    USART_INFO_DEFINE(1)
+#elif defined(MX_UART1)
+    UART_INFO_DEFINE(1)
 #endif
-#ifdef MX_UART2
-INFO_DEFINE(2)
+#if defined(MX_USART2)
+    USART_INFO_DEFINE(2)
+#elif defined(MX_UART2)
+    UART_INFO_DEFINE(2)
 #endif
-#ifdef MX_UART3
-INFO_DEFINE(3)
+#if defined(MX_USART3)
+    USART_INFO_DEFINE(3)
+#elif defined(MX_UART3)
+    UART_INFO_DEFINE(3)
 #endif
-#ifdef MX_UART4
-INFO_DEFINE(4)
+#if defined(MX_USART4)
+    USART_INFO_DEFINE(4)
+#elif defined(MX_UART4)
+    UART_INFO_DEFINE(4)
 #endif
-#ifdef MX_UART5
-INFO_DEFINE(5)
+#if defined(MX_USART5)
+    USART_INFO_DEFINE(5)
+#elif defined(MX_UART5)
+    UART_INFO_DEFINE(5)
 #endif
-#ifdef MX_UART6
-INFO_DEFINE(6)
+#if defined(MX_USART6)
+    USART_INFO_DEFINE(6)
+#elif defined(MX_UART6)
+    UART_INFO_DEFINE(6)
 #endif
-#ifdef MX_UART7
-INFO_DEFINE(7)
+#if defined(MX_USART7)
+    USART_INFO_DEFINE(7)
+#elif defined(MX_UART7)
+    UART_INFO_DEFINE(7)
 #endif
-#ifdef MX_UART8
-INFO_DEFINE(8)
+#if defined(MX_USART8)
+    USART_INFO_DEFINE(8)
+#elif defined(MX_UART8)
+    UART_INFO_DEFINE(8)
 #endif
-#ifdef MX_UART9
-INFO_DEFINE(9)
+#if defined(MX_USART9)
+    USART_INFO_DEFINE(9)
+#elif defined(MX_UART9)
+    UART_INFO_DEFINE(9)
 #endif
-#ifdef MX_UART10
-INFO_DEFINE(10)
+#if defined(MX_USART10)
+    USART_INFO_DEFINE(10)
+#elif defined(MX_UART10)
+    UART_INFO_DEFINE(10)
 #endif
-#ifdef MX_UART11
-INFO_DEFINE(11)
+#if defined(MX_USART11)
+    USART_INFO_DEFINE(11)
+#elif defined(MX_UART11)
+    UART_INFO_DEFINE(11)
 #endif
-#ifdef MX_UART12
-INFO_DEFINE(12)
+#if defined(MX_USART12)
+    USART_INFO_DEFINE(12)
+#elif defined(MX_UART12)
+    UART_INFO_DEFINE(12)
 #endif
-#ifdef MX_UART13
-INFO_DEFINE(13)
+#if defined(MX_USART13)
+    USART_INFO_DEFINE(13)
+#elif defined(MX_UART13)
+    UART_INFO_DEFINE(13)
 #endif
-#ifdef MX_UART14
-INFO_DEFINE(14)
+#if defined(MX_USART14)
+    USART_INFO_DEFINE(14)
+#elif defined(MX_UART14)
+    UART_INFO_DEFINE(14)
 #endif
-#ifdef MX_UART15
-INFO_DEFINE(15)
+#if defined(MX_USART15)
+    USART_INFO_DEFINE(15)
+#elif defined(MX_UART15)
+    UART_INFO_DEFINE(15)
 #endif
 #ifdef MX_UART21
 LP_INFO_DEFINE(21,1)
@@ -459,10 +608,10 @@ static const RO_Info_t * const usart_ro_info_list[] = {
 };
 
 // Local functions prototypes
-static const RO_Info_t         *USART_GetInfo          (const UART_HandleTypeDef * const huart);
+static const RO_Info_t         *USART_GetInfo          (const HAL_UART_HANDLE_TYPE * const huart);
 static ARM_DRIVER_VERSION       USART_GetVersion       (void);
 static ARM_USART_CAPABILITIES   USARTn_GetCapabilities (const RO_Info_t * const ptr_ro_info);
-static int32_t                  USARTn_Initialize      (const RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event);
+static int32_t                  USARTn_Initialize      (RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event);
 static int32_t                  USARTn_Uninitialize    (const RO_Info_t * const ptr_ro_info);
 static int32_t                  USARTn_PowerControl    (const RO_Info_t * const ptr_ro_info, ARM_POWER_STATE state);
 static int32_t                  USARTn_Send            (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num);
@@ -534,12 +683,12 @@ FUNCS_DECLARE(23)
 // Auxiliary functions
 
 /**
-  \fn          RO_Info_t *USART_GetInfo (const UART_HandleTypeDef * const huart)
+  \fn          RO_Info_t *USART_GetInfo (const HAL_UART_HANDLE_TYPE * const huart)
   \brief       Get pointer to RO_Info_t structure corresponding to specified huart.
-  \param[in]   huart    Pointer to UART handle structure (UART_HandleTypeDef)
+  \param[in]   huart    Pointer to UART handle structure (HAL_UART_HANDLE_TYPE)
   \return      pointer to USART RO info structure (RO_Info_t)
 */
-static const RO_Info_t *USART_GetInfo (const UART_HandleTypeDef * const huart) {
+static const RO_Info_t *USART_GetInfo (const HAL_UART_HANDLE_TYPE * const huart) {
   const RO_Info_t *ptr_ro_info;
         uint8_t    i;
 
@@ -584,6 +733,32 @@ static ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t * const pt
 
   // Load capability fields different than 0
   driver_capabilities.asynchronous = 1U;
+
+  #ifdef STM32_HAL_VERSION_2
+  // HAL v2 has a new way of reading the configuration of a UART instance
+  switch (HAL_UART_GetHwFlowCtl(ptr_ro_info->ptr_huart)) {
+    case HAL_UART_HW_CONTROL_RTS:
+      driver_capabilities.flow_control_rts = 1U;
+      driver_capabilities.flow_control_cts = 0U;
+      break;
+
+    case HAL_UART_HW_CONTROL_CTS:
+      driver_capabilities.flow_control_rts = 0U;
+      driver_capabilities.flow_control_cts = 1U;
+      break;
+
+    case HAL_UART_HW_CONTROL_RTS_CTS:
+      driver_capabilities.flow_control_rts = 1U;
+      driver_capabilities.flow_control_cts = 1U;
+      break;
+
+    case HAL_UART_HW_CONTROL_NONE:
+    default:
+      driver_capabilities.flow_control_rts = 0U;
+      driver_capabilities.flow_control_cts = 0U;
+      break;
+  }
+  #else // STM32_HAL_VERSION_2
   switch (ptr_ro_info->ptr_huart->Init.HwFlowCtl) {
     case UART_HWCONTROL_RTS:
       driver_capabilities.flow_control_rts = 1U;
@@ -606,19 +781,20 @@ static ARM_USART_CAPABILITIES USARTn_GetCapabilities (const RO_Info_t * const pt
       driver_capabilities.flow_control_cts = 0U;
       break;
   }
+  #endif // STM32_HAL_VERSION_2
   driver_capabilities.event_tx_complete = 1U;
 
   return driver_capabilities;
 }
 
 /**
-  \fn          int32_t USARTn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event)
+  \fn          int32_t USARTn_Initialize (RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event)
   \brief       Initialize USART Interface.
   \param[in]   ptr_ro_info     Pointer to USART RO info structure (RO_Info_t)
   \param[in]   cb_event        Pointer to \ref ARM_USART_SignalEvent
   \return      \ref execution_status
 */
-static int32_t USARTn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event) {
+static int32_t USARTn_Initialize (RO_Info_t * const ptr_ro_info, ARM_USART_SignalEvent_t cb_event) {
 
   // Clear run-time info
   memset((void *)ptr_ro_info->ptr_rw_info, 0, sizeof(RW_Info_t));
@@ -628,6 +804,10 @@ static int32_t USARTn_Initialize (const RO_Info_t * const ptr_ro_info, ARM_USART
 
   // Set driver status to initialized
   ptr_ro_info->ptr_rw_info->drv_status.initialized = 1U;
+
+  #ifdef STM32_HAL_VERSION_2
+  ptr_ro_info->ptr_huart = ptr_ro_info->hal_uart_gethandle();
+  #endif // STM32_HAL_VERSION_2
 
   return ARM_DRIVER_OK;
 }
@@ -672,7 +852,7 @@ static int32_t USARTn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POW
       ptr_ro_info->ptr_rw_info->rx_parity_error  = 0U;
 
       // Initialize pins, clocks, interrupts and peripheral
-      if (HAL_UART_Init(ptr_ro_info->ptr_huart) != HAL_OK) {
+      if (HAL_UART_INIT(ptr_ro_info) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
 
@@ -722,24 +902,46 @@ static int32_t USARTn_PowerControl (const RO_Info_t * const ptr_ro_info, ARM_POW
   \return      \ref execution_status
 */
 static int32_t USARTn_Send (const RO_Info_t * const ptr_ro_info, const void *data, uint32_t num) {
+
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t send_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef send_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
   int32_t           ret;
 
-  if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
+  #ifdef STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) || (num > (uint32_t) MAX_NUM_DATA)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
     return ARM_DRIVER_ERROR;
   }
 
   // Start the send
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_huart->hdma_tx != NULL) { // If DMA is used for Tx
+    send_status = HAL_UART_Transmit_DMA(ptr_ro_info->ptr_huart, data, num);
+  } else {                                      // If DMA is not configured (IRQ mode)
+    send_status = HAL_UART_Transmit_IT (ptr_ro_info->ptr_huart, data, num);
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_huart->hdmatx != NULL) { // If DMA is used for Tx
     send_status = HAL_UART_Transmit_DMA(ptr_ro_info->ptr_huart, (const uint8_t *)data, (uint16_t)num);
   } else {                                      // If DMA is not configured (IRQ mode)
     send_status = HAL_UART_Transmit_IT (ptr_ro_info->ptr_huart, (const uint8_t *)data, (uint16_t)num);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (send_status) {
@@ -754,6 +956,12 @@ static int32_t USARTn_Send (const RO_Info_t * const ptr_ro_info, const void *dat
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -773,13 +981,28 @@ static int32_t USARTn_Send (const RO_Info_t * const ptr_ro_info, const void *dat
   \return      \ref execution_status
 */
 static int32_t USARTn_Receive (const RO_Info_t * const ptr_ro_info, void *data, uint32_t num) {
+
+  #ifdef STM32_HAL_VERSION_2
+  hal_status_t receive_status;
+  #define MAX_NUM_DATA UINT32_MAX
+  #else // STM32_HAL_VERSION_2
   HAL_StatusTypeDef receive_status;
+  #define MAX_NUM_DATA UINT16_MAX
+  #endif // STM32_HAL_VERSION_2
+
   int32_t           ret;
 
-  if ((data == NULL) || (num == 0U) || (num > (uint32_t)UINT16_MAX)) {
+  #ifdef STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U)) {
     // If any parameter is invalid
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+  #else // STM32_HAL_VERSION_2
+  if ((data == NULL) || (num == 0U) || (num > (uint32_t) MAX_NUM_DATA)) {
+    // If any parameter is invalid
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+  #endif // STM32_HAL_VERSION_2
 
   if (ptr_ro_info->ptr_rw_info->drv_status.configured == 0U) {
     return ARM_DRIVER_ERROR;
@@ -791,11 +1014,19 @@ static int32_t USARTn_Receive (const RO_Info_t * const ptr_ro_info, void *data, 
   ptr_ro_info->ptr_rw_info->rx_parity_error  = 0U;
 
   // Start the reception
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_huart->hdma_rx != NULL) { // If DMA is used for Rx
+    receive_status = HAL_UART_Receive_DMA(ptr_ro_info->ptr_huart, data, num);
+  } else {                                      // If DMA is not configured (IRQ mode)
+    receive_status = HAL_UART_Receive_IT (ptr_ro_info->ptr_huart, data, num);
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_huart->hdmarx != NULL) { // If DMA is used for Rx
     receive_status = HAL_UART_Receive_DMA(ptr_ro_info->ptr_huart, (uint8_t *)data, (uint16_t)num);
   } else {                                      // If DMA is not configured (IRQ mode)
     receive_status = HAL_UART_Receive_IT (ptr_ro_info->ptr_huart, (uint8_t *)data, (uint16_t)num);
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Convert HAL status code to CMSIS-Driver status code
   switch (receive_status) {
@@ -810,6 +1041,12 @@ static int32_t USARTn_Receive (const RO_Info_t * const ptr_ro_info, void *data, 
     case HAL_OK:
       ret = ARM_DRIVER_OK;
       break;
+
+    #ifdef STM32_HAL_VERSION_2
+    case HAL_INVALID_PARAM:
+      ret = ARM_DRIVER_ERROR_PARAMETER;
+      break;
+    #endif // STM32_HAL_VERSION_2
 
     case HAL_TIMEOUT:
     default:
@@ -857,6 +1094,15 @@ static uint32_t USARTn_GetTxCount (const RO_Info_t * const ptr_ro_info) {
     return 0U;
   }
 
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_huart->hdma_tx != NULL) { // If DMA is used for Tx
+    cnt_xferred = LL_DMA_GetBlkDataLength(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_tx));
+  } else {
+    cnt_xferred = ptr_ro_info->ptr_huart->tx_xfer_count;
+  }
+
+  cnt = (uint32_t)ptr_ro_info->ptr_huart->tx_xfer_size - cnt_xferred;
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_huart->hdmatx != NULL) { // If DMA is used for Tx
     cnt_xferred = __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_huart->hdmatx);
   } else {
@@ -864,6 +1110,7 @@ static uint32_t USARTn_GetTxCount (const RO_Info_t * const ptr_ro_info) {
   }
 
   cnt = (uint32_t)ptr_ro_info->ptr_huart->TxXferSize - cnt_xferred;
+  #endif // STM32_HAL_VERSION_2
 
   return cnt;
 }
@@ -882,6 +1129,15 @@ static uint32_t USARTn_GetRxCount (const RO_Info_t * const ptr_ro_info) {
     return 0U;
   }
 
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_huart->hdma_rx != NULL) { // If DMA is used for Rx
+    cnt_xferred = LL_DMA_GetBlkDataLength(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_rx));
+  } else {
+    cnt_xferred = ptr_ro_info->ptr_huart->rx_xfer_count;
+  }
+
+  cnt = (uint32_t)ptr_ro_info->ptr_huart->rx_xfer_size - cnt_xferred;
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_huart->hdmarx != NULL) { // If DMA is used for Rx
     cnt_xferred = __HAL_DMA_GET_COUNTER(ptr_ro_info->ptr_huart->hdmarx);
   } else {
@@ -889,6 +1145,7 @@ static uint32_t USARTn_GetRxCount (const RO_Info_t * const ptr_ro_info) {
   }
 
   cnt = (uint32_t)ptr_ro_info->ptr_huart->RxXferSize - cnt_xferred;
+  #endif // STM32_HAL_VERSION_2
 
   return cnt;
 }
@@ -915,10 +1172,17 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
     if (HAL_UART_AbortTransmit(ptr_ro_info->ptr_huart) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
+    #ifdef STM32_HAL_VERSION_2
+    if (ptr_ro_info->ptr_huart->hdma_tx == NULL) {
+      // If DMA is not used for Tx, clear tx_xfer_size for GetTxCount to work properly
+      ptr_ro_info->ptr_huart->tx_xfer_size = 0U;
+    }
+    #else // STM32_HAL_VERSION_2
     if (ptr_ro_info->ptr_huart->hdmatx == NULL) {
       // If DMA is not used for Tx, clear TxXferSize for GetTxCount to work properly
       ptr_ro_info->ptr_huart->TxXferSize = 0U;
     }
+    #endif // STM32_HAL_VERSION_2
     return ARM_DRIVER_OK;
   }
 
@@ -927,10 +1191,17 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
     if (HAL_UART_AbortReceive(ptr_ro_info->ptr_huart) != HAL_OK) {
       return ARM_DRIVER_ERROR;
     }
+    #ifdef STM32_HAL_VERSION_2
+    if (ptr_ro_info->ptr_huart->hdma_rx == NULL) {
+      // If DMA is not used for Rx, clear rx_xfer_size for GetRxCount to work properly
+      ptr_ro_info->ptr_huart->rx_xfer_size = 0U;
+    }
+    #else // STM32_HAL_VERSION_2
     if (ptr_ro_info->ptr_huart->hdmarx == NULL) {
       // If DMA is not used for Rx, clear RxXferSize for GetRxCount to work properly
       ptr_ro_info->ptr_huart->RxXferSize = 0U;
     }
+    #endif // STM32_HAL_VERSION_2
     return ARM_DRIVER_OK;
   }
 
@@ -957,12 +1228,12 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
     case ARM_USART_CONTROL_TX:                  // Transmitter; arg: 0=disabled, 1=enabled
       if (arg != 0U) {
         // Enable transmitter
-        ptr_ro_info->ptr_huart->Init.Mode |=  UART_MODE_TX;
+        LL_USART_EnableDirectionTx(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart));
       } else {
         // Disable transmitter
-        ptr_ro_info->ptr_huart->Init.Mode &= ~UART_MODE_TX;
+        LL_USART_DisableDirectionTx(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart));
       }
-      if (HAL_UART_Init(ptr_ro_info->ptr_huart) != HAL_OK) {
+      if (HAL_UART_INIT(ptr_ro_info) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
       return ARM_DRIVER_OK;
@@ -970,12 +1241,12 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
     case ARM_USART_CONTROL_RX:                  // Receiver; arg: 0=disabled, 1=enabled
       if (arg != 0U) {
         // Enable receiver
-        ptr_ro_info->ptr_huart->Init.Mode |=  UART_MODE_RX;
+        LL_USART_EnableDirectionRx(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart));
       } else {
         // Disable receiver
-        ptr_ro_info->ptr_huart->Init.Mode &= ~UART_MODE_RX;
+        LL_USART_DisableDirectionRx(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart));
       }
-      if (HAL_UART_Init(ptr_ro_info->ptr_huart) != HAL_OK) {
+      if (HAL_UART_INIT(ptr_ro_info) != HAL_OK) {
         return ARM_DRIVER_ERROR;
       }
       return ARM_DRIVER_OK;
@@ -1004,10 +1275,10 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
   data_bits = 0U;
   switch (control & ARM_USART_DATA_BITS_Msk) {  // --- Mode Parameters: Data Bits
     case ARM_USART_DATA_BITS_6:                 // Data bits: 6
-#ifdef UART_WORDLENGTH_7B
+#ifdef WORDLENGTH_7B
       if (parity_bits == 1U) {
         data_bits = 6;
-        ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_7B;
+        LL_USART_SetDataWidth(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), WORDLENGTH_7B);
       } else {
         return ARM_USART_ERROR_DATA_BITS;
       }
@@ -1019,11 +1290,11 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
     case ARM_USART_DATA_BITS_7:                 // Data bits: 7
       if (parity_bits == 1U) {
         data_bits = 7;
-        ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_8B;
+        LL_USART_SetDataWidth(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), WORDLENGTH_8B);
       } else {
-#ifdef UART_WORDLENGTH_7B
+#ifdef WORDLENGTH_7B
         data_bits = 7;
-        ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_7B;
+        LL_USART_SetDataWidth(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), WORDLENGTH_7B);
 #else
         return ARM_USART_ERROR_DATA_BITS;
 #endif
@@ -1033,16 +1304,16 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
     case ARM_USART_DATA_BITS_8:                 // Data bits: 8
       data_bits = 8;
       if (parity_bits == 1U) {
-        ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_9B;
+        LL_USART_SetDataWidth(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), WORDLENGTH_9B);
       } else {
-        ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_8B;
+        LL_USART_SetDataWidth(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), WORDLENGTH_8B);
       }
       break;
 
     case ARM_USART_DATA_BITS_9:                 // Data bits: 9
       if (parity_bits == 0U) {
         data_bits = 9;
-        ptr_ro_info->ptr_huart->Init.WordLength = UART_WORDLENGTH_9B;
+        LL_USART_SetDataWidth(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), WORDLENGTH_9B);
       } else {
         return ARM_USART_ERROR_DATA_BITS;
       }
@@ -1054,15 +1325,15 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
 
   switch (control & ARM_USART_PARITY_Msk) {     // --- Mode Parameters: Parity
     case ARM_USART_PARITY_NONE:                 // Parity: none
-      ptr_ro_info->ptr_huart->Init.Parity = UART_PARITY_NONE;
+      LL_USART_SetParity(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_PARITY_NONE);
       break;
 
     case ARM_USART_PARITY_EVEN:                 // Parity: even
-      ptr_ro_info->ptr_huart->Init.Parity = UART_PARITY_EVEN;
+      LL_USART_SetParity(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_PARITY_EVEN);
       break;
 
     case ARM_USART_PARITY_ODD:                  // Parity: odd
-      ptr_ro_info->ptr_huart->Init.Parity = UART_PARITY_ODD;
+      LL_USART_SetParity(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_PARITY_ODD);
       break;
 
     default:
@@ -1071,22 +1342,22 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
 
   switch (control & ARM_USART_STOP_BITS_Msk) {  // --- Mode Parameters: Stop Bits
     case ARM_USART_STOP_BITS_1:                 // Stop Bits: 1
-      ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_1;
+      LL_USART_SetStopBitsLength(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), STOPBITS_1);
       break;
 
     case ARM_USART_STOP_BITS_2:                 // Stop Bits: 2
-      ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_2;
+      LL_USART_SetStopBitsLength(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), STOPBITS_2);
       break;
 
-#ifdef UART_STOPBITS_1_5
+#ifdef STOPBITS_1_5
     case ARM_USART_STOP_BITS_1_5:               // Stop Bits: 1.5
-      ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_1_5;
+      LL_USART_SetStopBitsLength(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), STOPBITS_1_5);
       break;
 #endif
 
-#ifdef UART_STOPBITS_0_5
+#ifdef STOPBITS_0_5
     case ARM_USART_STOP_BITS_0_5:               // Stop Bits: 0.5
-      ptr_ro_info->ptr_huart->Init.StopBits = UART_STOPBITS_0_5;
+      LL_USART_SetStopBitsLength(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), STOPBITS_0_5);
       break;
 #endif
 
@@ -1096,19 +1367,19 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
 
   switch (control & ARM_USART_FLOW_CONTROL_Msk) { // --- Mode Parameters: Flow Control
     case ARM_USART_FLOW_CONTROL_NONE:             // Flow Control: none
-      ptr_ro_info->ptr_huart->Init.HwFlowCtl = UART_HWCONTROL_NONE;
+      LL_USART_SetHWFlowCtrl(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_HWCONTROL_NONE);
       break;
 
     case ARM_USART_FLOW_CONTROL_RTS:              // Flow Control: RTS
-      ptr_ro_info->ptr_huart->Init.HwFlowCtl = UART_HWCONTROL_RTS;
+      LL_USART_SetHWFlowCtrl(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_HWCONTROL_RTS);
       break;
 
     case ARM_USART_FLOW_CONTROL_CTS:              // Flow Control: CTS
-      ptr_ro_info->ptr_huart->Init.HwFlowCtl = UART_HWCONTROL_CTS;
+      LL_USART_SetHWFlowCtrl(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_HWCONTROL_CTS);
       break;
 
     case ARM_USART_FLOW_CONTROL_RTS_CTS:          // Flow Control: RTS/CTS
-      ptr_ro_info->ptr_huart->Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+      LL_USART_SetHWFlowCtrl(HAL_UART_INSTANCE(ptr_ro_info->ptr_huart), LL_USART_HWCONTROL_RTS_CTS);
       break;
 
     default:
@@ -1116,8 +1387,28 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
   }
 
   // Configure baudrate
+  #ifdef STM32_HAL_VERSION_2
+  HAL_UART_SetBaudRate(ptr_ro_info->ptr_huart, arg);
+  #else // STM32_HAL_VERSION_2
   ptr_ro_info->ptr_huart->Init.BaudRate = arg;
+  #endif // STM32_HAL_VERSION_2
 
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_huart->hdma_rx != NULL) { // If DMA is used for Rx
+    if (data_bits == 9U) {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_rx), DMA_SRC_WIDTH_HALFWORD);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_rx), DMA_DEST_WIDTH_HALFWORD);
+    } else {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_rx), DMA_SRC_WIDTH_BYTE);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_rx), DMA_DEST_WIDTH_BYTE);
+    }
+
+    // Reconfigure DMA for Rx
+    if (HAL_DMA_Init(ptr_ro_info->ptr_huart->hdma_rx, ptr_ro_info->ptr_huart->hdma_rx->instance) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_huart->hdmarx != NULL) { // If DMA is used for Rx
     if (data_bits == 9U) {
 #if defined(DMA_MDATAALIGN_HALFWORD)
@@ -1142,8 +1433,25 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
       return ARM_DRIVER_ERROR;
     }
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Reconfigure DMA
+  #ifdef STM32_HAL_VERSION_2
+  if (ptr_ro_info->ptr_huart->hdma_tx != NULL) { // If DMA is used for Tx
+    if (data_bits == 9U) {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_tx), DMA_SRC_WIDTH_HALFWORD);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_tx), DMA_DEST_WIDTH_HALFWORD);
+    } else {
+      LL_DMA_SetSrcDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_tx), DMA_SRC_WIDTH_BYTE);
+      LL_DMA_SetDestDataWidth(HAL_DMA_CHANNEL_INSTANCE(ptr_ro_info->ptr_huart->hdma_tx), DMA_DEST_WIDTH_BYTE);
+    }
+
+    // Reconfigure DMA for Tx
+    if (HAL_DMA_Init(ptr_ro_info->ptr_huart->hdma_tx, ptr_ro_info->ptr_huart->hdma_tx->instance) != HAL_OK) {
+      return ARM_DRIVER_ERROR;
+    }
+  }
+  #else // STM32_HAL_VERSION_2
   if (ptr_ro_info->ptr_huart->hdmatx != NULL) { // If DMA is used for Tx
     if (data_bits == 9U) {
 #if defined(DMA_MDATAALIGN_HALFWORD)
@@ -1168,9 +1476,10 @@ static int32_t USARTn_Control (const RO_Info_t * const ptr_ro_info, uint32_t con
       return ARM_DRIVER_ERROR;
     }
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Reconfigure USART
-  if (HAL_UART_Init(ptr_ro_info->ptr_huart) != HAL_OK) {
+  if (HAL_UART_INIT(ptr_ro_info) != HAL_OK) {
     return ARM_DRIVER_ERROR;
   }
 
@@ -1192,6 +1501,31 @@ static ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t * const ptr_ro_info) {
   // Clear status structure
   memset(&status, 0, sizeof(ARM_USART_STATUS));
 
+  #ifdef STM32_HAL_VERSION_2
+  // Process HAL state
+  switch (HAL_UART_GetTxState(ptr_ro_info->ptr_huart)) {
+    case HAL_UART_TX_STATE_ACTIVE:     // Data Transmission process is ongoing
+      status.tx_busy = 1U;
+      break;
+    case HAL_UART_TX_STATE_RESET:          // Data Transmission process is in reset
+    case HAL_UART_TX_STATE_IDLE:          // Data Transmission process is in idle
+    case HAL_UART_TX_STATE_ABORT:        // Data Transmission process is aborting
+    default:
+      // Not busy related
+      break;
+  }
+  switch (HAL_UART_GetRxState(ptr_ro_info->ptr_huart)) {
+    case HAL_UART_RX_STATE_ACTIVE:     // Data Reception process is ongoing
+      status.rx_busy = 1U;
+      break;
+    case HAL_UART_RX_STATE_RESET:          // Data Reception process is in reset
+    case HAL_UART_RX_STATE_IDLE:          // Data Reception process is in idle
+    case HAL_UART_RX_STATE_ABORT:        // Data Reception process is aborting
+    default:
+      // Not busy related
+      break;
+  }
+  #else // STM32_HAL_VERSION_2
   // Process HAL state
   switch (HAL_UART_GetState(ptr_ro_info->ptr_huart)) {
     case HAL_UART_STATE_BUSY:           // An internal process is ongoing
@@ -1216,6 +1550,7 @@ static ARM_USART_STATUS USARTn_GetStatus (const RO_Info_t * const ptr_ro_info) {
       // Not busy related
       break;
   }
+  #endif // STM32_HAL_VERSION_2
 
   // Process additionally handled communication information
   if (ptr_ro_info->ptr_rw_info->rx_overflow != 0U) {
@@ -1261,11 +1596,11 @@ static ARM_USART_MODEM_STATUS USART_GetModemStatus (void) {
 // HAL callback functions ******************************************************
 
 /**
-  \fn          void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart)
+  \fn          void HAL_UART_TxCpltCallback (HAL_UART_HANDLE_TYPE *huart)
   \brief       Tx Transfer completed callback.
   \param[in]   huart    UART handle
   */
-void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart) {
+void HAL_UART_TxCpltCallback (HAL_UART_HANDLE_TYPE *huart) {
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = USART_GetInfo(huart);
@@ -1284,11 +1619,19 @@ void HAL_UART_TxCpltCallback (UART_HandleTypeDef *huart) {
 }
 
 /**
-  \fn          void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart)
+  \fn          void HAL_UART_RxCpltCallback (HAL_UART_HANDLE_TYPE *huart)
   \brief       Rx Transfer completed callback.
   \param[in]   huart    UART handle
   */
-void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart) {
+#ifdef STM32_HAL_VERSION_2
+void HAL_UART_RxCpltCallback(HAL_UART_HANDLE_TYPE *huart, uint32_t size_byte, hal_uart_rx_event_types_t rx_event)
+{
+  (void) size_byte;
+  (void) rx_event;
+#else // STM32_HAL_VERSION_2
+void HAL_UART_RxCpltCallback (HAL_UART_HANDLE_TYPE *huart)
+{
+#endif // STM32_HAL_VERSION_2
   const RO_Info_t *ptr_ro_info;
 
   ptr_ro_info = USART_GetInfo(huart);
@@ -1307,14 +1650,13 @@ void HAL_UART_RxCpltCallback (UART_HandleTypeDef *huart) {
 }
 
 /**
-  \fn          void HAL_UART_ErrorCallback (UART_HandleTypeDef *huart)
+  \fn          void HAL_UART_ErrorCallback (HAL_UART_HANDLE_TYPE *huart)
   \brief       UART error callback.
   \param[in]   huart    UART handle
   */
-void HAL_UART_ErrorCallback (UART_HandleTypeDef *huart) {
+void HAL_UART_ErrorCallback (HAL_UART_HANDLE_TYPE *huart) {
   const RO_Info_t *ptr_ro_info;
-        uint32_t   error;
-        uint32_t   event;
+
 
   ptr_ro_info = USART_GetInfo(huart);
 
@@ -1325,8 +1667,33 @@ void HAL_UART_ErrorCallback (UART_HandleTypeDef *huart) {
     return;
   }
 
-  error = HAL_UART_GetError(huart);
-  event = 0U;
+  #ifdef STM32_HAL_VERSION_2
+  #if defined (USE_HAL_UART_GET_LAST_ERRORS) && (USE_HAL_UART_GET_LAST_ERRORS == 1)
+  uint32_t error = HAL_UART_GetLastErrorCodes(huart);
+  uint32_t event = 0U;
+
+  if ((error & HAL_USART_RECEIVE_ERROR_PE) != 0U) {
+    event |= ARM_USART_EVENT_RX_PARITY_ERROR;
+    ptr_ro_info->ptr_rw_info->rx_parity_error = 1U;
+  }
+
+  if ((error & HAL_USART_RECEIVE_ERROR_FE) != 0U) {
+    event |= ARM_USART_EVENT_RX_FRAMING_ERROR;
+    ptr_ro_info->ptr_rw_info->rx_framing_error = 1U;
+  }
+
+  if ((error & HAL_USART_RECEIVE_ERROR_ORE) != 0U) {
+    event |= ARM_USART_EVENT_RX_OVERFLOW;
+    ptr_ro_info->ptr_rw_info->rx_overflow = 1U;
+  }
+
+  if ((ptr_ro_info->ptr_rw_info->cb_event != NULL) && (event != 0U)) {
+    ptr_ro_info->ptr_rw_info->cb_event(event);
+  }
+  #endif /* USE_HAL_UART_GET_LAST_ERRORS */
+  #else // STM32_HAL_VERSION_2
+  uint32_t error = HAL_UART_GetError(huart);
+  uint32_t event = 0U;
 
   if ((error & HAL_UART_ERROR_PE) != 0U) {
     event |= ARM_USART_EVENT_RX_PARITY_ERROR;
@@ -1346,6 +1713,7 @@ void HAL_UART_ErrorCallback (UART_HandleTypeDef *huart) {
   if ((ptr_ro_info->ptr_rw_info->cb_event != NULL) && (event != 0U)) {
     ptr_ro_info->ptr_rw_info->cb_event(event);
   }
+  #endif // STM32_HAL_VERSION_2
 }
 
 // Local driver functions definitions (for instances)
