@@ -640,20 +640,23 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin) {
   uint32_t pin;
 
   pin_pos = __CLZ(__RBIT(GPIO_Pin));
-  pin     = gpio0_rw_info.cb_event_pin[pin_pos];
 
-  switch (gpio0_rw_info.pin_config[pin].trigger) {
-    case ARM_GPIO_TRIGGER_RISING_EDGE:
-      gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_RISING_EDGE);
-      break;
-    case ARM_GPIO_TRIGGER_FALLING_EDGE:
-      gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_FALLING_EDGE);
-      break;
-    case ARM_GPIO_TRIGGER_EITHER_EDGE:
-      gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_EITHER_EDGE);
-      break;
-    default:
-      break;
+  if (gpio0_rw_info.cb_event[pin_pos] != NULL) {
+    pin = gpio0_rw_info.cb_event_pin[pin_pos];
+
+    switch (gpio0_rw_info.pin_config[pin].trigger) {
+      case ARM_GPIO_TRIGGER_RISING_EDGE:
+        gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_RISING_EDGE);
+        break;
+      case ARM_GPIO_TRIGGER_FALLING_EDGE:
+        gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_FALLING_EDGE);
+        break;
+      case ARM_GPIO_TRIGGER_EITHER_EDGE:
+        gpio0_rw_info.cb_event[pin_pos](gpio0_rw_info.cb_event_pin[pin_pos], ARM_GPIO_EVENT_EITHER_EDGE);
+        break;
+      default:
+        break;
+    }
   }
 }
 
