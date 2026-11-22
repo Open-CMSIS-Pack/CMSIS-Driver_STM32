@@ -719,6 +719,13 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
     }
   }
 
+  if ((eth_mac0_rw_info.tx.length > EMAC_BUF_SIZE) ||
+      (len > (EMAC_BUF_SIZE - eth_mac0_rw_info.tx.length))) {
+    // Discard the partially assembled frame if the buffer capacity is exceeded
+    eth_mac0_rw_info.tx.length = 0U;
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+
   // Copy data fragments to ETH-DMA buffer
   memcpy(eth_mac0_tx_buf[eth_mac0_rw_info.tx.write_idx].data + eth_mac0_rw_info.tx.length, frame, len);
   eth_mac0_rw_info.tx.length += len;
@@ -739,6 +746,9 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
   eth_mac0_ro_info.ptr_TxConfig->Length   = tx_buf.len;
 
   if (HAL_ETH_Transmit_IT(eth_mac0_ro_info.ptr_heth, eth_mac0_ro_info.ptr_TxConfig) != HAL_OK) {
+    // Failed submission leaves the buffer available for a new frame
+    eth_mac0_rw_info.tx.owner[eth_mac0_rw_info.tx.write_idx] = TX_BUF_OWNER_APP;
+    eth_mac0_rw_info.tx.length = 0U;
     return ARM_DRIVER_ERROR;
   }
 
