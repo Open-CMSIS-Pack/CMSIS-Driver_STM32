@@ -403,7 +403,7 @@ static int32_t GPIO_Setup (ARM_GPIO_Pin_t pin, ARM_GPIO_SignalEvent_t cb_event) 
   pin_mask = 1U << pin_pos;                     // Pin mask on port
 
   if ((cb_event != NULL)                           &&
-      (gpio0_rw_info.cb_event_pin[pin_pos] != 0U)  &&
+      (gpio0_rw_info.cb_event[pin_pos] != NULL)    &&
       (gpio0_rw_info.cb_event_pin[pin_pos] != pin)) {
     // If callback cannot be registered because it is already allocated for another pin on the same position
     return ARM_DRIVER_ERROR;
@@ -430,8 +430,11 @@ static int32_t GPIO_Setup (ARM_GPIO_Pin_t pin, ARM_GPIO_SignalEvent_t cb_event) 
       gpio0_rw_info.cb_event_pin[pin_pos] = pin & 0xFFU;
       pin_config.cb_registered = 1U;
     } else {                                    // If callback is to be deregistered
-      gpio0_rw_info.cb_event    [pin_pos] = NULL;
-      gpio0_rw_info.cb_event_pin[pin_pos] = 0U;
+      // Only deregister the callback owned by this pin
+      if (gpio0_rw_info.cb_event_pin[pin_pos] == pin) {
+        gpio0_rw_info.cb_event    [pin_pos] = NULL;
+        gpio0_rw_info.cb_event_pin[pin_pos] = 0U;
+      }
       pin_config.cb_registered = 0U;
     }
 
