@@ -333,12 +333,12 @@ static int32_t GPIO_PinConfigure (ARM_GPIO_Pin_t pin, PinConfig_t pin_config) {
         break;
     }
   } else {                                      // If Output mode
-    switch (pin_config.pull_resistor) {
+    switch (pin_config.output_mode) {
       case ARM_GPIO_PUSH_PULL:                  // Output mode with push-pull mode
         mode = GPIO_MODE_OUTPUT_PP;
         break;
       case ARM_GPIO_OPEN_DRAIN:                 // Output mode with open-drain mode
-        mode = GPIO_MODE_IT_RISING;
+        mode = GPIO_MODE_OUTPUT_OD;
         break;
     }
   }
