@@ -510,43 +510,74 @@ static const RO_Info_t *USBD_GetInfo (const PCD_HandleTypeDef * const hpcd) {
 static int32_t USBDn_EndpointConfigureBuffer (const RO_Info_t * const ptr_ro_info, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_max_packet_size) {
 
 #if (USBD_VARIANT_PMA == 0)             // If using HAL_PCDEx_SetTxFiFo and HAL_PCDEx_SetRxFiFo functions
+  const EP_Info_t *ptr_ep;
+  uint32_t total_words;
+  uint16_t rx_max_packet_size;
   uint16_t rx_fifo_size;
-  uint16_t max_packet_size;
-  uint8_t  ep_num;
+  uint16_t tx_fifo_size;
+  uint8_t  ep_num, req_num, req_dir;
 
   (void)ep_type;
 
-  if (EP_DIR(ep_addr) != 0U) {          // IN Endpoint
-    // IN endpoint
-    if (HAL_PCDEx_SetTxFiFo(ptr_ro_info->ptr_hpcd, EP_NUM(ep_addr), (ep_max_packet_size + 3U) / 4U) != HAL_OK) {
-      return ARM_DRIVER_ERROR_PARAMETER;
-    }
-  } else {                              // OUT Endpoint
-    max_packet_size = ptr_ro_info->ptr_rw_info->ep_info[0U][EP_OUT_INDEX].max_packet_size;
+  req_num = EP_NUM(ep_addr);
+  req_dir = EP_DIR(ep_addr);            // 0 = OUT, 1 = IN
 
-    // Find largest max packet size
-    for (ep_num = 1U; ep_num < USBD_MAX_ENDPOINT_NUM; ep_num++) {
-      if (ep_num != ep_addr) {
-        if (max_packet_size < ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_OUT_INDEX].max_packet_size) {
-          max_packet_size = ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_OUT_INDEX].max_packet_size;
-        }
-      } else {
-        if (max_packet_size < ep_max_packet_size) {
-          max_packet_size = ep_max_packet_size;
-        }
-      }
-    }
+  // NOTE: Endpoint information of the requested endpoint is not yet stored in ep_info
+  //       (USBDn_EndpointConfigure stores it after this function returns), so use the
+  //       function parameters for the requested endpoint and ep_info for all others.
 
-    // Calculate Rx FIFO size:
-    // = (5 * number of control endpoints + 8) + ((largest USB packet used / 4) + 1 for status information) +
-    //   (2 * number of OUT endpoints) + 1 for Global NAK
-    // = (5 * 1 * 8) + ((max_packet_size + 3) /4) + 1 + (2 * USBD_MAX_ENDPOINT_NUM) + 1
-    // = 15 + ((max_packet_size + 3) /4) + (2 * USBD_MAX_ENDPOINT_NUM)
-    rx_fifo_size = 15U + ((ep_max_packet_size + 3U) / 4U) + (2U * USBD_MAX_ENDPOINT_NUM);
-    if (HAL_PCDEx_SetRxFiFo(ptr_ro_info->ptr_hpcd, rx_fifo_size) != HAL_OK) {
+  // 1. Rx FIFO: shared by all OUT endpoints -> size it for the largest configured OUT max packet size
+  rx_max_packet_size = 0U;
+  for (ep_num = 0U; ep_num < ptr_ro_info->ptr_hpcd->Init.dev_endpoints; ep_num++) {
+    ptr_ep = &ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_OUT_INDEX];
+    if ((req_dir == 0U) && (ep_num == req_num)) {
+      if (rx_max_packet_size < ep_max_packet_size)      { rx_max_packet_size = ep_max_packet_size;      }
+    } else if (ptr_ep->configured != 0U) {
+      if (rx_max_packet_size < ptr_ep->max_packet_size) { rx_max_packet_size = ptr_ep->max_packet_size; }
+    }
+  }
+
+  // Calculate Rx FIFO size:
+  // = (5 * number of control endpoints + 8) + ((largest USB packet used / 4) + 1 for status information) +
+  //   (2 * number of OUT endpoints) + 1 for Global NAK
+  rx_fifo_size = 15U + ((rx_max_packet_size + 3U) / 4U) + (2U * USBD_MAX_ENDPOINT_NUM);
+  total_words  = rx_fifo_size;
+
+  if (HAL_PCDEx_SetRxFiFo(ptr_ro_info->ptr_hpcd, rx_fifo_size) != HAL_OK) {
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+
+  // 2. Tx FIFOs: re-place ALL IN endpoints in ascending order.
+  //    HAL_PCDEx_SetTxFiFo(n) derives the offset from GRXFSIZ and the sizes of Tx FIFOs 0..n-1,
+  //    therefore every FIFO has to be (re)written whenever the Rx FIFO or a lower Tx FIFO changes.
+  for (ep_num = 0U; ep_num < ptr_ro_info->ptr_hpcd->Init.dev_endpoints; ep_num++) {
+    ptr_ep = &ptr_ro_info->ptr_rw_info->ep_info[ep_num][EP_IN_INDEX];
+    if ((req_dir != 0U) && (ep_num == req_num)) {
+      tx_fifo_size = (ep_max_packet_size + 3U) / 4U;
+    } else if (ptr_ep->configured != 0U) {
+      tx_fifo_size = (ptr_ep->max_packet_size + 3U) / 4U;
+    } else {
+      tx_fifo_size = 0U;                // unused IN endpoint
+    }
+    if (tx_fifo_size < 16U) {
+      tx_fifo_size = 16U;               // minimum Tx FIFO depth required by the OTG core
+    }
+    total_words += tx_fifo_size;
+
+    if (HAL_PCDEx_SetTxFiFo(ptr_ro_info->ptr_hpcd, ep_num, tx_fifo_size) != HAL_OK) {
       return ARM_DRIVER_ERROR_PARAMETER;
     }
   }
+
+  // 3. Sanity check against the FIFO RAM of the peripheral (USB_OTG_FIFO_SIZE is in bytes)
+  if (total_words > (USB_OTG_FIFO_SIZE / 4U)) {
+    return ARM_DRIVER_ERROR_PARAMETER;
+  }
+
+  // 4. FIFO layout changed -> discard stale contents
+  (void)USB_FlushTxFifo(ptr_ro_info->ptr_hpcd->Instance, 0x10U);   // all Tx FIFOs
+  (void)USB_FlushRxFifo(ptr_ro_info->ptr_hpcd->Instance);
+  
 #else                                   // If using HAL_PCDEx_PMAConfig function
   uint32_t pcd_addr;
   uint16_t max_packet_size;
