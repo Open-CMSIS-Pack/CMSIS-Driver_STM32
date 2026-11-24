@@ -763,7 +763,7 @@ static int32_t PowerControl (ARM_POWER_STATE state, MCI_RESOURCES *mci) {
       }
 
       /* Set maximum clock divider */
-      MCI_Set_ClockDivider(mci, 0x3FFU);
+      MCI_Set_ClockDivider(mci, MCI_MAX_CLOCK_DIVIDER);
 
       /* Enable clock to the card */
       MCI_Enable_ClockOutput(mci);
@@ -1055,22 +1055,26 @@ static int32_t Control (uint32_t control, uint32_t arg, MCI_RESOURCES *mci) {
     case ARM_MCI_BUS_SPEED:
       if (arg == 0U) {
         /* Invalid argument, bus speed not configured */
-        bps = 0U;
+        return 0;
       }
-      else {
-        /* Determine clock divider and set bus speed */
-        clkdiv = ((mci->info->ker_clk - 1U) / arg) + 1U;
-        clkdiv = clkdiv & 0x3FFU;
-
-        /* Set new clock divider */
-        MCI_Set_ClockDivider(mci, clkdiv);
-
-        /* Calculate actual clock (in bps) */
-        bps = mci->info->ker_clk / MCI_Get_ClockDivider(mci);
-
-        /* Bus speed configured */
-        mci->info->flags |= MCI_SETUP;
+      if (mci->info->ker_clk == 0U) {
+        return ARM_DRIVER_ERROR;
       }
+
+      /* Round up so the configured clock does not exceed the request */
+      clkdiv = ((mci->info->ker_clk - 1U) / arg) + 1U;
+      if (clkdiv > MCI_MAX_CLOCK_DIVIDER) {
+        return ARM_DRIVER_ERROR_UNSUPPORTED;
+      }
+
+      /* Set new clock divider */
+      MCI_Set_ClockDivider(mci, clkdiv);
+
+      /* Calculate actual clock (in bps) */
+      bps = mci->info->ker_clk / MCI_Get_ClockDivider(mci);
+
+      /* Bus speed configured */
+      mci->info->flags |= MCI_SETUP;
       return ((int32_t)bps);
 
     case ARM_MCI_BUS_SPEED_MODE:
