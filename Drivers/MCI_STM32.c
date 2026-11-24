@@ -906,7 +906,7 @@ static int32_t SendCommand (uint32_t cmd, uint32_t arg, uint32_t flags, uint32_t
   }
 
   mci->info->response = response;
-  mci->info->flags   &= ~(MCI_RESP_CRC | MCI_RESP_LONG);
+  mci->info->flags   &= ~(MCI_RESP_CRC | MCI_RESP_LONG | MCI_DATA_XFER);
 
   switch (flags & ARM_MCI_RESPONSE_Msk) {
     case ARM_MCI_RESPONSE_NONE:
