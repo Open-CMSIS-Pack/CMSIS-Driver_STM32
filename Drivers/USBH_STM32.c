@@ -995,7 +995,7 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
   (void)hub_port;
 
   if (ptr_ro_info->ptr_rw_info->drv_status.powered == 0U) {
-    return ARM_DRIVER_ERROR;
+    return 0U;
   }
 
   // Find free channel
@@ -1008,7 +1008,7 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
   }
 
   if (ch == 0xFFU) {                    // If no free channel(s) available
-    return ARM_DRIVER_ERROR;
+    return 0U;
   }
 
   dev_speed_hal = HCD_DEVICE_SPEED_FULL;
@@ -1028,7 +1028,7 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
 
   // Initialize channel used for new pipe
   if (HAL_HCD_HC_Init(ptr_ro_info->ptr_hhcd, ch, ep_addr, dev_addr, dev_speed_hal, ep_type, ep_max_packet_size) != HAL_OK) {
-    return ARM_DRIVER_ERROR;
+    return 0U;
   }
 
   // Reset internal structure toggle values because HAL does not support resetting toggle bits
