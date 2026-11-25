@@ -1302,7 +1302,7 @@ static int32_t I2Cn_Control (const RO_Info_t * const ptr_ro_info, uint32_t contr
 
         // Wait until abort operation completes
         for (i = 0U; i < I2C_XFER_ABORT_TIMEOUT; i++) {
-          if (ptr_ro_info->ptr_rw_info->xfer_abort == 0U) {
+          if (ptr_ro_info->ptr_rw_info->xfer_abort != 0U) {
             // If abort finished, exit the loop => success
             break;
           }
