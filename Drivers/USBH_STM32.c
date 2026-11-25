@@ -1441,7 +1441,9 @@ void HAL_HCD_SOF_Callback (HCD_HandleTypeDef *hhcd) {
   // Signal RESET finished on first generated SOF after reset
   if (ptr_ro_info->ptr_rw_info->port_reset_active == 1U) {
     ptr_ro_info->ptr_rw_info->port_reset_active = 0U;
-    ptr_ro_info->ptr_rw_info->cb_port_event(0U, ARM_USBH_EVENT_RESET);
+    if (ptr_ro_info->ptr_rw_info->cb_port_event != NULL) {
+      ptr_ro_info->ptr_rw_info->cb_port_event(0U, ARM_USBH_EVENT_RESET);
+    }
   }
 
   if (ptr_ro_info->ptr_rw_info->periodic_pipes_exist != 0U) {
