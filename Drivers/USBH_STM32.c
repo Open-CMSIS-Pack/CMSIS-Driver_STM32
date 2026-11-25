@@ -1063,7 +1063,8 @@ static ARM_USBH_PIPE_HANDLE USBHn_PipeCreate (const RO_Info_t * const ptr_ro_inf
       // Mark pipe as periodic pipe
       ptr_ro_info->ptr_rw_info->ch_info[ch].periodic = 1U;
 
-      if (dev_speed == ARM_USB_SPEED_HIGH) {
+      if ((dev_speed == ARM_USB_SPEED_HIGH) ||
+          ((dev_speed == ARM_USB_SPEED_FULL) && (ep_type == ARM_USB_ENDPOINT_ISOCHRONOUS))) {
         if ((ep_interval > 0U) && (ep_interval <= 16U)) {
           ptr_ro_info->ptr_rw_info->ch_info[ch].interval = (uint16_t)(1U << (ep_interval - 1U));
         }
