@@ -960,6 +960,7 @@ static int32_t SendCommand (uint32_t cmd, uint32_t arg, uint32_t flags, uint32_t
   \return        \ref execution_status
 */
 static int32_t SetupTransfer (uint8_t *data, uint32_t block_count, uint32_t block_size, uint32_t mode, MCI_RESOURCES *mci) {
+  int32_t  ret;
   uint32_t xfer_flags;
 
   if ((data == NULL) || (block_count == 0U) || (block_size == 0U)) {
@@ -997,7 +998,10 @@ static int32_t SetupTransfer (uint8_t *data, uint32_t block_count, uint32_t bloc
     xfer_flags |= MCI_DTRANSFER_MODE_BLOCK;
   }
 
-  MCI_Setup_DTransfer(mci, data, block_count, block_size);
+  ret = MCI_Setup_DTransfer(mci, data, block_count, block_size);
+  if (ret != ARM_DRIVER_OK) {
+    return ret;
+  }
 
   mci->info->xfer_flags = xfer_flags;
 
