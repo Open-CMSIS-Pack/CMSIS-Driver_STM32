@@ -530,6 +530,7 @@ static int32_t ETH_MAC_PowerControl (ARM_POWER_STATE state) {
       eth_mac0_rw_info.tx.length      = 0U;
       eth_mac0_rw_info.tx.write_idx   = 0U;
       eth_mac0_rw_info.tx.consume_idx = 0U;
+      memset(eth_mac0_rw_info.tx.owner, TX_BUF_OWNER_APP, sizeof(eth_mac0_rw_info.tx.owner));
 
       // Set driver status to powered
       eth_mac0_rw_info.drv_status.powered = 1U;
