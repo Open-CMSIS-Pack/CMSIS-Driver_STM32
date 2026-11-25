@@ -377,6 +377,13 @@ typedef struct {
 /* Maximum Data Block Size */
 #define MCI_MAX_BLOCK_SIZE              (16384U)
 
+/* Maximum effective clock divider */
+#if defined(MCI_SDMMC_V1)
+  #define MCI_MAX_CLOCK_DIVIDER         (SDMMC_CLKCR_CLKDIV + 2U)
+#else
+  #define MCI_MAX_CLOCK_DIVIDER         (SDMMC_CLKCR_CLKDIV * 2U)
+#endif
+
 #if defined(MCI_DMA_EXT)
 /**
   \brief Common DMA receive complete callback
@@ -484,7 +491,9 @@ __STATIC_INLINE void MCI_Set_ClockDivider (MCI_RESOURCES *mci, uint32_t divider)
     }
     mci->reg->CLKCR = (mci->reg->CLKCR & ~(SDMMC_CLKCR_BYPASS | SDMMC_CLKCR_CLKDIV)) | bypass | divider;
   #else
-    mci->reg->CLKCR = (mci->reg->CLKCR & ~SDMMC_CLKCR_CLKDIV) | ((divider) >> 1U);
+    /* Encode bypass as zero. Round other dividers up to the next even value. */
+    divider = (divider > 1U) ? ((divider + 1U) >> 1U) : 0U;
+    mci->reg->CLKCR = (mci->reg->CLKCR & ~SDMMC_CLKCR_CLKDIV) | divider;
   #endif
 }
 
@@ -503,7 +512,7 @@ __STATIC_INLINE uint32_t MCI_Get_ClockDivider (MCI_RESOURCES *mci) {
       divider = ((clkcr & SDMMC_CLKCR_CLKDIV) + 2U);
     }
   #else
-    divider = (mci->reg->CLKCR & 0x3FFU) << 1U;
+    divider = (mci->reg->CLKCR & SDMMC_CLKCR_CLKDIV) << 1U;
 
     if (divider == 0U) {
       divider = 1U;

@@ -227,6 +227,9 @@ typedef struct {
 /* Maximum Data Block Size */
 #define MCI_MAX_BLOCK_SIZE              (16384U)
 
+/* Maximum effective clock divider */
+#define MCI_MAX_CLOCK_DIVIDER           (SDIO_CLKCR_CLKDIV + 2U)
+
 
 static MCI_RESOURCES *arg;
 
