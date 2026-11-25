@@ -722,7 +722,7 @@ static int32_t PowerControl (ARM_POWER_STATE state, MCI_RESOURCES *mci) {
       mci->info->status.sdio_interrupt   = 0U;
       mci->info->status.ccs              = 0U;
 
-      mci->info->flags &= ~MCI_POWER;
+      mci->info->flags &= ~(MCI_POWER | MCI_SETUP);
       break;
 
     case ARM_POWER_FULL:
