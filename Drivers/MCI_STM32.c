@@ -971,7 +971,9 @@ static int32_t SetupTransfer (uint8_t *data, uint32_t block_count, uint32_t bloc
   if (mci->info->status.transfer_active) {
     return ARM_DRIVER_ERROR_BUSY;
   }
-  if (block_size > MCI_MAX_BLOCK_SIZE) {
+  /* The controller encodes block sizes as powers of two in block mode. */
+  if ((block_size > MCI_MAX_BLOCK_SIZE) ||
+      (((mode & ARM_MCI_TRANSFER_STREAM) == 0U) && ((block_size & (block_size - 1U)) != 0U))) {
     return ARM_DRIVER_ERROR_UNSUPPORTED;
   }
 
