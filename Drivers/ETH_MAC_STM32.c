@@ -919,11 +919,28 @@ static int32_t ETH_MAC_Control (uint32_t control, uint32_t arg) {
   switch (arg & ARM_ETH_MAC_SPEED_Msk) {                        // --- Link Speed
     case ARM_ETH_MAC_SPEED_10M:
       eth_mac0_rw_info.mac_config.Speed = ETH_SPEED_10M;
+#ifdef MAC_GBIT_ETHERNET
+      eth_mac0_rw_info.mac_config.PortSelect = ENABLE;
+#endif
       break;
 
-    case ARM_ETH_SPEED_100M:
+    case ARM_ETH_MAC_SPEED_100M:
       eth_mac0_rw_info.mac_config.Speed = ETH_SPEED_100M;
+#ifdef MAC_GBIT_ETHERNET
+      eth_mac0_rw_info.mac_config.PortSelect = ENABLE;
+#endif
       break;
+
+#ifdef MAC_GBIT_ETHERNET
+    case ARM_ETH_MAC_SPEED_1G:
+      // Gigabit operation requires RGMII.
+      if (eth_mac0_ro_info.ptr_heth->Init.MediaInterface != HAL_ETH_RGMII_MODE) {
+        return ARM_DRIVER_ERROR_UNSUPPORTED;
+      }
+      eth_mac0_rw_info.mac_config.Speed = ETH_SPEED_1000M;
+      eth_mac0_rw_info.mac_config.PortSelect = DISABLE;
+      break;
+#endif
 
     default:
       return ARM_DRIVER_ERROR_UNSUPPORTED;
