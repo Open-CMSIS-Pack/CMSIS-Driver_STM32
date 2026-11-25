@@ -13,15 +13,10 @@
   <repository type="git">https://github.com/Open-CMSIS-Pack/CMSIS-Driver_STM32.git</repository>
 
   <releases>
-    <release version="1.4.1-dev">
+    <release version="1.5.1-dev">
       Active development ...
       Ethernet MAC driver:
-       - Added support for Gigabit Ethernet
-       - Fixed an issue affecting configurations with MPU cache enabled
-      USB Device driver:
-       - Added support for devices with high-speed internal phy (STM32H5)
-      USB Host driver:
-       - Added support for devices with high-speed internal phy (STM32H5)
+       - Fixed TX buffer overflow and failed transmission recovery
     </release>
   </releases>
 
@@ -60,7 +55,7 @@
 
   <components>
     <!-- CMSIS Drivers -->
-    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.3.0" Cversion="3.5.0" condition="CMSIS Driver requirements">
+    <component Cvendor="Keil" Cclass="CMSIS Driver" Cgroup="Ethernet MAC" Capiversion="2.3.0" Cversion="3.6.0" condition="CMSIS Driver requirements">
       <description>Ethernet MAC Driver for STM32 devices</description>
       <RTE_Components_h>  <!-- the following content goes into file 'RTE_Components.h' -->
         #define RTE_Drivers_ETH_MAC0            /* Driver ETH_MAC0 */

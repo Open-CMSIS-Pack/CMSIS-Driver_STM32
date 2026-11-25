@@ -17,8 +17,8 @@
  *
  * -----------------------------------------------------------------------------
  *
- * $Date:       11. September 2026
- * $Revision:   V3.5
+ * $Date:       25. November 2026
+ * $Revision:   V3.6
  *
  * Project:     Ethernet MAC Driver for STMicroelectronics STM32 devices
  *
@@ -29,6 +29,8 @@
 
 # Revision History
 
+- Version 3.6
+  - Fixed TX buffer overflow and failed transmission recovery
 - Version 3.5
   - Added support for Gigabit Ethernet
 - Version 3.4
@@ -275,7 +277,7 @@ In older HAL versions, the DMA descriptor sections were named **RxDecripSection*
 
 // Driver Version **************************************************************
                                                 //  CMSIS Driver API version           , Driver version
-static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,5) };
+static  const ARM_DRIVER_VERSION driver_version = { ARM_DRIVER_VERSION_MAJOR_MINOR(2,3), ARM_DRIVER_VERSION_MAJOR_MINOR(3,6) };
 // *****************************************************************************
 
 // Compile-time configuration **************************************************
@@ -719,6 +721,10 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
     }
   }
 
+  if (len > (EMAC_BUF_SIZE - eth_mac0_rw_info.tx.length)) {
+    len = EMAC_BUF_SIZE - eth_mac0_rw_info.tx.length;
+  }
+
   // Copy data fragments to ETH-DMA buffer
   memcpy(eth_mac0_tx_buf[eth_mac0_rw_info.tx.write_idx].data + eth_mac0_rw_info.tx.length, frame, len);
   eth_mac0_rw_info.tx.length += len;
@@ -726,6 +732,12 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
   if ((flags & ARM_ETH_MAC_TX_FRAME_FRAGMENT) != 0U) {
     // More data to come, remember current write position
     return ARM_DRIVER_OK;
+  }
+
+  if (eth_mac0_rw_info.tx.length >= EMAC_BUF_SIZE) {
+    // Frame exceeds the maximum supported Ethernet frame size
+    eth_mac0_rw_info.tx.length = 0U;
+    return ARM_DRIVER_ERROR;
   }
 
   eth_mac0_rw_info.tx.owner[eth_mac0_rw_info.tx.write_idx] = TX_BUF_OWNER_DMA;
@@ -739,6 +751,9 @@ static int32_t ETH_MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t f
   eth_mac0_ro_info.ptr_TxConfig->Length   = tx_buf.len;
 
   if (HAL_ETH_Transmit_IT(eth_mac0_ro_info.ptr_heth, eth_mac0_ro_info.ptr_TxConfig) != HAL_OK) {
+    // Failed submission leaves the buffer available for a new frame
+    eth_mac0_rw_info.tx.owner[eth_mac0_rw_info.tx.write_idx] = TX_BUF_OWNER_APP;
+    eth_mac0_rw_info.tx.length = 0U;
     return ARM_DRIVER_ERROR;
   }
 
